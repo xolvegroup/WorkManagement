@@ -1,0 +1,36 @@
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" menu-image="fa fa-flash" menu-image-type="icon">
+
+    <actions>
+        <entity-find entity-name="moqui.security.user.NotificationMessageByUser" list="notificationList">
+            <search-form-inputs default-order-by="-sentDate"/>
+            <econdition field-name="userId" from="ec.user.userId"/>
+            <econdition field-name="viewedDate" from="null" ignore="showViewed == 'true'"/>
+        </entity-find>
+    </actions>
+    <widgets>
+        <container-row>
+            <row-col lg="6">
+                <container-box>
+                    <box-header title="Inbox"/>
+                    <box-body-nopad>
+                        <form-list name="NotificationList" list="notificationList" skip-header="true" paginate="false">
+                            <field name="titleText">
+                                <conditional-field condition="linkText"><link url="${linkText}" text="${titleText}" link-type="anchor" style="${typeString ? 'text-' + typeString : ''}"/></conditional-field>
+                                <default-field><label text="${titleText}" style="${typeString ? 'text-' + typeString : ''}"/></default-field>
+                            </field>
+                        </form-list>
+                    </box-body-nopad>
+                </container-box>
+            </row-col>
+            <row-col lg="6">
+                <container-box>
+                    <box-header title="Detail Column"/>
+                    <box-body-nopad>
+                        <label text="Click on something on the left and the detail will show here. Each side will scroll independently."/>
+                    </box-body-nopad>
+                </container-box>
+            </row-col>
+        </container-row>
+    </widgets>
+</screen>

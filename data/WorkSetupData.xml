@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<entity-facade-xml type="seed-initial">
+    <!-- Work Management App -->
+    <moqui.security.ArtifactGroup artifactGroupId="WORK" description="Work Management"/>
+    <moqui.security.ArtifactGroupMember artifactGroupId="WORK" artifactName="component://WorkManagement/screen/Work.xml"
+                                        artifactTypeEnumId="AT_XML_SCREEN" inheritAuthz="Y"/>
+    <!-- authz/permission for ADMIN users -->
+    <moqui.security.ArtifactAuthz artifactAuthzId="WORK" userGroupId="ADMIN" artifactGroupId="WORK"
+                                  authzTypeEnumId="AUTHZT_ALWAYS" authzActionEnumId="AUTHZA_ALL"/>
+</entity-facade-xml>
