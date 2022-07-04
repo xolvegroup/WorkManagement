@@ -15,7 +15,8 @@ along with this software (see the LICENSE.md file). If not, see
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd">
 
-    <!--<parameter name="selectedWorkEffortId"/>-->
+    <!-- This parameter causes the left side to only show the task that was updated -->
+    <parameter name="workEffortId"/>
 
     <transition name="createTask">
         <!-- TODO: Change this to default in the dialog but allow user to change assign to -->
@@ -31,6 +32,7 @@ along with this software (see the LICENSE.md file). If not, see
             <econdition field-name="partyId" from="ec.user.userAccount.partyId"/>
             <econdition field-name="statusId" operator="not-in" value="WeClosed,WeCancelled" ignore="statusId"/>
             <econdition field-name="partyStatusId" operator="in" value="WeptAssigned,WeptArrived"/>
+            <econdition field-name="workEffortId" ignore="true"/>
         </entity-find>
     </actions>
 
