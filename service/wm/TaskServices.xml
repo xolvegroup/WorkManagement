@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
+    <!-- Wrapper service to update task and manage assignee and collaborators -->
+    <service verb="update" noun="Task">
+        <in-parameters>
+            <parameter name="workEffortId" required="true"/>
+            <parameter name="workEffortName"/>
+            <parameter name="estimatedCompletionDate"/>
+            <parameter name="description" allow-html="safe"/>
+            <!-- Parties -->
+            <parameter name="currentAssigneePartyId"/>
+            <parameter name="curAssigneePartyId"/>
+            <parameter name="newAssigneePartyId"/>
+        </in-parameters>
+        <actions>
+            <!-- Update task -->
+            <service-call name="update#mantle.work.effort.WorkEffort" out-map="context" in-map="context"/>
+            <!-- If no assignee then unassign from current assignee (user cleared assignee field) -->
+            <if condition="!newAssigneePartyId">
+                <service-call name="mantle.work.WorkEffortServices.remove#WorkEffortParty"
+                              in-map="[workEffortId:workEffortId, roleTypeId:'Assignee', partyId:curAssigneePartyId]"/>
+            </if>
+            <!-- Update assignee if current and new are different, if they are the same do nothing (user did not change assignee) -->
+            <if condition="newAssigneePartyId &amp;&amp; curAssigneePartyId != newAssigneePartyId">
+                <service-call name="mantle.work.WorkEffortServices.replace#WorkEffortParty"
+                              in-map="[workEffortId:workEffortId, roleTypeId:'Assignee', newPartyId:newAssigneePartyId, statusId:'WeptAssigned']"/>
+            </if>
+        </actions>
+    </service>
+</services>
