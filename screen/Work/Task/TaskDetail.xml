@@ -45,8 +45,7 @@
             <econdition field-name="workEffortId"/><order-by field-name="entryDate"/></entity-find>
     </actions>
     <widgets>
-        <label text="Select a task or create a new one" condition="!workEffortId"/>
-        <label text="Assignee: ${curAssigneePartyId}"/>
+        <label text="Select a task or create a new one" type="strong" condition="!workEffortId"/>
         <section name="TaskDetailSection" condition="workEffortId">
             <widgets>
         <container-box><box-header/>
@@ -101,7 +100,7 @@
                 <container-dialog id="AddCommentDialog" button-text="Add Comment">
                     <form-single name="AddCommentForm" transition="addComment" background-submit="true" background-reload-id="TaskDetailContainer">
                         <field name="workEffortId"><default-field><hidden/></default-field></field>
-                        <field name="body"><default-field title="Comment"><text-area rows="10"/></default-field></field>
+                        <field name="body"><default-field title="Comment"><text-area editor-type="ckhtml" rows="10"/></default-field></field>
                         <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
                     </form-single>
                 </container-dialog>

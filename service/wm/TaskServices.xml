@@ -14,6 +14,28 @@ along with this software (see the LICENSE.md file). If not, see
 -->
 <services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
     <!-- Wrapper service to update task and manage assignee and collaborators -->
+    <service verb="create" noun="Task">
+        <in-parameters>
+            <parameter name="workEffortName"/>
+            <parameter name="estimatedCompletionDate"/>
+            <parameter name="description" allow-html="safe"/>
+            <parameter name="purposeEnumId" default-value="WepTask"/>
+            <!--<parameter name="statusId" default-value="WeApproved"/>-->
+            <parameter name="workEffortTypeEnumId" default-value="WetTask"/>
+            <parameter name="statusId" default-value="WeInPlanning"/>
+            <!-- Parties -->
+            <parameter name="assigneePartyId"/>
+        </in-parameters>
+        <actions>
+            <!-- Create task -->
+            <service-call name="create#mantle.work.effort.WorkEffort" out-map="context" in-map="context"/>
+            <!-- Add assignee -->
+            <if condition="assigneePartyId">
+                <service-call name="mantle.work.WorkEffortServices.add#WorkEffortParty"
+                              in-map="[workEffortId:workEffortId, roleTypeId:'Assignee', partyId:assigneePartyId]"/>
+            </if>
+        </actions>
+    </service>
     <service verb="update" noun="Task">
         <in-parameters>
             <parameter name="workEffortId" required="true"/>
@@ -21,7 +43,6 @@ along with this software (see the LICENSE.md file). If not, see
             <parameter name="estimatedCompletionDate"/>
             <parameter name="description" allow-html="safe"/>
             <!-- Parties -->
-            <parameter name="currentAssigneePartyId"/>
             <parameter name="curAssigneePartyId"/>
             <parameter name="newAssigneePartyId"/>
         </in-parameters>
@@ -29,7 +50,7 @@ along with this software (see the LICENSE.md file). If not, see
             <!-- Update task -->
             <service-call name="update#mantle.work.effort.WorkEffort" out-map="context" in-map="context"/>
             <!-- If no assignee then unassign from current assignee (user cleared assignee field) -->
-            <if condition="!newAssigneePartyId">
+            <if condition="!newAssigneePartyId &amp;&amp; curAssigneePartyId">
                 <service-call name="mantle.work.WorkEffortServices.remove#WorkEffortParty"
                               in-map="[workEffortId:workEffortId, roleTypeId:'Assignee', partyId:curAssigneePartyId]"/>
             </if>
