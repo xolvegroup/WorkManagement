@@ -49,33 +49,17 @@
         <section name="TaskDetailSection" condition="workEffortId">
             <widgets>
         <container-box><box-header/>
-            <!--<box-header title="${workEffort?.workEffortName ?: 'Please Select a Task'}"/>-->
+            <!-- Replaced with drop down for status in form
             <box-toolbar>
                 <section-include name="StatusChangeSection" location="component://SimpleScreens/template/basic/StatusWidgets.xml"/>
             </box-toolbar>
+            -->
             <box-body height="75vh">
                 <form-single name="TaskDetailForm" transition="updateTask" map="workEffort" background-submit="true" background-reload-id="TaskDetailContainer">
                     <field name="workEffortId"><default-field><hidden/></default-field></field>
                     <field name="workEffortName"><default-field title="Name"><text-line size="40"/></default-field></field>
-                    <!-- TODO: get list of users in system to assign tasks. This example is from FindTask in HM. not exactly what I want.
-                    <field name="partyId"><default-field title="Assigned To">
-                        <drop-down allow-multiple="true">
-                            <dynamic-options transition="getProjectParties" value-field="partyId" label-field="name"
-                                             depends-optional="true" server-search="true" min-length="0" parameter-map="[addOptional:'false']">
-                                <depends-on field="rootWorkEffortId"/></dynamic-options>
-                        </drop-down>
-                    </default-field></field>
-                    -->
-                    <!-- Maybe a better example. Need to default to current assigned user and be able to change from list of users in system.
-                    <field name="assignToPartyId"><default-field title="Assign To">
-                        <drop-down no-current-selected-key="${ec.user.userAccount.partyId}" allow-empty="true">
-                            <dynamic-options transition="getProjectParties" value-field="partyId" label-field="name"
-                                    depends-optional="true" server-search="true" min-length="0" parameter-map="[addOptional:'false']">
-                                <depends-on field="rootWorkEffortId"/></dynamic-options>
-                        </drop-down>
-                    </default-field></field>
-                    -->
                     <field name="curAssigneePartyId"><default-field><hidden/></default-field></field>
+                    <!-- Set new assignee to current so when the update service is called it can evaluate if the assignee changed -->
                     <field name="newAssigneePartyId" from="curAssigneePartyId"><default-field title="Assigned To">
                         <drop-down allow-empty="true"><entity-options text="PartyNameOnlyTemplate">
                             <entity-find entity-name="mantle.party.PersonWithUserAccount">
@@ -84,16 +68,33 @@
                         </entity-options></drop-down></default-field>
                     </field>
                     <field name="estimatedCompletionDate"><default-field title="Due Date"><date-time type="date" format="yyyy-MM-dd"/></default-field></field>
+                    <field name="statusId"><default-field title="Status">
+                        <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#statusTransitionWithFlowDropDown">
+                            <set field="currentDescription" from="workEffort?.'WorkEffort#moqui.basic.StatusItem'?.description"/>
+                            <set field="statusId" from="workEffort?.statusId"/></widget-template-include>
+                    </default-field></field>
                     <field name="description"><default-field title="Description"><text-area editor-type="ckhtml" rows="10" cols="60"/></default-field></field>
                     <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
-                    <!-- Not necessary unless more fields are added in the future and need to be aligned in the same row.
+                    <!-- Not necessary unless more fields are added in the future and need to be aligned in the same row. -->
                     <field-layout>
+                        <field-col-row>
+                            <field-col lg="12"><field-ref name="workEffortName"/></field-col>
+                        </field-col-row>
+                        <field-col-row>
+                            <field-col lg="4"><field-ref name="newAssigneePartyId"/></field-col>
+                            <field-col lg="4"><field-ref name="statusId"/></field-col>
+                            <field-col lg="4"><field-ref name="estimatedCompletionDate"/></field-col>
+                        </field-col-row>
+                        <field-ref name="description"/>
+                        <field-ref name="submitButton"/>
+                        <!--
                         <field-row-big><field-ref name="workEffortName"/></field-row-big>
                         <field-row-big><field-ref name="estimatedCompletionDate"/></field-row-big>
                         <field-row-big><field-ref name="description"/></field-row-big>
                         <field-row-big><field-ref name="submitButton"/></field-row-big>
+                        -->
                     </field-layout>
-                    -->
+
                 </form-single>
         <container-box><box-header title="Comments"/>
             <box-toolbar>

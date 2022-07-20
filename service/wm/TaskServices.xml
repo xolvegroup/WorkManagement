@@ -42,6 +42,7 @@ along with this software (see the LICENSE.md file). If not, see
             <parameter name="workEffortName"/>
             <parameter name="estimatedCompletionDate"/>
             <parameter name="description" allow-html="safe"/>
+            <parameter name="statusId"/>
             <!-- Parties -->
             <parameter name="curAssigneePartyId"/>
             <parameter name="newAssigneePartyId"/>
