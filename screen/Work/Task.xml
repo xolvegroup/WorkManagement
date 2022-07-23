@@ -31,7 +31,8 @@ along with this software (see the LICENSE.md file). If not, see
             </search-form-inputs>
             <date-filter/>
             <econdition field-name="workEffortTypeEnumId" value="WetTask"/>
-            <econdition field-name="statusId" operator="not-in" value="WeClosed,WeCancelled" or-null="true"/>
+            <econdition field-name="statusId" operator="not-in" value="WeClosed,WeCancelled"/>
+            <select-field field-name="workEffortId,workEffortName,estimatedCompletionDate"/>
             <!--
             <select-field field-name="workEffortId,partyStatusId,statusId,priority,workEffortName,description,estimatedCompletionDate"/>
             -->
@@ -69,12 +70,18 @@ along with this software (see the LICENSE.md file). If not, see
                                       id="${workEffortId}" link-type="anchor"
                                       parameter-map="[selectedWorkEffortId:workEffortId]"/></default-field></field>
                                       -->
-                            <field name="partyId"><header-field title="Assignee">
+                            <field name="partyId"><header-field title="User">
                                 <drop-down allow-empty="true"><entity-options text="PartyNameOnlyTemplate">
                                     <entity-find entity-name="mantle.party.PersonWithUserAccount">
                                         <order-by field-name="lastName"/>
                                     </entity-find>
                                 </entity-options></drop-down>
+                            </header-field></field>
+                            <field name="roleTypeId"><header-field title="Role">
+                                <drop-down allow-empty="true">
+                                    <option key="Assignee" text="Assignee"/>
+                                    <option key="Collaborator" text="Collaborator"/>
+                                </drop-down>
                             </header-field></field>
                             <field name="workEffortName"><header-field title="Name" show-order-by="true"><text-find/></header-field>
                             <default-field><link dynamic-load-id="TaskDetailContainer" text="${workEffortName}" url="taskDetail"
