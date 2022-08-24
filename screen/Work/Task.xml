@@ -21,21 +21,18 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="."/>
     </transition>
     <transition name="taskDetail"><default-response url="TaskDetail"/></transition>
+    <transition-include name="getUserProjectList" location="component://SimpleScreens/template/work/WorkTransitions.xml"/>
 
     <actions>
         <entity-find entity-name="mantle.work.effort.WorkEffortAndParty" list="taskList" distinct="true">
             <search-form-inputs default-order-by="estimatedCompletionDate">
-                <!-- TODO: default to current user with the ability to search for other assignees or clear it and search all tasks
-                <default-parameters partyId="${ec.user.userAccount.partyId}"/>
-                -->
+                <!-- TODO: default to current user with the ability to search for other assignees or clear it and search all tasks -->
+                <!--<default-parameters partyId="${ec.user.userAccount.partyId}"/>-->
             </search-form-inputs>
             <date-filter/>
             <econdition field-name="workEffortTypeEnumId" value="WetTask"/>
             <econdition field-name="statusId" operator="not-in" value="WeClosed,WeCancelled"/>
-            <select-field field-name="workEffortId,workEffortName,estimatedCompletionDate"/>
-            <!--
-            <select-field field-name="workEffortId,partyStatusId,statusId,priority,workEffortName,description,estimatedCompletionDate"/>
-            -->
+            <select-field field-name="rootWorkEffortId,workEffortId,workEffortName,estimatedCompletionDate"/>
         </entity-find>
     </actions>
 
@@ -47,6 +44,8 @@ along with this software (see the LICENSE.md file). If not, see
                     <container-dialog id="NewTaskContainer" button-text="New Task">
                         <form-single name="NewTaskForm" transition="createTask">
                             <field name="workEffortName"><default-field title="Task Name"><text-line/></default-field></field>
+                            <field name="rootWorkEffortId"><default-field title="Project"><drop-down allow-empty="true">
+                                <dynamic-options transition="getUserProjectList" server-search="true" min-length="0"/></drop-down></default-field></field>
                             <field name="assigneePartyId"><default-field title="Assigned To">
                                 <drop-down allow-empty="true"><entity-options text="PartyNameOnlyTemplate">
                                     <entity-find entity-name="mantle.party.PersonWithUserAccount">
@@ -83,8 +82,8 @@ along with this software (see the LICENSE.md file). If not, see
                                     <option key="Collaborator" text="Collaborator"/>
                                 </drop-down>
                             </header-field></field>
-                            <field name="workEffortName"><header-field title="Name" show-order-by="true"><text-find/></header-field>
-                            <default-field><link dynamic-load-id="TaskDetailContainer" text="${workEffortName}" url="taskDetail"
+                            <field name="workEffortName"><header-field title="Task" show-order-by="true"><text-find/></header-field>
+                            <default-field><link dynamic-load-id="TaskDetailContainer" text="WorkEffortNameTemplate" url="taskDetail"
                                                  id="${workEffortId}" link-type="anchor">
                                 <parameter name="workEffortId" />
                             </link></default-field></field>
@@ -93,6 +92,11 @@ along with this software (see the LICENSE.md file). If not, see
                                 <display-entity entity-name="moqui.basic.StatusItem"/></default-field></field>
                             <field name="priority"><header-field title="Priority" show-order-by="true"/><default-field/></field>
                             -->
+                            <field name="rootWorkEffortId"><header-field title="Project">
+                                <drop-down allow-empty="true">
+                                    <dynamic-options transition="getUserProjectList" server-search="true" min-length="0"/></drop-down>
+                            </header-field><default-field><display-entity entity-name="mantle.work.effort.WorkEffort" text="WorkEffortNameTemplate"/>
+                            </default-field></field>
                             <field name="estimatedCompletionDate"><header-field title="Due" show-order-by="true"><date-find type="date"/></header-field>
                                 <default-field><display format="yyyy-MM-dd"/></default-field></field>
                             <field name="submitButton"><header-field title="Find"><submit/></header-field></field>
