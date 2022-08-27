@@ -64,15 +64,15 @@
                   :columns="[
                                     {
                                       name: 'title-text',
-                                      field: 'titleText',
+                                      field: 'workEffortName',
                                       required: true,
                                       label: 'Title',
                                       align: 'left',
                                       sortable: true,
                                       style: 'width: 750px',
                                     },
-                                    { name: 'status', align: 'left', label: 'Status', field: 'status', sortable: true },
-                                    { name: 'project', align: 'center', label: 'Project', field: 'project', sortable: true }
+                                    { name: 'status', align: 'left', label: 'Status', field: 'statusId', sortable: true },
+                                    { name: 'duedate', align: 'left', label: 'Due', field: 'estimatedCompletionDate', sortable: true }
                                   ]"
                   row-key="notificationMessageId"
                   separator="cell"
@@ -84,7 +84,7 @@
                 <template v-slot:body-cell-title-text="props">
                           <q-td @click="selectTask(props.row)" class="cursor-pointer" :props="props">
                             <span><q-icon name="check_circle_outline" class="cursor-pointer text-grey" style="font-size: 22px;" /></span>
-                            <span>{{props.row.titleText}}</span>
+                            <span>{{props.row.workEffortName}}</span>
                           </q-td>
                         </template>
                     <template v-slot:body-cell-project="props">
@@ -105,6 +105,11 @@
                               round
                             > N/A
                             </q-chip>
+                          </q-td>
+                        </template>
+                    <template v-slot:body-cell-duedate="props">
+                          <q-td :props="props">
+                            {{formatDate(props.row.estimatedCompletionDate)}}
                           </q-td>
                         </template>
                 </q-table>
@@ -132,53 +137,40 @@
                           </q-item>
                         </q-list>
                         <div class="q-pa-md">
-                          <div v-if="selected_task.messageJson" class="text-weight-bold text-h6">{{selected_task.messageJson.name}}</div>
+                          <div class="text-weight-bold text-h6">{{selected_task.workEffortName}}</div>
                           <div class="row text-grey-8 q-mt-sm">
                             <div class="col-3">
                               Assignee
                             </div>
                             <div class="col-9">
-                              Mayank Patel
-                            </div>
-                          </div>
-                          <div class="row text-grey-8 q-mt-sm">
-                            <div class="col-3">
-                              Due date
-                            </div>
-                            <div class="col-9">
-                              -- --
-                            </div>
-                          </div>
-                          <div class="row text-grey-8 q-mt-sm">
-                            <div class="col-3">
-                              Purpose
-                            </div>
-                            <div v-if="selected_task.messageJson" class="col-9">
-                              {{selected_task.messageJson.purpose}}
-                            </div>
-                          </div>
-                          <div class="row text-grey-8 q-mt-sm">
-                            <div class="col-3">
-                              Status
-                            </div>
-                            <div v-if="selected_task.messageJson" class="col-9">
-                              {{selected_task.messageJson.status}}
-                            </div>
-                          </div>
-                          <div class="row text-grey-8 q-mt-sm">
-                            <div class="col-3">
-                              Resolution
-                            </div>
-                            <div v-if="selected_task.messageJson" class="col-9">
-                              {{selected_task.messageJson.resolution}}
+                              <q-select
+                                    dense
+                                      outlined
+                                      v-model="assignee"
+                                      use-input
+                                      input-debounce="0"
+                                      option-value="userId"
+                                      option-label="userFullName"
+                                      :options="assignee_options"
+                                      @filter="filterFn"
+                                      style="width: 200px"
+                                    >
+                                      <template v-slot:no-option>
+                                        <q-item>
+                                          <q-item-section class="text-grey">
+                                            No results
+                                          </q-item-section>
+                                        </q-item>
+                                      </template>
+                                    </q-select>
                             </div>
                           </div>
                           <div class="row text-grey-8 q-mt-sm">
                             <div class="col-3">
                               Description
                             </div>
-                            <div v-if="selected_task.messageJson" class="col-9">
-                                <span v-html="selected_task.messageJson.description"><span>
+                            <div class="col-9">
+                                <span v-html="selected_task.description"><span>
                             </div>
                           </div>
                         </div>
@@ -262,20 +254,41 @@ module.exports = {
         sel_task_comments: [],
         selected_task: {},
         open_task_detail: false,
-        filter: ""
+        filter: "",
+        assignee: null,
+        assignee_options_master: [],
+        assignee_options: []
     } },
     methods: {
+        formatDate(dt) {
+            if (dt) {
+                dt = new Date(dt);
+                return dt.getFullYear() + "-" + String(dt.getMonth()+1).padStart(2, '0') + "-" + String(dt.getDate()).padStart(2, '0');
+            }
+        },
+        filterFn (val, update) {
+            let self = this;
+              if (val === '') {
+                update(() => {
+                  this.assignee_options = self.assignee_options_master
+
+                  // with Quasar v1.7.4+
+                  // here you have access to "ref" which
+                  // is the Vue reference of the QSelect
+                })
+                return
+              }
+              update(() => {
+              const needle = val.toLowerCase()
+              this.assignee_options = self.assignee_options_master.filter(v => v.userFullName.toLowerCase().indexOf(needle) > -1)
+            })
+          },
         fetchAllTasks: function() {
             var vm = this;
             var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
-            $.ajax({ type:'POST', dataType:'json', url: "/apps/Work/MyTasks/getTasks", headers:{Accept:'application/json'}, data:allParms,
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/taskList", headers:{Accept:'application/json'}, data:allParms,
                 error:moqui.handleAjaxError, success:function(resp) {
-                    vm.task_list = resp.map(function(item){
-                        item.messageJson = JSON.parse(item.messageJson);
-                        item.project = item.messageJson.project;
-                        item.status = item.messageJson.status;
-                        return item;
-                    });
+                    vm.task_list = resp.taskList;
                 }
             });
         },
@@ -283,17 +296,41 @@ module.exports = {
             var vm = this;
             vm.open_task_detail=true;
             vm.selected_task=row;
+            vm.assignee = vm.assignee_options_master.find(function(item){
+                return item.userId === row.partyId;
+            });
             vm.sel_task_comments = [];
-            var allParms = $.extend({ workEffortId:row.messageJson["_id"], moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
+            var allParms = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
             $.ajax({ type:'POST', dataType:'json', url: "/apps/Work/MyTasks/getComments", headers:{Accept:'application/json'}, data:allParms,
                 error:moqui.handleAjaxError, success:function(resp) {
                     vm.sel_task_comments = resp;
+                }
+            });
+        },
+        addTask: function() {
+            var vm = this;
+            var allParms = $.extend({ moquiFormName:"NewTaskForm", workEffortName: "Testsailordgod12345!!!!!925",
+             assigneePartyId: "EX_JOHN_DOE", description: "<b>Test description.</b>", moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
+            $.ajax({ type:'POST', dataType:'json', url: "org.moqui.wm.TaskService.create", headers:{Accept:'application/json'}, data:allParms,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    vm.sel_task_comments = resp;
+                }
+            });
+        },
+        getAssigneeList: function() {
+            var vm = this;
+            var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/userList", headers:{Accept:'application/json'}, data:allParms,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    vm.assignee_options_master = resp.userList;
+                    vm.assignee_options = resp.userList;
                 }
             });
         }
     },
     mounted: function () {
         this.fetchAllTasks();
+        this.getAssigneeList();
     }
 }
 </script>
