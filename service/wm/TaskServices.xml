@@ -36,6 +36,18 @@ along with this software (see the LICENSE.md file). If not, see
             </entity-find>
         </actions>
     </service>
+    <service verb="get" noun="Statuses">
+        <out-parameters>
+            <parameter name="statusList" type="List"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="moqui.basic.StatusItem" list="statusList">
+                <econdition field-name="statusTypeId" value="WorkEffort"/>
+                <order-by field-name="sequenceNum"/>
+                <select-field field-name="statusId,description"/>
+            </entity-find>
+        </actions>
+    </service>
     <service verb="create" noun="Task">
         <in-parameters>
             <parameter name="workEffortName"/>

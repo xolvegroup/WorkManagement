@@ -1,0 +1,461 @@
+<template>
+    <div>
+    <q-drawer
+            side="right"
+            v-model="open_task_detail"
+            overlay
+            bordered
+            :width="700"
+            :breakpoint="700"
+            content-class="bg-grey-3"
+          >
+            <q-scroll-area class="fit">
+              <div class="q-pa-sm">
+                <q-layout v-if="selected_task" view="Lhh lpR fff" container class="bg-white" style="height: 85vh;">
+                                    <q-header class="bg-white text-black">
+                                      <q-toolbar>
+                                        <q-btn class="q-px-sm q-ml-sm" outline dense icon="check" label="Mark complete"></q-btn>
+                                        <q-toolbar-title></q-toolbar-title>
+                                        <q-btn flat round dense icon="menu"></q-btn>
+                                        <q-btn flat round dense icon="close" @click="open_task_detail=false"></q-btn>
+                                      </q-toolbar>
+                                    </q-header>
+
+                                    <q-page-container>
+                                      <q-page>
+                                        <q-list class="bg-grey-2" bordered>
+                                          <q-item>
+                                            <q-item-section avatar>
+                                              <q-icon color="primary" size="20px" name="lock"></q-icon>
+                                            </q-item-section>
+                                            <q-item-section> This task is private to you.</q-item-section>
+                                            <q-item-section side class="cursor-pointer">Make public</q-item-section>
+                                          </q-item>
+                                        </q-list>
+                                        <div class="q-pa-md">
+                                          <div class="text-weight-bold text-h6">{{selected_task.workEffortName}}</div>
+                                          <div class="row text-grey-8 q-mt-sm">
+                                            <div class="col-3">
+                                              Assignee
+                                            </div>
+                                            <div class="col-9">
+                                              <q-select
+                                                    dense
+                                                      outlined
+                                                      v-model="assignee"
+                                                      use-input
+                                                      input-debounce="0"
+                                                      option-value="userId"
+                                                      option-label="userFullName"
+                                                      :options="assignee_options"
+                                                      @filter="filterFn"
+                                                      style="width: 200px"
+                                                    >
+                                                      <template v-slot:no-option>
+                                                        <q-item>
+                                                          <q-item-section class="text-grey">
+                                                            No results
+                                                          </q-item-section>
+                                                        </q-item>
+                                                      </template>
+                                                    </q-select>
+                                            </div>
+                                          </div>
+                                          <div class="row text-grey-8 q-mt-sm">
+                                              <div class="col-3">
+                                                Status
+                                              </div>
+                                              <div class="col-9">
+                                                <q-select
+                                                      dense
+                                                        outlined
+                                                        v-model="status"
+                                                        use-input
+                                                        input-debounce="0"
+                                                        option-value="statusId"
+                                                        option-label="description"
+                                                        :options="status_options"
+                                                        @filter="filterFnStatus"
+                                                        style="width: 200px"
+                                                      >
+                                                        <template v-slot:no-option>
+                                                          <q-item>
+                                                            <q-item-section class="text-grey">
+                                                              No results
+                                                            </q-item-section>
+                                                          </q-item>
+                                                        </template>
+                                                      </q-select>
+                                              </div>
+                                            </div>
+                                          <div class="row text-grey-8 q-mt-sm">
+                                            <div class="col-3">
+                                              Description
+                                            </div>
+                                            <div class="col-9">
+                                                <span v-html="selected_task.description"><span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div v-if="sel_task_comments.length > 0">
+                                            <q-list separator bordered>
+                                              <q-item v-for="comment in sel_task_comments" class="q-my-sm">
+                                                <q-item-section avatar>
+                                                  <q-avatar color="primary" text-color="white">
+                                                    MP
+                                                  </q-avatar>
+                                                </q-item-section>
+
+                                                <q-item-section>
+                                                  <q-item-label class="text-subtitle1">Mayank Patel <span
+                                                    class="q-pl-sm text-caption text-grey-8">25 minutes ago</span></q-item-label>
+                                                  <q-item-label class="q-pt-sm" caption><span class="text-weight-medium" v-html="comment.body"></span>
+                                                  <span class="q-pl-sm text-caption text-grey-8">25 minutes ago</span></q-item-label>
+                                                </q-item-section>
+
+                                              </q-item>
+                                              </q-list>
+                                        </div>
+                                      </q-page>
+                                    </q-page-container>
+                                <q-footer class="bg-grey-2 text-black">
+                                      <div>
+                                        <q-list separator bordered>
+                                          <q-item class="q-my-sm">
+                                            <q-item-section avatar>
+                                              <q-avatar color="primary" text-color="white">
+                                                MP
+                                              </q-avatar>
+                                            </q-item-section>
+                                            <q-item-section>
+                                              <q-input
+                                                style="width: 100%"
+                                                outlined
+                                                rows="3"
+                                                type="textarea"
+                                                label="Add the comment..."
+                                              />
+                                            </q-item-section>
+                                          </q-item>
+
+                                          <q-item>
+                                            <q-item-section avatar>
+
+                                            </q-item-section>
+                                            <q-item-section>
+                                              <div class="q-gutter-sm">
+                                                <span class="text-caption text-grey-8 q-pt-sm q-mt-sm">Collaborators</span>
+                                                <q-avatar size="24px" color="primary" text-color="white">
+                                                  MP
+                                                </q-avatar>
+                                                <q-avatar style="border: 1px dashed;" size="24px" color="white" text-color="black" icon="person">
+                                                </q-avatar>
+                                                <q-avatar style="border: 1px dashed;" size="24px" color="white" text-color="black" icon="person">
+                                                </q-avatar>
+                                                <q-icon name="add" class="text-weight-bold"></q-icon>
+                                              </div>
+                                            </q-item-section>
+                                            <q-item-section side class="cursor-pointer">
+                                              <div class="cursor-pointer">
+                                                <q-icon name="notifications" size="20px" class="text-weight-bold q-pr-xs"></q-icon>
+                                                <span class="text-weight-bold">Leave task</span>
+                                              </div>
+                                            </q-item-section>
+                                          </q-item>
+                                        </q-list>
+                                      </div>
+                                    </q-footer>
+                                  </q-layout>
+              </div>
+            </q-scroll-area>
+          </q-drawer>
+        <q-item>
+              <q-item-section side>
+                <q-avatar size="49px" color="primary" text-color="white">
+                                                MP
+                                              </q-avatar>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label class="text-h5">Mayank Patel <q-icon name="keyboard_arrow_down" class="cursor-pointer text-grey" style="font-size: 22px;" /></q-item-label>
+                <q-item-label caption>
+                </q-item-label>
+              </q-item-section>
+              <q-item-section side>
+                <q-input v-model="filter" dense rounded outlined>
+                <template v-slot:prepend>
+                                          <q-icon name="search" />
+                                        </template>
+                                        </q-input>
+              </q-item-section>
+            </q-item>
+            <q-btn-dropdown
+            class="custom_btn_dropdown q-my-xs q-ml-sm"
+            dense
+                  split
+                  color="primary"
+                  no-caps
+                  icon="add"
+                  label="Add Task"
+                >
+                  <q-list>
+                    <q-item clickable v-close-popup>
+                      <q-item-section avatar>
+                        <q-avatar icon="folder" color="primary" text-color="white"></q-avatar>
+                      </q-item-section>
+                      <q-item-section>
+                        <q-item-label>Photos</q-item-label>
+                        <q-item-label caption>February 22, 2016</q-item-label>
+                      </q-item-section>
+                      <q-item-section side>
+                        <q-icon name="info" color="amber"></q-icon>
+                      </q-item-section>
+                    </q-item>
+
+                    <q-item clickable v-close-popup>
+                      <q-item-section avatar>
+                        <q-avatar icon="assignment" color="secondary" text-color="white"></q-avatar>
+                      </q-item-section>
+                      <q-item-section>
+                        <q-item-label>Vacation</q-item-label>
+                        <q-item-label caption>February 22, 2016</q-item-label>
+                      </q-item-section>
+                      <q-item-section side>
+                        <q-icon name="info" color="amber"></q-icon>
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-btn-dropdown>
+                <q-expansion-item
+                        default-opened
+                        switch-toggle-side
+                        flat
+                        dense
+                        label="All Tasks"
+                        header-class="text-blue text-weight-bold text-h6"
+                      >
+                        <q-card>
+                          <q-card-section style="padding-top: 0px;">
+                            <q-table
+                            bordered
+                            flat
+                                  :data="task_list"
+                                  :filter="filter"
+                                  table-header-class="custom_table_header"
+                                  :columns="table_columns"
+                                  row-key="notificationMessageId"
+                                  separator="cell"
+                                  dense
+                                  :pagination="{
+                                                       rowsPerPage: 10
+                                                     }"
+                                >
+                                <template v-slot:body-cell-title-text="props">
+                                          <q-td style="border-left: 5px solid #579bfc;padding:6px;" @click="selectTask(props.row)" class="cursor-pointer" :props="props">
+                                            <span><q-icon name="check_circle_outline" class="cursor-pointer text-grey" style="font-size: 22px;" /></span>
+                                            <span>{{props.row.workEffortName}}</span>
+                                          </q-td>
+                                        </template>
+                                    <template v-slot:body-cell-project="props">
+                                          <q-td :props="props">
+                                            <q-chip
+                                              v-if="props.row.project"
+                                              style="background-color: #e7e5e4"
+                                              text-color="black"
+                                              dense
+                                              round
+                                            ><span class="q-mr-xs" style="font-size:22px;color: #9ee7e3">●</span> {{props.row.project}}
+                                            </q-chip>
+                                            <q-chip
+                                              v-if="!props.row.project"
+                                              style="background-color: #e7e5e4"
+                                              text-color="black"
+                                              dense
+                                              round
+                                            > N/A
+                                            </q-chip>
+                                          </q-td>
+                                        </template>
+                                    <template v-slot:body-cell-duedate="props">
+                                          <q-td :props="props">
+                                            {{formatDate(props.row.estimatedCompletionDate)}}
+                                          </q-td>
+                                        </template>
+                                        <template v-slot:body-cell-person="props">
+                                          <q-td v-if="assignee_options_master.length > 0" :props="props">
+                                            {{getPersonName(props.row.partyId)}}
+                                          </q-td>
+                                        </template>
+                                        <template v-slot:body-cell-status="props">
+                                          <q-td v-if="status_options_master.length > 0" :props="props">
+                                            {{getStatusName(props.row.statusId)}}
+                                          </q-td>
+                                        </template>
+                                </q-table>
+                          </q-card-section>
+                        </q-card>
+                      </q-expansion-item>
+    </div>
+</template>
+<script>
+module.exports = {
+    data: function () {
+        return {
+            task_list: [],
+            sel_task_comments: [],
+            selected_task: {},
+            open_task_detail: false,
+            filter: "",
+            assignee: null,
+            assignee_options_master: [],
+            assignee_options: [],
+            status: null,
+            status_options_master: [],
+            status_options: [],
+            table_columns: [
+               {
+                 name: 'title-text',
+                 field: 'workEffortName',
+                 required: true,
+                 label: 'Title',
+                 align: 'left',
+                 sortable: true,
+
+               },
+               { name: 'person', align: 'left', label: 'Person',style: 'width: 225px', field: 'partyId', sortable: true },
+               { name: 'status', align: 'left', label: 'Status',style: 'width: 225px', field: 'statusId', sortable: true },
+               { name: 'duedate', align: 'left', label: 'Due',style: 'width: 225px', field: 'estimatedCompletionDate', sortable: true }
+            ]
+        }
+    },
+    methods: {
+        formatDate (dt) {
+            if (dt) {
+                dt = new Date(dt);
+                return dt.getFullYear() + "-" + String(dt.getMonth()+1).padStart(2, '0') + "-" + String(dt.getDate()).padStart(2, '0');
+            }
+        },
+        getPersonName(id) {
+            if (id) {
+                let user_full_name = this.assignee_options_master.find(function(item){
+                    return item.userId === id;
+                });
+                if (user_full_name) {
+                    return user_full_name.userFullName;
+                }
+            }
+        },
+        getStatusName(id) {
+            if (id) {
+                let status_name = this.status_options_master.find(function(item){
+                    return item.statusId === id;
+                });
+                if (status_name) {
+                    return status_name.description;
+                }
+            }
+        },
+        filterFn (val, update) {
+            let self = this;
+              if (val === '') {
+                update(() => {
+                  this.assignee_options = self.assignee_options_master
+
+                  // with Quasar v1.7.4+
+                  // here you have access to "ref" which
+                  // is the Vue reference of the QSelect
+                })
+                return
+              }
+              update(() => {
+              const needle = val.toLowerCase()
+              this.assignee_options = self.assignee_options_master.filter(v => v.userFullName.toLowerCase().indexOf(needle) > -1)
+            })
+          },
+        filterFnStatus (val, update) {
+            let self = this;
+              if (val === '') {
+                update(() => {
+                  this.status_options = self.status_options_master
+
+                  // with Quasar v1.7.4+
+                  // here you have access to "ref" which
+                  // is the Vue reference of the QSelect
+                })
+                return
+              }
+              update(() => {
+              const needle = val.toLowerCase()
+              this.status_options = self.status_options_master.filter(v => v.description.toLowerCase().indexOf(needle) > -1)
+            })
+          },
+        fetchAllTasks () {
+            var vm = this;
+            var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/tasks", headers:{Accept:'application/json'}, data:allParms,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    vm.task_list = resp.taskList;
+                }
+            });
+        },
+        selectTask (row) {
+            var vm = this;
+            vm.open_task_detail=true;
+            vm.selected_task=row;
+            vm.assignee = vm.assignee_options_master.find(function(item){
+                return item.userId === row.partyId;
+            });
+            vm.status = vm.status_options_master.find(function(item){
+                return item.statusId === row.statusId;
+            });
+            vm.sel_task_comments = [];
+            var allParms = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
+            $.ajax({ type:'POST', dataType:'json', url: "/apps/Work/MyTasks/getComments", headers:{Accept:'application/json'}, data:allParms,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    vm.sel_task_comments = resp;
+                }
+            });
+        },
+        addTask () {
+            var vm = this;
+            var allParms = $.extend({ moquiFormName:"NewTaskForm", workEffortName: "Testsailordgod12345!!!!!925 LATEST USING REST",
+             assigneePartyId: "EX_JOHN_DOE", description: "<b>Test description.</b>", moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/add_task", headers:{Accept:'application/json'}, data:allParms,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    vm.sel_task_comments = resp;
+                }
+            });
+        },
+        getAssigneeList () {
+            var vm = this;
+            var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/users", headers:{Accept:'application/json'}, data:allParms,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    vm.assignee_options_master = resp.userList;
+                    vm.assignee_options = resp.userList;
+                }
+            });
+        },
+        getStatuses () {
+            var vm = this;
+            var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/statuses", headers:{Accept:'application/json'}, data:allParms,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    vm.status_options_master = resp.statusList;
+                    vm.status_options = resp.statusList;
+                }
+            });
+        }
+    },
+    mounted: function () {
+        this.getAssigneeList();
+        this.fetchAllTasks();
+        this.getStatuses();
+        //this.addTask();
+    }
+}
+</script>
+<style>
+    .custom_table_header {
+        height: 38px !important;
+    }
+</style>
