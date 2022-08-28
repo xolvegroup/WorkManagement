@@ -13,15 +13,40 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
 <services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
-<service verb="get" noun="UserProjectList">
-    <in-parameters>
+    <service verb="get" noun="UserProjectList">
+        <in-parameters>
 
-    </in-parameters>
-    <out-parameters>
+        </in-parameters>
+        <out-parameters>
 
-    </out-parameters>
-    <actions>
-        
-    </actions>
-</service>
+        </out-parameters>
+        <actions>
+
+        </actions>
+    </service>
+    <service verb="get" noun="Projects">
+        <out-parameters>
+            <parameter name="projectList" type="List"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="WorkEffortAndParty" list="projectList" distinct="true">
+                <search-form-inputs default-order-by="workEffortId"/>
+                <econditions combine="or">
+                    <econdition field-name="visibilityEnumId" operator="in" value="WevGeneral,WevAllUsers"/>
+                    <econditions><date-filter/><econdition field-name="partyId" from="ec.user.userAccount.partyId"/></econditions>
+                </econditions>
+                <econdition field-name="workEffortTypeEnumId" value="WetProject"/>
+                <select-field field-name="workEffortId,workEffortName,priority,statusId,estimatedCompletionDate,estimatedWorkTime,actualWorkTime"/>
+                <order-by field-name="workEffortId"/>
+            </entity-find>
+        </actions>
+    </service>
+    <service verb="create" noun="Project">
+        <in-parameters>
+            <parameter name="description" allow-html="safe"/>
+        </in-parameters>
+        <actions>
+            <service-call name="mantle.work.ProjectServices.create#Project" out-map="context" in-map="context"/>
+        </actions>
+    </service>
 </services>
