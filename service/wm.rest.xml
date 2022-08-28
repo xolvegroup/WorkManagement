@@ -23,10 +23,10 @@ along with this software (see the LICENSE.md file). If not, see
     <resource name="requests" require-authentication="anonymous-all">
         <method type="post"><service name="mantle.request.RequestServices.create#Request"/></method>
     </resource>
-    <resource name="taskList" require-authentication="anonymous-view">
-        <method type="get"><service name="wm.TaskServices.get#taskList"/></method>
+    <resource name="tasks" require-authentication="anonymous-view">
+        <method type="get"><service name="wm.TaskServices.get#Tasks"/></method>
     </resource>
-    <resource name="userList" require-authentication="anonymous-view">
-        <method type="get"><service name="wm.TaskServices.get#userList"/></method>
+    <resource name="users" require-authentication="anonymous-view">
+        <method type="get"><service name="wm.TaskServices.get#Users"/></method>
     </resource>
 </resource>

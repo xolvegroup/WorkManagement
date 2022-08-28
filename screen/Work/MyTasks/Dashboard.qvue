@@ -286,7 +286,7 @@ module.exports = {
         fetchAllTasks: function() {
             var vm = this;
             var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
-            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/taskList", headers:{Accept:'application/json'}, data:allParms,
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/tasks", headers:{Accept:'application/json'}, data:allParms,
                 error:moqui.handleAjaxError, success:function(resp) {
                     vm.task_list = resp.taskList;
                 }
@@ -320,7 +320,7 @@ module.exports = {
         getAssigneeList: function() {
             var vm = this;
             var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
-            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/userList", headers:{Accept:'application/json'}, data:allParms,
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/users", headers:{Accept:'application/json'}, data:allParms,
                 error:moqui.handleAjaxError, success:function(resp) {
                     vm.assignee_options_master = resp.userList;
                     vm.assignee_options = resp.userList;
