@@ -43,10 +43,34 @@ along with this software (see the LICENSE.md file). If not, see
     </service>
     <service verb="create" noun="Project">
         <in-parameters>
+            <auto-parameters entity-name="mantle.work.effort.WorkEffort" include="nonpk"/>
+            <parameter name="workEffortName" required="true"/>
             <parameter name="description" allow-html="safe"/>
+            <parameter name="estimatedStartDate" type="Timestamp" format="yyyy-MM-dd"/>
+            <parameter name="estimatedCompletionDate" type="Timestamp" format="yyyy-MM-dd"/>
+            <parameter name="workEffortTypeEnumId" default-value="WetProject"/>
+            <parameter name="statusId" default-value="WeInPlanning"/>
+            <parameter name="assignToPartyId"/>
+            <parameter name="assignRoleTypeId" default-value="Assignee"/>
+            <parameter name="assignStatusId" default-value="WeptAssigned"/>
         </in-parameters>
+        <out-parameters><parameter name="workEffortId"/></out-parameters>
         <actions>
-            <service-call name="mantle.work.ProjectServices.create#Project" out-map="context" in-map="context"/>
+            <if condition="estimatedStartDate != null &amp;&amp; estimatedCompletionDate != null &amp;&amp;
+                           estimatedCompletionDate &lt; estimatedStartDate">
+                <return error="true" message="Project date range is not valid."/>
+            </if>
+            <service-call name="create#mantle.work.effort.WorkEffort" out-map="context" in-map="context"/>
+            <!-- always assign the user who creates the project as a manager -->
+            <if condition="ec.user.userAccount?.partyId">
+                <service-call name="create#mantle.work.effort.WorkEffortParty"
+                              in-map="[workEffortId:workEffortId, partyId:ec.user.userAccount.partyId,
+                            roleTypeId:'Manager', fromDate:ec.user.nowTimestamp, statusId:'WeptAssigned']"/>
+            </if>
+            <if condition="assignToPartyId">
+                <service-call name="create#mantle.work.effort.WorkEffortParty" in-map="[workEffortId:workEffortId, partyId:assignToPartyId,
+                        roleTypeId:assignRoleTypeId, fromDate:ec.user.nowTimestamp, statusId:assignStatusId]"/>
+            </if>
         </actions>
     </service>
 </services>
