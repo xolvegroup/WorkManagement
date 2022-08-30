@@ -46,7 +46,7 @@ along with this software (see the LICENSE.md file). If not, see
                             <field name="workEffortName"><default-field title="Task Name"><text-line/></default-field></field>
                             <field name="rootWorkEffortId"><default-field title="Project"><drop-down allow-empty="true">
                                 <dynamic-options transition="getUserProjectList" server-search="true" min-length="0"/></drop-down></default-field></field>
-                            <field name="assigneePartyId"><default-field title="Assigned To">
+                            <field name="assignToPartyId"><default-field title="Assigned To">
                                 <drop-down allow-empty="true"><entity-options text="PartyNameOnlyTemplate">
                                     <entity-find entity-name="mantle.party.PersonWithUserAccount">
                                         <order-by field-name="lastName"/>

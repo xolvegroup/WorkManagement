@@ -58,7 +58,7 @@ along with this software (see the LICENSE.md file). If not, see
             <parameter name="workEffortTypeEnumId" default-value="WetTask"/>
             <parameter name="statusId" default-value="WeInPlanning"/>
             <!-- Parties -->
-            <parameter name="assigneePartyId"/>
+            <parameter name="assignToPartyId"/>
         </in-parameters>
         <actions>
             <!-- Create task -->
@@ -78,22 +78,85 @@ along with this software (see the LICENSE.md file). If not, see
             <parameter name="description" allow-html="safe"/>
             <parameter name="statusId"/>
             <!-- Parties -->
-            <parameter name="curAssigneePartyId"/>
-            <parameter name="newAssigneePartyId"/>
+            <parameter name="assignToPartyId"/>
         </in-parameters>
         <actions>
             <!-- Update task -->
             <service-call name="update#mantle.work.effort.WorkEffort" out-map="context" in-map="context"/>
+            <!-- Get current assignee -->
+            <entity-find entity-name="mantle.work.effort.WorkEffortParty" list="assignToList">
+                <econdition field-name="workEffortId"/>
+                <econdition field-name="roleTypeId" value="Assignee"/>
+                <date-filter/>
+            </entity-find>
+            <!-- It is technically possible to have more than one, so just use the first record -->
+            <if condition="assignToList">
+                <set field="curAssignToPartyId" from="assignToList[0].partyId"/>
+            </if>
             <!-- If no assignee then unassign from current assignee (user cleared assignee field) -->
-            <if condition="!newAssigneePartyId &amp;&amp; curAssigneePartyId">
+            <if condition="!assignToPartyId &amp;&amp; curAssignToPartyId">
                 <service-call name="mantle.work.WorkEffortServices.remove#WorkEffortParty"
-                              in-map="[workEffortId:workEffortId, roleTypeId:'Assignee', partyId:curAssigneePartyId]"/>
+                              in-map="[workEffortId:workEffortId, roleTypeId:'Assignee', partyId:curAssignToPartyId]"/>
             </if>
             <!-- Update assignee if current and new are different, if they are the same do nothing (user did not change assignee) -->
-            <if condition="newAssigneePartyId &amp;&amp; curAssigneePartyId != newAssigneePartyId">
+            <if condition="assignToPartyId &amp;&amp; curAssignToPartyId != assignToPartyId">
                 <service-call name="mantle.work.WorkEffortServices.replace#WorkEffortParty"
-                              in-map="[workEffortId:workEffortId, roleTypeId:'Assignee', newPartyId:newAssigneePartyId, statusId:'WeptAssigned']"/>
+                              in-map="[workEffortId:workEffortId, roleTypeId:'Assignee', newPartyId:assignToPartyId, statusId:'WeptAssigned']"/>
             </if>
+        </actions>
+    </service>
+    <service verb="get" noun="Comments">
+        <in-parameters>
+            <parameter name="workEffortId" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="commentList"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="mantle.work.effort.WorkEffortCommEventDetail" list="commentList">
+                <econdition field-name="workEffortId"/><order-by field-name="entryDate"/></entity-find>
+        </actions>
+    </service>
+    <service verb="add" noun="Comment">
+        <in-parameters>
+            <parameter name="workEffortId" required="true"/>
+            <parameter name="subject"/>
+            <parameter name="body" allow-html="safe"/>
+            <parameter name="contentType" default-value="text/plain"/>
+        </in-parameters>
+        <actions>
+            <service-call name="create#mantle.party.communication.CommunicationEvent" out-map="context"
+                          in-map="[communicationEventTypeId:'Comment', contactMechTypeEnumId:'CmtWebForm', statusId:'CeSent',
+                        fromPartyId:ec.user.userAccount.partyId, entryDate:ec.user.nowTimestamp,
+                        contentType:contentType, subject:subject, body:body]"/>
+            <service-call name="create#mantle.work.effort.WorkEffortCommEvent"
+                          in-map="[workEffortId:workEffortId, communicationEventId:communicationEventId]"/>
+        </actions>
+    </service>
+    <service verb="update" noun="Comment">
+        <in-parameters>
+            <parameter name="workEffortId" required="true"/>
+            <parameter name="communicationEventId" required="true"/>
+            <parameter name="subject"/>
+            <parameter name="body" allow-html="safe"/>
+            <parameter name="contentType" default-value="text/plain"/>
+        </in-parameters>
+        <actions>
+            <service-call name="update#mantle.party.communication.CommunicationEvent" out-map="context"
+                          in-map="[communicationEventId:communicationEventId, fromPartyId:ec.user.userAccount.partyId,
+                        contentType:contentType, subject:subject, body:body]"/>
+        </actions>
+    </service>
+    <service verb="delete" noun="Comment">
+        <in-parameters>
+            <parameter name="workEffortId" required="true"/>
+            <parameter name="communicationEventId" required="true"/>
+        </in-parameters>
+        <actions>
+            <service-call name="delete#mantle.work.effort.WorkEffortCommEvent"
+                          in-map="[workEffortId:workEffortId, communicationEventId:communicationEventId]"/>
+            <service-call name="delete#mantle.party.communication.CommunicationEvent"
+                          in-map="communicationEventId:communicationEventId"/>
         </actions>
     </service>
 </services>
