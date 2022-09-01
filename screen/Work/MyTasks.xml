@@ -17,15 +17,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     <!-- This parameter causes the left side to only show the task that was updated -->
     <parameter name="workEffortId"/>
-    <transition name="getComments" read-only="true">
-        <actions>
-            <entity-find entity-name="mantle.work.effort.WorkEffortCommEventDetail" list="commEventDetailList">
-                <econdition field-name="workEffortId"/><order-by field-name="entryDate"/>
-            </entity-find>
-            <script>ec.web.sendJsonResponse(commEventDetailList)</script>
-        </actions>
-        <default-response type="none"/>
-    </transition>
+
     <transition name="createTask">
         <!-- TODO: Change this to default in the dialog but allow user to change assign to -->
         <service-call name="mantle.work.TaskServices.create#SimpleTask" in-map="context + [assignToPartyId:ec.user.userAccount.partyId]"/>

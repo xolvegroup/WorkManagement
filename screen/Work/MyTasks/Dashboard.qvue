@@ -8,6 +8,7 @@
             :width="700"
             :breakpoint="700"
             content-class="bg-grey-3"
+            @show="initializeEditor"
           >
             <q-scroll-area class="fit">
               <div class="q-pa-sm">
@@ -16,7 +17,6 @@
                                       <q-toolbar>
                                         <q-btn class="q-px-sm q-ml-sm" outline dense icon="check" label="Mark complete"></q-btn>
                                         <q-toolbar-title></q-toolbar-title>
-                                        <q-btn flat round dense icon="menu"></q-btn>
                                         <q-btn flat round dense icon="close" @click="open_task_detail=false"></q-btn>
                                       </q-toolbar>
                                     </q-header>
@@ -29,11 +29,22 @@
                                               <q-icon color="primary" size="20px" name="lock"></q-icon>
                                             </q-item-section>
                                             <q-item-section> This task is private to you.</q-item-section>
-                                            <q-item-section side class="cursor-pointer">Make public</q-item-section>
+                                            <q-item-section side>
+                                                <q-btn @click="updateTask" class="text-blue q-px-sm q-ml-sm" outline dense icon="check" label="Update"></q-btn>
+                                            </q-item-section>
                                           </q-item>
                                         </q-list>
                                         <div class="q-pa-md">
-                                          <div class="text-weight-bold text-h6">{{selected_task.workEffortName}}</div>
+                                          <div class="text-weight-bold q-pb-md q-pt-sm text-h6">
+                                          <span v-if="!is_edit_title">{{selected_task.workEffortName}} <q-btn flat round dense icon="edit" @click="is_edit_title=true"></q-btn></span>
+                                          <span v-if="is_edit_title">
+                                          <q-input style="width: 350px" dense outlined v-model="selected_task.workEffortName">
+                                            <template v-slot:after>
+                                                <q-btn @click="updateTask" :disabled="!selected_task.workEffortName" square color="primary" size="md" icon="save" />
+                                              </template>
+                                          </q-input>
+                                          </span>
+                                          </div>
                                           <div class="row text-grey-8 q-mt-sm">
                                             <div class="col-3">
                                               Assignee
@@ -88,12 +99,33 @@
                                                       </q-select>
                                               </div>
                                             </div>
+                                            <div class="row text-grey-8 q-mt-sm">
+                                              <div class="col-3">
+                                                Due Date
+                                              </div>
+                                              <div class="col-9">
+                                                <q-input style="width: 200px" style="margin:0;padding:0;" square outlined dense v-model="edit_due_date" mask="date" :rules="['date']">
+                                                    <template v-slot:append>
+                                                      <q-icon name="event" class="cursor-pointer">
+                                                        <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                                                          <q-date v-model="edit_due_date">
+                                                            <div class="row items-center justify-end">
+                                                              <q-btn v-close-popup label="Close" color="primary" flat />
+                                                            </div>
+                                                          </q-date>
+                                                        </q-popup-proxy>
+                                                      </q-icon>
+                                                    </template>
+                                                  </q-input>
+                                              </div>
+                                            </div>
                                           <div class="row text-grey-8 q-mt-sm">
                                             <div class="col-3">
                                               Description
                                             </div>
                                             <div class="col-9">
-                                                <span v-html="selected_task.description"><span>
+                                                <!--<span v-html="selected_task.description"><span>-->
+                                                <div id="editor"></div>
                                             </div>
                                           </div>
                                         </div>
@@ -110,7 +142,7 @@
                                                   <q-item-label class="text-subtitle1">Mayank Patel <span
                                                     class="q-pl-sm text-caption text-grey-8">25 minutes ago</span></q-item-label>
                                                   <q-item-label class="q-pt-sm" caption><span class="text-weight-medium" v-html="comment.body"></span>
-                                                  <span class="q-pl-sm text-caption text-grey-8">25 minutes ago</span></q-item-label>
+                                                  <span class="q-pl-sm text-caption text-grey-8"></span></q-item-label>
                                                 </q-item-section>
 
                                               </q-item>
@@ -130,12 +162,19 @@
                                             <q-item-section>
                                               <q-input
                                                 style="width: 100%"
+                                                v-model="comment_body"
                                                 outlined
                                                 rows="3"
+                                                class="bg-white"
                                                 type="textarea"
                                                 label="Add the comment..."
                                               />
                                             </q-item-section>
+                                          </q-item>
+                                          <q-item>
+                                          <q-item-section side class="cursor-pointer">
+                                                <q-btn @click="addComment" class="q-px-sm q-ml-sm" outline dense icon="check" label="Add Comment"></q-btn>
+                                          </q-item-section>
                                           </q-item>
 
                                           <q-item>
@@ -188,43 +227,17 @@
                                         </q-input>
               </q-item-section>
             </q-item>
-            <q-btn-dropdown
+            <q-btn
             class="custom_btn_dropdown q-my-xs q-ml-sm"
             dense
                   split
+                  @click="is_add_task=true"
                   color="primary"
                   no-caps
                   icon="add"
                   label="Add Task"
                 >
-                  <q-list>
-                    <q-item clickable v-close-popup>
-                      <q-item-section avatar>
-                        <q-avatar icon="folder" color="primary" text-color="white"></q-avatar>
-                      </q-item-section>
-                      <q-item-section>
-                        <q-item-label>Photos</q-item-label>
-                        <q-item-label caption>February 22, 2016</q-item-label>
-                      </q-item-section>
-                      <q-item-section side>
-                        <q-icon name="info" color="amber"></q-icon>
-                      </q-item-section>
-                    </q-item>
-
-                    <q-item clickable v-close-popup>
-                      <q-item-section avatar>
-                        <q-avatar icon="assignment" color="secondary" text-color="white"></q-avatar>
-                      </q-item-section>
-                      <q-item-section>
-                        <q-item-label>Vacation</q-item-label>
-                        <q-item-label caption>February 22, 2016</q-item-label>
-                      </q-item-section>
-                      <q-item-section side>
-                        <q-icon name="info" color="amber"></q-icon>
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-btn-dropdown>
+                </q-btn>
                 <q-expansion-item
                         default-opened
                         switch-toggle-side
@@ -249,30 +262,63 @@
                                                        rowsPerPage: 10
                                                      }"
                                 >
+                                <template v-if="is_add_task" v-slot:top-row>
+                                    <q-tr>
+                                      <q-td style="padding: 0">
+                                        <q-input v-model="new_task.title" autofocus square outlined style="margin:0;padding:0;" dense>
+                                        <template v-slot:before>
+                                          <q-icon @click="is_add_task=false" color="red" class="cursor-pointer q-ml-xs" name="close" />
+                                        </template>
+                                        </q-input>
+                                      </q-td>
+                                      <q-td style="padding: 0">
+                                      <q-select
+                                            dense
+                                              outlined
+                                              v-model="new_task.assignee"
+                                              use-input
+                                              square
+                                              input-debounce="0"
+                                              option-value="userId"
+                                              option-label="userFullName"
+                                              :options="assignee_options"
+                                              @filter="filterFn"
+                                              style="margin:0;padding:0;"
+                                            >
+                                              <template v-slot:no-option>
+                                                <q-item>
+                                                  <q-item-section class="text-grey">
+                                                    No results
+                                                  </q-item-section>
+                                                </q-item>
+                                              </template>
+                                            </q-select></q-td>
+                                      <q-td>In Planning</q-td>
+                                      <q-td style="padding: 0 7px 0 0">
+                                          <q-input style="margin:0;padding:0;" square outlined dense v-model="new_task.due_date" mask="date" :rules="['date']">
+                                            <template v-slot:append>
+                                              <q-icon name="event" class="cursor-pointer">
+                                                <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                                                  <q-date v-model="new_task.due_date">
+                                                    <div class="row items-center justify-end">
+                                                      <q-btn v-close-popup label="Close" color="primary" flat />
+                                                    </div>
+                                                  </q-date>
+                                                </q-popup-proxy>
+                                              </q-icon>
+                                            </template>
+                                            <template v-slot:after>
+                                              <!--<q-icon @click="addTask" class="text-green" style="cursor: pointer;" class="q-mr-sm" name="check_circle" />-->
+                                              <q-btn @click="addTask" :disabled="!new_task.title" square color="primary" size="md" icon="add_task" />
+                                            </template>
+                                          </q-input>
+                                      </q-td>
+                                    </q-tr>
+                                  </template>
                                 <template v-slot:body-cell-title-text="props">
                                           <q-td style="border-left: 5px solid #579bfc;padding:6px;" @click="selectTask(props.row)" class="cursor-pointer" :props="props">
                                             <span><q-icon name="check_circle_outline" class="cursor-pointer text-grey" style="font-size: 22px;" /></span>
                                             <span>{{props.row.workEffortName}}</span>
-                                          </q-td>
-                                        </template>
-                                    <template v-slot:body-cell-project="props">
-                                          <q-td :props="props">
-                                            <q-chip
-                                              v-if="props.row.project"
-                                              style="background-color: #e7e5e4"
-                                              text-color="black"
-                                              dense
-                                              round
-                                            ><span class="q-mr-xs" style="font-size:22px;color: #9ee7e3">●</span> {{props.row.project}}
-                                            </q-chip>
-                                            <q-chip
-                                              v-if="!props.row.project"
-                                              style="background-color: #e7e5e4"
-                                              text-color="black"
-                                              dense
-                                              round
-                                            > N/A
-                                            </q-chip>
                                           </q-td>
                                         </template>
                                     <template v-slot:body-cell-duedate="props">
@@ -286,8 +332,14 @@
                                           </q-td>
                                         </template>
                                         <template v-slot:body-cell-status="props">
-                                          <q-td v-if="status_options_master.length > 0" :props="props">
-                                            {{getStatusName(props.row.statusId)}}
+                                          <q-td :props="props">
+                                            <q-chip
+                                              :style="'background-color: ' + status_color_map[props.row.statusId]"
+                                              text-color="white"
+                                              dense
+                                              round
+                                            > <span class="q-mr-xs" style="font-size:22px;">●</span> {{getStatusName(props.row.statusId)}}
+                                            </q-chip>
                                           </q-td>
                                         </template>
                                 </q-table>
@@ -300,17 +352,22 @@
 module.exports = {
     data: function () {
         return {
+            is_edit_title: false,
             task_list: [],
             sel_task_comments: [],
+            edit_due_date: null,
             selected_task: {},
             open_task_detail: false,
             filter: "",
+            new_task_assignee: null,
+            new_task: {title: '', assignee: null, due_date: null},
             assignee: null,
             assignee_options_master: [],
             assignee_options: [],
             status: null,
             status_options_master: [],
             status_options: [],
+            is_add_task: false,
             table_columns: [
                {
                  name: 'title-text',
@@ -321,10 +378,13 @@ module.exports = {
                  sortable: true,
 
                },
-               { name: 'person', align: 'left', label: 'Person',style: 'width: 225px', field: 'partyId', sortable: true },
-               { name: 'status', align: 'left', label: 'Status',style: 'width: 225px', field: 'statusId', sortable: true },
-               { name: 'duedate', align: 'left', label: 'Due',style: 'width: 225px', field: 'estimatedCompletionDate', sortable: true }
-            ]
+               { name: 'person', align: 'left', label: 'Person',style: 'width: 210px', field: 'partyId', sortable: true },
+               { name: 'status', align: 'left', label: 'Status',style: 'width: 210px', field: 'statusId', sortable: true },
+               { name: 'duedate', align: 'left', label: 'Due',style: 'width: 210px', field: 'estimatedCompletionDate', sortable: true }
+            ],
+            status_color_map:{WeInPlanning: '#979391', WeApproved: '#6a97ff', WeInProgress: '#f0b057', WeComplete: '#34d391', WeOnHold: '#e8697d',
+                               WeClosed: '#79c947', WeCancelled: '#e8a19e'},
+            comment_body:""
         }
     },
     methods: {
@@ -388,69 +448,128 @@ module.exports = {
               this.status_options = self.status_options_master.filter(v => v.description.toLowerCase().indexOf(needle) > -1)
             })
           },
-        fetchAllTasks () {
-            var vm = this;
+        fetchAllTasks (is_open_detail) {
+            var self = this;
             var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/tasks", headers:{Accept:'application/json'}, data:allParms,
                 error:moqui.handleAjaxError, success:function(resp) {
-                    vm.task_list = resp.taskList;
+                    self.task_list = resp.taskList.reverse();
+                    if (is_open_detail) {
+                        self.selectTask(self.task_list[0]);
+                    }
                 }
             });
         },
         selectTask (row) {
-            var vm = this;
-            vm.open_task_detail=true;
-            vm.selected_task=row;
-            vm.assignee = vm.assignee_options_master.find(function(item){
+            var self = this;
+            self.is_edit_title = false;
+            self.selected_task = {};
+            self.open_task_detail=true;
+            self.selected_task=JSON.parse(JSON.stringify(row));
+            if (self.selected_task.estimatedCompletionDate){
+                self.edit_due_date = self.formatDate(self.selected_task.estimatedCompletionDate);
+            }
+            self.assignee = self.assignee_options_master.find(function(item){
                 return item.userId === row.partyId;
             });
-            vm.status = vm.status_options_master.find(function(item){
+            self.status = self.status_options_master.find(function(item){
                 return item.statusId === row.statusId;
             });
-            vm.sel_task_comments = [];
-            var allParms = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
-            $.ajax({ type:'POST', dataType:'json', url: "/apps/Work/MyTasks/getComments", headers:{Accept:'application/json'}, data:allParms,
+            self.sel_task_comments = [];
+            self.getComments(row);
+
+            if (document.querySelector('.ck-editor__editable')) {
+                document.querySelector('.ck-editor__editable').ckeditorInstance.destroy();
+            }
+        },
+        initializeEditor() {
+            let self = this;
+            ClassicEditor
+            .create( document.querySelector( '#editor' ))
+                .then( editor => {
+                 window.editor = editor;
+                 if (self.selected_task.description){
+                    editor.setData(self.selected_task.description);
+                 }
+                 else {
+                    editor.setData("");
+                 }
+             } )
+        },
+        addTask () {
+            var self = this;
+            var allParms = $.extend({ workEffortName: self.new_task.title,
+             assignToPartyId: (self.new_task.assignee ? self.new_task.assignee.userId:null), description: "", estimatedCompletionDate: self.new_task.due_date.replaceAll("/", "-"),
+              moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/add_task", headers:{Accept:'application/json'}, data:allParms,
                 error:moqui.handleAjaxError, success:function(resp) {
-                    vm.sel_task_comments = resp;
+                    self.is_add_task=false;
+                    self.new_task = {title: '', assignee: null, due_date: self.formatDate(new Date())};
+                    self.fetchAllTasks(true);
                 }
             });
         },
-        addTask () {
-            var vm = this;
-            var allParms = $.extend({ moquiFormName:"NewTaskForm", workEffortName: "Testsailordgod12345!!!!!925 LATEST USING REST",
-             assigneePartyId: "EX_JOHN_DOE", description: "<b>Test description.</b>", moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
-            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/add_task", headers:{Accept:'application/json'}, data:allParms,
+        updateTask() {
+            let self = this;
+            let params = self.selected_task;
+            params["moquiSessionToken"] = $("#confMoquiSessionToken").val();
+            params["assignToPartyId"] = (self.assignee ? self.assignee.userId:null);
+            params["statusId"] = self.status.statusId;
+            params["description"] = window.editor.getData();
+            params["estimatedCompletionDate"] = self.edit_due_date.replaceAll("/", "-");
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/update_task", headers:{Accept:'application/json'}, data:params,
                 error:moqui.handleAjaxError, success:function(resp) {
-                    vm.sel_task_comments = resp;
+                    self.is_edit_title = false;
+                    self.fetchAllTasks();
                 }
             });
         },
         getAssigneeList () {
-            var vm = this;
+            var self = this;
             var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/users", headers:{Accept:'application/json'}, data:allParms,
                 error:moqui.handleAjaxError, success:function(resp) {
-                    vm.assignee_options_master = resp.userList;
-                    vm.assignee_options = resp.userList;
+                    self.assignee_options_master = resp.userList;
+                    self.assignee_options = resp.userList;
                 }
             });
         },
         getStatuses () {
-            var vm = this;
+            var self = this;
             var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/statuses", headers:{Accept:'application/json'}, data:allParms,
                 error:moqui.handleAjaxError, success:function(resp) {
-                    vm.status_options_master = resp.statusList;
-                    vm.status_options = resp.statusList;
+                    self.status_options_master = resp.statusList;
+                    self.status_options = resp.statusList;
+                }
+            });
+        },
+        addComment () {
+            var self = this;
+            var allParms = $.extend({ workEffortId: self.selected_task.workEffortId,
+             body: self.comment_body,moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/add_comment", headers:{Accept:'application/json'}, data:allParms,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    self.comment_body = "";
+                    self.getComments(self.selected_task);
+                }
+            });
+        },
+        getComments(row) {
+            var self = this;
+            var allParms = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/comments", headers:{Accept:'application/json'}, data:allParms,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    self.sel_task_comments = resp.commentList.reverse();
                 }
             });
         }
     },
     mounted: function () {
+        this.new_task.due_date = this.formatDate(new Date());
         this.getAssigneeList();
         this.fetchAllTasks();
         this.getStatuses();
-        //this.addTask();
     }
 }
 </script>

@@ -30,4 +30,16 @@ along with this software (see the LICENSE.md file). If not, see
     <resource name="statuses" require-authentication="anonymous-view">
         <method type="get"><service name="wm.TaskServices.get#Statuses"/></method>
     </resource>
+    <resource name="add_task" require-authentication="anonymous-all">
+        <method type="post"><service name="wm.TaskServices.create#Task"/></method>
+    </resource>
+    <resource name="update_task" require-authentication="anonymous-all">
+        <method type="post"><service name="wm.TaskServices.update#Task"/></method>
+    </resource>
+    <resource name="comments" require-authentication="anonymous-all">
+        <method type="get"><service name="wm.TaskServices.get#Comments"/></method>
+    </resource>
+    <resource name="add_comment" require-authentication="anonymous-all">
+        <method type="post"><service name="wm.TaskServices.add#Comment"/></method>
+    </resource>
 </resource>
