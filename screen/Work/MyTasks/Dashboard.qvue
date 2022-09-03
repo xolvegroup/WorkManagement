@@ -687,7 +687,7 @@ module.exports = {
     .custom_table_header {
         height: 38px !important;
     }
-    .q-field__label {
+    .cls_task_detail .q-field__label {
         top: 10px !important;
     }
     .cls_task_detail .q-field--float .q-field__label {
