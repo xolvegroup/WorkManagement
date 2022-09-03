@@ -45,7 +45,7 @@
                                           </q-input>
                                           </span>
                                           </div>
-                                          <div class="row text-grey-8">
+                                          <div class="cls_task_detail row text-grey-8">
                                             <div class="col-4">
                                               <q-select
                                                       label="Assignee"
@@ -241,8 +241,8 @@
                 <q-item-label caption>
                 </q-item-label>
               </q-item-section>
-              <q-item-section side>
-                <q-input v-model="filter" dense rounded outlined>
+              <q-item-section class="cls_task_detail" side>
+                <q-input label="Search" v-model="filter" dense rounded outlined>
                 <template v-slot:prepend>
                                           <q-icon name="search" />
                                         </template>
@@ -690,10 +690,10 @@ module.exports = {
     .q-field__label {
         top: 10px !important;
     }
-    .q-field--float .q-field__label {
+    .cls_task_detail .q-field--float .q-field__label {
         top: 0px !important;
     }
-    .ck-balloon-panel_visible {
+    .cls_task_detail .ck-balloon-panel_visible {
         z-index: 10000 !important;
     }
 </style>
