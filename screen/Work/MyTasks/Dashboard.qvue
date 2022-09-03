@@ -693,7 +693,7 @@ module.exports = {
     .cls_task_detail .q-field--float .q-field__label {
         top: 0px !important;
     }
-    .cls_task_detail .ck-balloon-panel_visible {
+    .ck-balloon-panel_visible {
         z-index: 10000 !important;
     }
 </style>
