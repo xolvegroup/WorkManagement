@@ -3,7 +3,7 @@
     <parameter name="workEffortId"/>
     <transition name="updateTask"><service-call name="wm.TaskServices.update#Task" in-map="context" out-map="context"/>
         <default-response type="none"/></transition>
-    <transition name="addComment"><service-call name="mantle.work.TaskServices.add#TaskComment"/>
+    <transition name="addComment"><service-call name="wm.TaskServices.add#Comment"/>
         <default-response type="none"/>
     </transition>
     <transition name="deleteComment"><service-call name="mantle.work.TaskServices.delete#TaskComment"/>
@@ -44,7 +44,6 @@
         <label text="Select a task or create a new one" type="strong" condition="!workEffortId"/>
         <section name="TaskDetailSection" condition="workEffortId">
             <widgets>
-                <label text="${task.assignToPartyId} ${task.description}"/>
         <container-box><box-header/>
             <box-body height="75vh">
                 <form-single name="TaskDetailForm" transition="updateTask" map="workEffort" background-submit="true" background-reload-id="TaskDetailContainer">
