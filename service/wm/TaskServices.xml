@@ -15,14 +15,24 @@ along with this software (see the LICENSE.md file). If not, see
 <services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
     <!-- Wrapper service to update task and manage assignee and collaborators -->
     <service verb="get" noun="Tasks">
+        <in-parameters>
+            <!-- Use partyId and roleTypeId to find tasks by person, for example tasks assigned to a party or that a party is a collaborator on -->
+            <parameter name="partyId"/>
+            <parameter name="roleTypeId"/>
+            <parameter name="statusId" default-value="WeInPlanning,WeApproved,WeInProgress"/>
+            <parameter name="orderByField" default-value="-workEffortId"/>
+        </in-parameters>
         <out-parameters>
             <parameter name="taskList" type="List"/>
         </out-parameters>
         <actions>
             <entity-find entity-name="mantle.work.effort.WorkEffortAndParty" list="taskList">
+                <econdition field-name="partyId" ignore-if-empty="true"/>
+                <econdition field-name="roleTypeId" ignore-if-empty="true"/>
                 <econdition field-name="workEffortTypeEnumId" value="WetTask"/>
-                <econdition field-name="statusId" operator="not-in" value="WeClosed,WeCancelled"/>
-                <select-field field-name="workEffortId,workEffortName,partyId,statusId,description,estimatedCompletionDate"/>
+                <econdition field-name="statusId" operator="in" from="statusId"/>
+                <select-field field-name="rootWorkEffortId,workEffortId,workEffortName,statusId,estimatedCompletionDate"/>
+                <order-by field-name="${orderByField}"/>
             </entity-find>
         </actions>
     </service>
@@ -43,8 +53,8 @@ along with this software (see the LICENSE.md file). If not, see
         <actions>
             <entity-find entity-name="moqui.basic.StatusItem" list="statusList">
                 <econdition field-name="statusTypeId" value="WorkEffort"/>
-                <order-by field-name="sequenceNum"/>
                 <select-field field-name="statusId,description"/>
+                <order-by field-name="sequenceNum"/>
             </entity-find>
         </actions>
     </service>

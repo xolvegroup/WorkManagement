@@ -24,16 +24,17 @@ along with this software (see the LICENSE.md file). If not, see
     <transition-include name="getUserProjectList" location="component://SimpleScreens/template/work/WorkTransitions.xml"/>
 
     <actions>
+        <service-call name="wm.TaskServices.get#Tasks" in-map="context" out-map="context"/>
+        <!--
         <entity-find entity-name="mantle.work.effort.WorkEffortAndParty" list="taskList" distinct="true">
             <search-form-inputs default-order-by="estimatedCompletionDate">
-                <!-- TODO: default to current user with the ability to search for other assignees or clear it and search all tasks -->
-                <!--<default-parameters partyId="${ec.user.userAccount.partyId}"/>-->
             </search-form-inputs>
             <date-filter/>
             <econdition field-name="workEffortTypeEnumId" value="WetTask"/>
             <econdition field-name="statusId" operator="not-in" value="WeClosed,WeCancelled"/>
             <select-field field-name="rootWorkEffortId,workEffortId,workEffortName,estimatedCompletionDate"/>
         </entity-find>
+        -->
     </actions>
 
     <widgets>
