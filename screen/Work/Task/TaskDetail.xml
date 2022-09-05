@@ -14,6 +14,7 @@
         <subscreens-item name="TaskCommentUpdate" location="component://SimpleScreens/screen/SimpleScreens/Task/TaskSummary/TaskCommentUpdate.xml"/>
     </subscreens>
     <actions>
+        <service-call name="wm.TaskServices.get#Task" out-map="context" in-map="context"/>
         <entity-find-one entity-name="mantle.work.effort.WorkEffort" value-field="workEffort"/>
         <!-- To support status change -->
         <set field="statusId" from="workEffort?.statusId"/>
@@ -43,6 +44,7 @@
         <label text="Select a task or create a new one" type="strong" condition="!workEffortId"/>
         <section name="TaskDetailSection" condition="workEffortId">
             <widgets>
+                <label text="${task.assignToPartyId} ${task.description}"/>
         <container-box><box-header/>
             <box-body height="75vh">
                 <form-single name="TaskDetailForm" transition="updateTask" map="workEffort" background-submit="true" background-reload-id="TaskDetailContainer">

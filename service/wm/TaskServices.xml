@@ -36,6 +36,34 @@ along with this software (see the LICENSE.md file). If not, see
             </entity-find>
         </actions>
     </service>
+    <service verb="get" noun="Task">
+        <in-parameters>
+            <parameter name="workEffortId" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="task" type="Map"/>
+        </out-parameters>
+        <actions>
+            <entity-find-one entity-name="mantle.work.effort.WorkEffort" value-field="workEffort"/>
+            <set field="task" from="new HashMap()"/>
+            <script>
+                task.putAll(workEffort)
+            </script>
+            <!-- Get current assignee -->
+            <entity-find entity-name="mantle.work.effort.WorkEffortParty" list="assignToList">
+                <econdition field-name="workEffortId"/>
+                <econdition field-name="roleTypeId" value="Assignee"/>
+                <date-filter/>
+            </entity-find>
+            <!-- It is technically possible to have more than one, so just use the first record -->
+            <if condition="assignToList">
+                <set field="assignToPartyId" from="assignToList[0].partyId"/>
+                <script>
+                    task.put("assignToPartyId",assignToPartyId)
+                </script>
+            </if>
+        </actions>
+    </service>
     <service verb="get" noun="Users">
         <out-parameters>
             <parameter name="userList" type="List"/>
