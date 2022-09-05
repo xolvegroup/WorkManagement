@@ -26,7 +26,7 @@ along with this software (see the LICENSE.md file). If not, see
             <parameter name="taskList" type="List"/>
         </out-parameters>
         <actions>
-            <entity-find entity-name="mantle.work.effort.WorkEffortAndParty" list="taskList">
+            <entity-find entity-name="mantle.work.effort.WorkEffortAndParty" list="weapList">
                 <econdition field-name="partyId" ignore-if-empty="true"/>
                 <econdition field-name="roleTypeId" ignore-if-empty="true"/>
                 <econdition field-name="workEffortTypeEnumId" value="WetTask"/>
@@ -34,6 +34,29 @@ along with this software (see the LICENSE.md file). If not, see
                 <select-field field-name="rootWorkEffortId,workEffortId,workEffortName,statusId,estimatedCompletionDate"/>
                 <order-by field-name="${orderByField}"/>
             </entity-find>
+            <set field="taskList" from="[]"/>
+            <if condition="weapList">
+                <iterate list="weapList" entry="weap">
+                    <set field="task" from="new HashMap()"/>
+                    <script>
+                        task.putAll(weap)
+                        taskList.add(task)
+                    </script>
+                    <!-- Get current assignee -->
+                    <entity-find entity-name="mantle.work.effort.WorkEffortParty" list="assignToList">
+                        <econdition field-name="workEffortId" from="weap.workEffortId"/>
+                        <econdition field-name="roleTypeId" value="Assignee"/>
+                        <date-filter/>
+                    </entity-find>
+                    <!-- It is technically possible to have more than one, so just use the first record -->
+                    <if condition="assignToList">
+                        <set field="assignToPartyId" from="assignToList[0].partyId"/>
+                        <script>
+                            task.put("assignToPartyId",assignToPartyId)
+                        </script>
+                    </if>
+                </iterate>
+            </if>
         </actions>
     </service>
     <service verb="get" noun="Task">
