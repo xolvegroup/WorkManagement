@@ -8,15 +8,22 @@
             :width="700"
             :breakpoint="700"
             content-class="bg-grey-3"
-            @show="initializeEditor"
           >
             <q-scroll-area class="fit">
               <div class="q-pa-sm">
                 <q-layout v-if="selected_task" view="Lhh lpR fff" container class="bg-white" style="height: 85vh;">
                                     <q-header class="bg-white text-black">
                                       <q-toolbar>
-                                        <q-btn class="q-px-sm q-ml-sm" outline dense icon="check" label="Mark complete"></q-btn>
+                                        <q-btn v-if="no_applicable_for_complete.indexOf(selected_task.statusId) === -1" @click="updateTask('WeComplete')" class="q-px-sm q-ml-sm" outline dense icon="check" label="Mark complete"></q-btn>
+                                        <q-chip v-if="no_applicable_for_complete.indexOf(selected_task.statusId) > -1"
+                                              :style="'background-color: ' + status_color_map[selected_task.statusId]"
+                                              text-color="white"
+                                              dense
+                                              round
+                                            > <span class="q-mr-xs" style="font-size:22px;">●</span> {{getStatusName(selected_task.statusId)}}
+                                            </q-chip>
                                         <q-toolbar-title></q-toolbar-title>
+                                        <q-btn @click="updateTask()" class="text-blue q-px-sm q-ml-sm" outline dense icon="check" label="Update"></q-btn>
                                         <q-btn flat round dense icon="close" @click="open_task_detail=false"></q-btn>
                                       </q-toolbar>
                                     </q-header>
@@ -26,12 +33,9 @@
                                         <q-list class="bg-grey-2" bordered>
                                           <q-item>
                                             <q-item-section avatar>
-                                              <q-icon color="primary" size="20px" name="lock"></q-icon>
+                                              <q-icon color="primary" size="20px" name="info"></q-icon>
                                             </q-item-section>
-                                            <q-item-section> This task is private to you.</q-item-section>
-                                            <q-item-section side>
-                                                <q-btn @click="updateTask" class="text-blue q-px-sm q-ml-sm" outline dense icon="check" label="Update"></q-btn>
-                                            </q-item-section>
+                                            <q-item-section> Task details</q-item-section>
                                           </q-item>
                                         </q-list>
                                         <div class="q-pa-md">
@@ -40,7 +44,7 @@
                                           <span v-if="is_edit_title">
                                           <q-input style="width: 350px" dense outlined v-model="selected_task.workEffortName">
                                             <template v-slot:after>
-                                                <q-btn @click="updateTask" :disabled="!selected_task.workEffortName" square color="primary" size="md" icon="save" />
+                                                <q-btn @click="updateTask()" :disabled="!selected_task.workEffortName" square color="primary" size="md" icon="save" />
                                               </template>
                                           </q-input>
                                           </span>
@@ -203,25 +207,59 @@
                                             <q-item-section avatar>
 
                                             </q-item-section>
-                                            <q-item-section>
+                                            <q-item-section class="q-pt-sm">
                                               <div class="q-gutter-sm">
-                                                <span class="text-caption text-grey-8 q-pt-sm q-mt-sm">Collaborators</span>
-                                                <q-avatar size="24px" color="primary" text-color="white">
-                                                  MP
-                                                </q-avatar>
-                                                <q-avatar style="border: 1px dashed;" size="24px" color="white" text-color="black" icon="person">
-                                                </q-avatar>
-                                                <q-avatar style="border: 1px dashed;" size="24px" color="white" text-color="black" icon="person">
-                                                </q-avatar>
-                                                <q-icon name="add" class="text-weight-bold"></q-icon>
+                                                <span class="text-caption q-mt-sm text-grey-8">Collaborators</span>
+                                                <q-chip
+                                                    v-for="item in collaborator_list"
+                                                    removable
+                                                    @remove="removeCollaborator(item)"
+                                                  >
+                                                    <q-avatar dense color="grey">
+                                                      {{ getInitials(getPersonName(item.partyId)) }}
+                                                    </q-avatar>
+                                                    {{ getPersonName(item.partyId) }}
+                                                  </q-chip>
+                                                <!--<q-avatar v-for="item in collaborator_list" size="24px" color="primary" text-color="white">
+                                                  {{ getInitials(getPersonName(item.partyId)) }}
+                                                </q-avatar>-->
+                                                <q-btn dense outline rounded color="primary" icon="add" class="text-black text-weight-bold">
+                                                    <q-popup-proxy ref="collabAdd" transition-show="flip-up" transition-hide="flip-down">
+                                                        <div class="q-pa-md">
+                                                        <q-select
+                                                            dense
+                                                              outlined
+                                                              v-model="new_collab"
+                                                              use-input
+                                                              square
+                                                              input-debounce="0"
+                                                              option-value="userId"
+                                                              option-label="userFullName"
+                                                              :options="assignee_options"
+                                                              @filter="filterFn"
+                                                            >
+                                                              <template v-slot:no-option>
+                                                                <q-item>
+                                                                  <q-item-section class="text-grey">
+                                                                    No results
+                                                                  </q-item-section>
+                                                                </q-item>
+                                                              </template>
+                                                              <template v-slot:after>
+                                                                <q-icon :disabled="!new_collab" color="primary" @click="addCollaborator" name="save" class="cursor-pointer" />
+                                                              </template>
+                                                            </q-select>
+                                                        </div>
+                                                      </q-popup-proxy>
+                                                </q-btn>
                                               </div>
                                             </q-item-section>
-                                            <q-item-section side class="cursor-pointer">
+                                            <!--<q-item-section side class="cursor-pointer">
                                               <div class="cursor-pointer">
                                                 <q-icon name="notifications" size="20px" class="text-weight-bold q-pr-xs"></q-icon>
                                                 <span class="text-weight-bold">Leave task</span>
                                               </div>
-                                            </q-item-section>
+                                            </q-item-section>-->
                                           </q-item>
                                         </q-list>
                                       </div>
@@ -350,7 +388,7 @@
                                         </template>
                                         <template v-slot:body-cell-person="props">
                                           <q-td v-if="assignee_options_master.length > 0" :props="props">
-                                            {{getPersonName(props.row.partyId)}}
+                                            {{getPersonName(props.row.assignToPartyId)}}
                                           </q-td>
                                         </template>
                                         <template v-slot:body-cell-status="props">
@@ -391,6 +429,8 @@ module.exports = {
             status_options_master: [],
             status_options: [],
             is_add_task: false,
+            new_collab: null,
+            no_applicable_for_complete: ['WeCancelled', 'WeClosed', 'WeComplete', 'WeOnHold'],
             table_columns: [
                {
                  name: 'title-text',
@@ -401,7 +441,7 @@ module.exports = {
                  sortable: true,
 
                },
-               { name: 'person', align: 'left', label: 'Person',style: 'width: 210px', field: 'partyId', sortable: true },
+               { name: 'person', align: 'left', label: 'Person',style: 'width: 210px', field: 'assignToPartyId', sortable: true },
                { name: 'status', align: 'left', label: 'Status',style: 'width: 210px', field: 'statusId', sortable: true },
                { name: 'duedate', align: 'left', label: 'Due',style: 'width: 210px', field: 'estimatedCompletionDate', sortable: true }
             ],
@@ -411,7 +451,9 @@ module.exports = {
             is_edit_comment:false,
             obj_edit_comment:{},
             is_delete_comment:false,
-            obj_delete_comment:{}
+            obj_delete_comment:{},
+            collaborator_list: [],
+            new_collaborator: true
         }
     },
     methods: {
@@ -477,7 +519,7 @@ module.exports = {
           },
         fetchAllTasks (is_open_detail) {
             var self = this;
-            var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
+            var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/tasks", headers:{Accept:'application/json'}, data:allParms,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.task_list = resp.taskList.reverse();
@@ -492,18 +534,25 @@ module.exports = {
             self.is_edit_title = false;
             self.selected_task = {};
             self.open_task_detail=true;
-            self.selected_task=JSON.parse(JSON.stringify(row));
-            if (self.selected_task.estimatedCompletionDate){
-                self.edit_due_date = self.formatDate(self.selected_task.estimatedCompletionDate);
-            }
-            self.assignee = self.assignee_options_master.find(function(item){
-                return item.userId === row.partyId;
-            });
-            self.status = self.status_options_master.find(function(item){
-                return item.statusId === row.statusId;
+            var allParms = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/task", headers:{Accept:'application/json'}, data:allParms,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    self.selected_task = resp.task;
+                    if (self.selected_task.estimatedCompletionDate){
+                        self.edit_due_date = self.formatDate(self.selected_task.estimatedCompletionDate);
+                    }
+                    self.assignee = self.assignee_options_master.find(function(item){
+                        return item.userId === self.selected_task.assignToPartyId;
+                    });
+                    self.status = self.status_options_master.find(function(item){
+                        return item.statusId === self.selected_task.statusId;
+                    });
+                    self.initializeEditor();
+                }
             });
             self.sel_task_comments = [];
             self.getComments(row);
+            self.getCollaborators(row);
 
             if (document.querySelector('.ck-editor__editable')) {
                 document.querySelector('.ck-editor__editable').ckeditorInstance.destroy();
@@ -548,14 +597,17 @@ module.exports = {
                 }
             });
         },
-        updateTask() {
+        updateTask(status) {
             let self = this;
             let params = self.selected_task;
             params["moquiSessionToken"] = $("#confMoquiSessionToken").val();
             params["assignToPartyId"] = (self.assignee ? self.assignee.userId:null);
             params["statusId"] = self.status.statusId;
+            if (status) {
+                params["statusId"] = status;
+            }
             params["description"] = window.editor.getData();
-            params["estimatedCompletionDate"] = self.edit_due_date.replaceAll("/", "-");
+            params["estimatedCompletionDate"] = (self.edit_due_date ? self.edit_due_date.replaceAll("/", "-"):null);
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/update_task", headers:{Accept:'application/json'}, data:params,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.is_edit_title = false;
@@ -565,7 +617,7 @@ module.exports = {
         },
         getAssigneeList () {
             var self = this;
-            var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
+            var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/users", headers:{Accept:'application/json'}, data:allParms,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.assignee_options_master = resp.userList;
@@ -575,7 +627,7 @@ module.exports = {
         },
         getStatuses () {
             var self = this;
-            var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
+            var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/statuses", headers:{Accept:'application/json'}, data:allParms,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.status_options_master = resp.statusList;
@@ -594,9 +646,39 @@ module.exports = {
                 }
             });
         },
+        getCollaborators(row) {
+            var self = this;
+            var allParms = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/collaborators", headers:{Accept:'application/json'}, data:allParms,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    self.collaborator_list = resp.collaboratorList;
+                }
+            });
+        },
+        addCollaborator() {
+            var self = this;
+            var allParms = $.extend({ workEffortId:self.selected_task.workEffortId, partyId: self.new_collab.userId, roleTypeId: "Collaborator", moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/add_collaborator", headers:{Accept:'application/json'}, data:allParms,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    self.getCollaborators(self.selected_task);
+                    self.$nextTick(function () {
+                        self.$refs.collabAdd.hide();
+                      })
+                }
+            });
+        },
+        removeCollaborator(item) {
+            var self = this;
+            var allParms = $.extend({ workEffortId:item.workEffortId, partyId: item.partyId, roleTypeId: item.roleTypeId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/remove_collaborator", headers:{Accept:'application/json'}, data:allParms,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    self.getCollaborators(self.selected_task);
+                }
+            });
+        },
         getComments(row) {
             var self = this;
-            var allParms = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
+            var allParms = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/comments", headers:{Accept:'application/json'}, data:allParms,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.sel_task_comments = resp.commentList.reverse();

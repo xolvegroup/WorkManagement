@@ -24,6 +24,18 @@ along with this software (see the LICENSE.md file). If not, see
     <resource name="tasks" require-authentication="anonymous-view">
         <method type="get"><service name="wm.TaskServices.get#Tasks"/></method>
     </resource>
+    <resource name="task" require-authentication="anonymous-view">
+        <method type="get"><service name="wm.TaskServices.get#Task"/></method>
+    </resource>
+    <resource name="collaborators" require-authentication="anonymous-view">
+        <method type="get"><service name="wm.TaskServices.get#Collaborators"/></method>
+    </resource>
+    <resource name="add_collaborator" require-authentication="anonymous-all">
+        <method type="post"><service name="mantle.work.WorkEffortServices.add#WorkEffortParty"/></method>
+    </resource>
+    <resource name="remove_collaborator" require-authentication="anonymous-all">
+        <method type="post"><service name="mantle.work.WorkEffortServices.remove#WorkEffortParty"/></method>
+    </resource>
     <resource name="users" require-authentication="anonymous-view">
         <method type="get"><service name="wm.TaskServices.get#Users"/></method>
     </resource>
