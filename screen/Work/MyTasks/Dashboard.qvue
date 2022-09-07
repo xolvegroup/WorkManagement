@@ -3,7 +3,6 @@
     <q-drawer
             side="right"
             v-model="open_task_detail"
-            overlay
             bordered
             :width="700"
             :breakpoint="700"
@@ -97,11 +96,11 @@
                                                       </q-select>
                                             </div>
                                             <div class="col-4">
-                                                <q-input label="Due Date" style="width: 200px" style="margin:0;padding:0;" outlined dense v-model="edit_due_date" mask="date" :rules="['date']">
+                                                <q-input label="Due Date" style="width: 200px" style="margin:0;padding:0;" outlined dense v-model="edit_due_date">
                                                     <template v-slot:append>
                                                       <q-icon name="event" class="cursor-pointer">
                                                         <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                                          <q-date v-model="edit_due_date">
+                                                          <q-date mask="YYYY-MM-DD" v-model="edit_due_date">
                                                             <div class="row items-center justify-end">
                                                               <q-btn v-close-popup label="Close" color="primary" flat />
                                                             </div>
@@ -311,6 +310,7 @@
                             <q-table
                             bordered
                             flat
+                            :wrap-cells="true"
                                   :data="task_list"
                                   :filter="filter"
                                   table-header-class="custom_table_header"
@@ -355,11 +355,11 @@
                                             </q-select></q-td>
                                       <q-td>In Planning</q-td>
                                       <q-td style="padding: 0 7px 0 0">
-                                          <q-input style="margin:0;padding:0;" square outlined dense v-model="new_task.due_date" mask="date" :rules="['date']">
+                                          <q-input style="margin:0;padding:0;" square outlined dense v-model="new_task.due_date">
                                             <template v-slot:append>
                                               <q-icon name="event" class="cursor-pointer">
                                                 <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                                  <q-date v-model="new_task.due_date">
+                                                  <q-date mask="YYYY-MM-DD" v-model="new_task.due_date">
                                                     <div class="row items-center justify-end">
                                                       <q-btn v-close-popup label="Close" color="primary" flat />
                                                     </div>
@@ -377,7 +377,7 @@
                                   </template>
                                 <template v-slot:body-cell-title-text="props">
                                           <q-td style="border-left: 5px solid #579bfc;padding:6px;" @click="selectTask(props.row)" class="cursor-pointer" :props="props">
-                                            <span><q-icon name="check_circle_outline" class="cursor-pointer text-grey" style="font-size: 22px;" /></span>
+                                            <span><q-icon name="check_circle_outline" class="block float-left cursor-pointer text-grey" style="font-size: 22px;" /></span>
                                             <span>{{props.row.workEffortName}}</span>
                                           </q-td>
                                         </template>
@@ -439,11 +439,11 @@ module.exports = {
                  label: 'Title',
                  align: 'left',
                  sortable: true,
-
+                 style: 'min-width: 300px'
                },
-               { name: 'person', align: 'left', label: 'Person',style: 'width: 210px', field: 'assignToPartyId', sortable: true },
-               { name: 'status', align: 'left', label: 'Status',style: 'width: 210px', field: 'statusId', sortable: true },
-               { name: 'duedate', align: 'left', label: 'Due',style: 'width: 210px', field: 'estimatedCompletionDate', sortable: true }
+               { name: 'person', align: 'left', label: 'Person',style: 'width: 200px', field: 'assignToPartyId', sortable: true },
+               { name: 'status', align: 'left', label: 'Status',style: 'width: 200px', field: 'statusId', sortable: true },
+               { name: 'duedate', align: 'left', label: 'Due',style: 'width: 200px', field: 'estimatedCompletionDate', sortable: true }
             ],
             status_color_map:{WeInPlanning: '#979391', WeApproved: '#6a97ff', WeInProgress: '#f0b057', WeComplete: '#34d391', WeOnHold: '#e8697d',
                                WeClosed: '#79c947', WeCancelled: '#e8a19e'},
@@ -522,7 +522,7 @@ module.exports = {
             var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/tasks", headers:{Accept:'application/json'}, data:allParms,
                 error:moqui.handleAjaxError, success:function(resp) {
-                    self.task_list = resp.taskList.reverse();
+                    self.task_list = resp.taskList.sort(function(a, b){return (b["workEffortId"]).replace("HM-", "99")-(a["workEffortId"]).replace("HM-", "99")});
                     if (is_open_detail) {
                         self.selectTask(self.task_list[0]);
                     }
@@ -538,6 +538,7 @@ module.exports = {
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/task", headers:{Accept:'application/json'}, data:allParms,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.selected_task = resp.task;
+                    self.edit_due_date = null;
                     if (self.selected_task.estimatedCompletionDate){
                         self.edit_due_date = self.formatDate(self.selected_task.estimatedCompletionDate);
                     }
@@ -587,7 +588,7 @@ module.exports = {
         addTask () {
             var self = this;
             var allParms = $.extend({ workEffortName: self.new_task.title,
-             assignToPartyId: (self.new_task.assignee ? self.new_task.assignee.userId:null), description: "", estimatedCompletionDate: self.new_task.due_date.replaceAll("/", "-"),
+             assignToPartyId: (self.new_task.assignee ? self.new_task.assignee.userId:null), description: "", estimatedCompletionDate: self.new_task.due_date,
               moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/add_task", headers:{Accept:'application/json'}, data:allParms,
                 error:moqui.handleAjaxError, success:function(resp) {
@@ -607,7 +608,7 @@ module.exports = {
                 params["statusId"] = status;
             }
             params["description"] = window.editor.getData();
-            params["estimatedCompletionDate"] = (self.edit_due_date ? self.edit_due_date.replaceAll("/", "-"):null);
+            params["estimatedCompletionDate"] = (self.edit_due_date ? self.edit_due_date:null);
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/update_task", headers:{Accept:'application/json'}, data:params,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.is_edit_title = false;
@@ -758,7 +759,6 @@ module.exports = {
     },
     mounted: function () {
         this.fetchLoggedInUser();
-        this.new_task.due_date = this.formatDate(new Date());
         this.getAssigneeList();
         this.fetchAllTasks();
         this.getStatuses();
