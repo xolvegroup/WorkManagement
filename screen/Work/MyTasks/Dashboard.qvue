@@ -2,6 +2,127 @@
     <div>
     <q-drawer
             side="right"
+            v-model="open_find_options_drawer"
+            bordered
+            overlay
+            :width="550"
+            :breakpoint="550"
+            content-class="bg-grey-3"
+          >
+          <div class="q-pa-sm q-px-md">
+                <div class="row">
+                    <div class="col-11 q-pt-sm text-h5 text-weight-bold">
+                        Find Options
+                    </div>
+                    <div class="col-1">
+                        <q-btn flat round dense icon="close" @click="open_find_options_drawer=false"></q-btn>
+                    </div>
+                </div>
+                <div class="row q-mt-md q-col-gutter-md cls_task_detail">
+                    <div class="col-6">
+                        <q-select
+                              label="Person"
+                              dense
+                              outlined
+                              v-model="mdl_filter_user"
+                              class="bg-white"
+                              use-input
+                              input-debounce="0"
+                              option-value="userId"
+                              option-label="userFullName"
+                              :options="assignee_options"
+                              @filter="filterFn"
+                            >
+                              <template v-slot:no-option>
+                                <q-item>
+                                  <q-item-section class="text-grey">
+                                    No results
+                                  </q-item-section>
+                                </q-item>
+                              </template>
+                            </q-select>
+                    </div>
+                    <div class="col-6">
+                        <q-select
+                            label="Role"
+                            dense
+                            outlined
+                            v-model="mdl_filter_role"
+                            use-input
+                            class="bg-white"
+                            input-debounce="0"
+                            option-value="value"
+                            option-label="label"
+                            :options="role_options"
+                            @filter="filterFnRole"
+                          >
+                            <template v-slot:no-option>
+                              <q-item>
+                                <q-item-section class="text-grey">
+                                  No results
+                                </q-item-section>
+                              </q-item>
+                            </template>
+                          </q-select>
+                    </div>
+                    <div class="col-6">
+                    <q-select
+                            label="Status"
+                            dense
+                            outlined
+                            v-model="mdl_filter_status"
+                            class="bg-white"
+                            use-input
+                            input-debounce="0"
+                            option-value="statusId"
+                            option-label="description"
+                            :options="status_options"
+                            @filter="filterFnStatus"
+                          >
+                            <template v-slot:no-option>
+                              <q-item>
+                                <q-item-section class="text-grey">
+                                  No results
+                                </q-item-section>
+                              </q-item>
+                            </template>
+                          </q-select>
+                    </div>
+                    <div class="col-6">
+                        <q-select
+                            label="Order By"
+                            dense
+                            class="bg-white"
+                            outlined
+                            v-model="mdl_filter_order_by"
+                            use-input
+                            input-debounce="0"
+                            option-value="value"
+                            option-label="label"
+                            :options="orderby_options"
+                            @filter="filterFnOrderBy"
+                          >
+                            <template v-slot:no-option>
+                              <q-item>
+                                <q-item-section class="text-grey">
+                                  No results
+                                </q-item-section>
+                              </q-item>
+                            </template>
+                          </q-select>
+                    </div>
+                    <div class="col-12">
+                        <q-btn @click="findOptions()" style="width: 140px" class="text-blue q-px-sm q-ml-sm" outline dense icon="search" label="Find"></q-btn>
+                        <q-btn @click="resetFind()" style="width: 140px" class="q-px-sm q-ml-sm" outline dense icon="search" label="Clear"></q-btn>
+                    </div>
+                </div>
+                <div class="q-mt-md">
+
+                </div>
+          </div>
+    </q-drawer>
+    <q-drawer
+            side="right"
             v-model="open_task_detail"
             bordered
             :width="700"
@@ -279,11 +400,8 @@
                 </q-item-label>
               </q-item-section>
               <q-item-section class="cls_task_detail" side>
-                <q-input label="Search" v-model="filter" dense rounded outlined>
-                <template v-slot:prepend>
-                                          <q-icon name="search" />
-                                        </template>
-                                        </q-input>
+
+              <q-btn class="text-capitalize q-px-md" outline rounded dense label="Find Options" icon="search" @click="open_find_options_drawer=true"></q-btn>
               </q-item-section>
             </q-item>
             <q-btn
@@ -388,7 +506,68 @@
                                         </template>
                                         <template v-slot:body-cell-person="props">
                                           <q-td v-if="assignee_options_master.length > 0" :props="props">
-                                            {{getPersonName(props.row.assignToPartyId)}}
+                                            <span v-if="props.row.assignToPartyId">{{getPersonName(props.row.assignToPartyId)}}
+                                                <q-btn class="float-right" outline dense size="sm" round color="primary" icon="person">
+                                                    <q-popup-proxy @before-show="preSetAssignee(props.row.assignToPartyId)" transition-show="flip-up" transition-hide="flip-down">
+                                                        <div class="q-pa-md">
+                                                        <q-select
+                                                            dense
+                                                              outlined
+                                                              v-model="add_edit_assignee"
+                                                              use-input
+                                                              square
+                                                              input-debounce="0"
+                                                              option-value="userId"
+                                                              option-label="userFullName"
+                                                              :options="assignee_options"
+                                                              @filter="filterFn"
+                                                            >
+                                                              <template v-slot:no-option>
+                                                                <q-item>
+                                                                  <q-item-section class="text-grey">
+                                                                    No results
+                                                                  </q-item-section>
+                                                                </q-item>
+                                                              </template>
+                                                              <template v-slot:after>
+                                                                <q-icon :disabled="!add_edit_assignee" color="primary" @click="addEditAssignee(props.row.workEffortId)" name="save" class="cursor-pointer" />
+                                                              </template>
+                                                            </q-select>
+                                                        </div>
+                                                      </q-popup-proxy>
+                                                </q-btn>
+                                            </span>
+                                            <span v-if="!props.row.assignToPartyId">
+                                                <q-btn class="float-right" outline dense size="sm" round color="primary" icon="person">
+                                                    <q-popup-proxy @before-show="add_edit_assignee=null" transition-show="flip-up" transition-hide="flip-down">
+                                                        <div class="q-pa-md">
+                                                        <q-select
+                                                            dense
+                                                              outlined
+                                                              v-model="add_edit_assignee"
+                                                              use-input
+                                                              square
+                                                              input-debounce="0"
+                                                              option-value="userId"
+                                                              option-label="userFullName"
+                                                              :options="assignee_options"
+                                                              @filter="filterFn"
+                                                            >
+                                                              <template v-slot:no-option>
+                                                                <q-item>
+                                                                  <q-item-section class="text-grey">
+                                                                    No results
+                                                                  </q-item-section>
+                                                                </q-item>
+                                                              </template>
+                                                              <template v-slot:after>
+                                                                <q-icon :disabled="!add_edit_assignee" color="primary" @click="addEditAssignee(props.row.workEffortId)" name="save" class="cursor-pointer" />
+                                                              </template>
+                                                            </q-select>
+                                                        </div>
+                                                      </q-popup-proxy>
+                                                </q-btn>
+                                            </span>
                                           </q-td>
                                         </template>
                                         <template v-slot:body-cell-status="props">
@@ -421,6 +600,7 @@ module.exports = {
             open_task_detail: false,
             filter: "",
             new_task_assignee: null,
+            add_edit_assignee: null,
             new_task: {title: '', assignee: null, due_date: null},
             assignee: null,
             assignee_options_master: [],
@@ -453,7 +633,30 @@ module.exports = {
             is_delete_comment:false,
             obj_delete_comment:{},
             collaborator_list: [],
-            new_collaborator: true
+            new_collaborator: true,
+            open_find_options_drawer: false,
+            mdl_filter_user:null,
+            mdl_filter_role:null,
+            role_options_master: [{"label":"Assignee","value":"Assignee"},{"label":"Collaborator","value":"Collaborator"}],
+            role_options: [{"label":"Assignee","value":"Assignee"},{"label":"Collaborator","value":"Collaborator"}],
+            mdl_filter_status:null,
+            mdl_filter_order_by:null,
+            orderby_options_master: [{"label":"Task (Asc)","value":"workEffortName"},
+                                     {"label":"Task (Desc)","value":"-workEffortName"},
+                                     {"label":"User (Asc)","value":"assignToPartyId"},
+                                     {"label":"User (Desc)","value":"-assignToPartyId"},
+                                     {"label":"Status (Asc)","value":"statusId"},
+                                     {"label":"Status (Desc)","value":"-statusId"},
+                                     {"label":"Due Date (Asc)","value":"estimatedCompletionDate"},
+                                     {"label":"Due Date(Desc)","value":"-estimatedCompletionDate"}],
+            orderby_options: [{"label":"Task (Asc)","value":"workEffortName"},
+                                     {"label":"Task (Desc)","value":"-workEffortName"},
+                                     {"label":"User (Asc)","value":"assignToPartyId"},
+                                     {"label":"User (Desc)","value":"-assignToPartyId"},
+                                     {"label":"Status (Asc)","value":"statusId"},
+                                     {"label":"Status (Desc)","value":"-statusId"},
+                                     {"label":"Due Date (Asc)","value":"estimatedCompletionDate"},
+                                     {"label":"Due Date(Desc)","value":"-estimatedCompletionDate"}],
         }
     },
     methods: {
@@ -500,6 +703,40 @@ module.exports = {
               this.assignee_options = self.assignee_options_master.filter(v => v.userFullName.toLowerCase().indexOf(needle) > -1)
             })
           },
+          filterFnRole (val, update) {
+            let self = this;
+              if (val === '') {
+                update(() => {
+                  this.role_options = self.role_options_master
+
+                  // with Quasar v1.7.4+
+                  // here you have access to "ref" which
+                  // is the Vue reference of the QSelect
+                })
+                return
+              }
+              update(() => {
+              const needle = val.toLowerCase()
+              this.role_options = self.role_options.filter(v => v.label.toLowerCase().indexOf(needle) > -1)
+            })
+          },
+          filterFnOrderBy (val, update) {
+            let self = this;
+              if (val === '') {
+                update(() => {
+                  this.orderby_options = self.orderby_options_master
+
+                  // with Quasar v1.7.4+
+                  // here you have access to "ref" which
+                  // is the Vue reference of the QSelect
+                })
+                return
+              }
+              update(() => {
+              const needle = val.toLowerCase()
+              this.orderby_options = self.orderby_options.filter(v => v.label.toLowerCase().indexOf(needle) > -1)
+            })
+          },
         filterFnStatus (val, update) {
             let self = this;
               if (val === '') {
@@ -517,17 +754,48 @@ module.exports = {
               this.status_options = self.status_options_master.filter(v => v.description.toLowerCase().indexOf(needle) > -1)
             })
           },
-        fetchAllTasks (is_open_detail) {
+        fetchAllTasks (is_open_detail, params) {
             var self = this;
-            var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            if (!params) {
+                var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            }
+            else {
+                var allParms = params;
+            }
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/tasks", headers:{Accept:'application/json'}, data:allParms,
                 error:moqui.handleAjaxError, success:function(resp) {
-                    self.task_list = resp.taskList.sort(function(a, b){return (b["workEffortId"]).replace("HM-", "99")-(a["workEffortId"]).replace("HM-", "99")});
+                    self.task_list = resp.taskList;
+                    self.task_list_cp = JSON.parse(JSON.stringify(resp.taskList)).sort(function(a, b){return (b["workEffortId"]).replace("HM-", "99")-(a["workEffortId"]).replace("HM-", "99")})[0];
                     if (is_open_detail) {
-                        self.selectTask(self.task_list[0]);
+                        self.selectTask(self.task_list_cp);
                     }
                 }
             });
+        },
+        findOptions() {
+            let self = this;
+            let params = {};
+            params["moquiSessionToken"] = $("#confMoquiSessionToken").val();
+            if (self.mdl_filter_user) {
+                params["partyId"] = self.mdl_filter_user.userId;
+            }
+            if (self.mdl_filter_role) {
+                params["roleTypeId"] = self.mdl_filter_role.value;
+            }
+            if (self.mdl_filter_status) {
+                params["statusId"] = self.mdl_filter_status.statusId;
+            }
+            if (self.mdl_filter_order_by) {
+                params["orderByField"] = self.mdl_filter_order_by.value;
+            }
+            self.fetchAllTasks(false, params);
+        },
+        resetFind() {
+            this.mdl_filter_user = null;
+            this.mdl_filter_role = null;
+            this.mdl_filter_status = null;
+            this.mdl_filter_order_by = null;
+            this.fetchAllTasks();
         },
         selectTask (row) {
             var self = this;
@@ -614,6 +882,25 @@ module.exports = {
                     self.is_edit_title = false;
                     self.fetchAllTasks();
                 }
+            });
+        },
+        addEditAssignee(workEffortId) {
+            let self = this;
+            let params = {};
+            params["moquiSessionToken"] = $("#confMoquiSessionToken").val();
+            params["workEffortId"] = workEffortId;
+            params["assignToPartyId"] = (self.add_edit_assignee ? self.add_edit_assignee.userId:null);
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/update_task", headers:{Accept:'application/json'}, data:params,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    self.fetchAllTasks();
+                    $(".q-menu").hide();
+                }
+            });
+        },
+        preSetAssignee(assignToPartyId){
+            let self = this;
+            self.add_edit_assignee = self.assignee_options_master.find(function(item){
+                return item.userId === assignToPartyId;
             });
         },
         getAssigneeList () {
