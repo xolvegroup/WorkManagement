@@ -133,7 +133,7 @@ along with this software (see the LICENSE.md file). If not, see
             <parameter name="purposeEnumId" default-value="WepTask"/>
             <parameter name="workEffortTypeEnumId" default-value="WetTask"/>
             <parameter name="statusId" default-value="WeInPlanning"/>
-            <!-- Parties -->
+            <!-- Parties. Default assignee to user that creates the task if no one is specified. -->
             <parameter name="assignToPartyId" default="ec.user.userAccount.partyId"/>
         </in-parameters>
         <out-parameters>
