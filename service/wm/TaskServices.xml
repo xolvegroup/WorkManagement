@@ -131,11 +131,10 @@ along with this software (see the LICENSE.md file). If not, see
             <parameter name="estimatedCompletionDate"/>
             <parameter name="description" allow-html="safe"/>
             <parameter name="purposeEnumId" default-value="WepTask"/>
-            <!--<parameter name="statusId" default-value="WeApproved"/>-->
             <parameter name="workEffortTypeEnumId" default-value="WetTask"/>
             <parameter name="statusId" default-value="WeInPlanning"/>
             <!-- Parties -->
-            <parameter name="assignToPartyId"/>
+            <parameter name="assignToPartyId" default="ec.user.userAccount.partyId"/>
         </in-parameters>
         <out-parameters>
             <parameter name="workEffortId"/>
