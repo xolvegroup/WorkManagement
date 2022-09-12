@@ -20,6 +20,8 @@ along with this software (see the LICENSE.md file). If not, see
             <parameter name="partyId"/>
             <parameter name="roleTypeId"/>
             <parameter name="statusId" default-value="WeInPlanning,WeApproved,WeInProgress"/>
+            <parameter name="pageOffset" default-value="" type="Integer"/>
+            <parameter name="pageLimit" default-value="" type="Integer"/>
             <parameter name="orderByField" default-value="-workEffortId"/>
         </in-parameters>
         <out-parameters>
@@ -37,7 +39,7 @@ along with this software (see the LICENSE.md file). If not, see
             </entity-find>
             <set field="myProjectIds" from="myProjectList.workEffortId"/>
             <!-- get list of tasks -->
-            <entity-find entity-name="mantle.work.effort.WorkEffortAndParty" list="weapList" distinct="true">
+            <entity-find offset="pageOffset" limit="pageLimit" entity-name="mantle.work.effort.WorkEffortAndParty" list="weapList" distinct="true">
                 <econdition field-name="partyId" ignore-if-empty="true"/>
                 <econdition field-name="roleTypeId" ignore-if-empty="true"/>
                 <econdition field-name="workEffortTypeEnumId" value="WetTask"/>
@@ -73,6 +75,41 @@ along with this software (see the LICENSE.md file). If not, see
                     </if>
                 </iterate>
             </if>
+        </actions>
+    </service>
+    <service verb="get" noun="TaskCount">
+        <in-parameters>
+            <parameter name="partyId"/>
+            <parameter name="roleTypeId"/>
+            <parameter name="statusId" default-value="WeInPlanning,WeApproved,WeInProgress"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="count" type="Integer"/>
+        </out-parameters>
+        <actions>
+            <!-- get list of user projects -->
+            <entity-find entity-name="mantle.work.effort.WorkEffortAndParty" list="myProjectList">
+                <econditions combine="or">
+                    <econdition field-name="visibilityEnumId" operator="in" value="WevGeneral,WevAllUsers"/>
+                    <econditions><date-filter/><econdition field-name="partyId" from="ec.user.userAccount.partyId"/></econditions>
+                </econditions>
+                <econdition field-name="workEffortTypeEnumId" value="WetProject"/>
+                <order-by field-name="workEffortId"/>
+            </entity-find>
+            <set field="myProjectIds" from="myProjectList.workEffortId"/>
+            <entity-find-count entity-name="mantle.work.effort.WorkEffortAndParty" count-field="count" distinct="true">
+                <econdition field-name="partyId" ignore-if-empty="true"/>
+                <econdition field-name="roleTypeId" ignore-if-empty="true"/>
+                <econdition field-name="workEffortTypeEnumId" value="WetTask"/>
+                <econdition field-name="statusId" operator="in" from="statusId"/>
+                <econditions combine="or">
+                    <econdition field-name="rootWorkEffortId" operator="in" from="myProjectIds"/>
+                    <econditions><date-filter/><econdition field-name="partyId" from="ec.user.userAccount.partyId"/></econditions>
+                    <econdition field-name="visibilityEnumId" operator="in" value="WevAllUsers"/>
+                </econditions>
+                <select-field field-name="rootWorkEffortId,workEffortId,workEffortName,statusId,estimatedCompletionDate"/>
+                <order-by field-name="${orderByField}"/>
+            </entity-find-count>
         </actions>
     </service>
     <service verb="get" noun="Task">

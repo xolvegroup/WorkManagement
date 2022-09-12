@@ -24,6 +24,9 @@ along with this software (see the LICENSE.md file). If not, see
     <resource name="tasks" require-authentication="anonymous-view">
         <method type="get"><service name="wm.TaskServices.get#Tasks"/></method>
     </resource>
+    <resource name="task_count" require-authentication="anonymous-view">
+        <method type="get"><service name="wm.TaskServices.get#TaskCount"/></method>
+    </resource>
     <resource name="task" require-authentication="anonymous-view">
         <method type="get"><service name="wm.TaskServices.get#Task"/></method>
     </resource>

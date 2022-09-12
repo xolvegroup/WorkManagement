@@ -240,7 +240,7 @@
                                         </div>
                                         <div v-if="sel_task_comments.length > 0">
                                             <q-list separator bordered>
-                                              <q-item v-for="comment in sel_task_comments" class="q-my-sm">
+                                              <q-item :key="comment.communicationEventId" v-for="comment in sel_task_comments" class="q-my-sm">
                                                 <q-item-section avatar>
                                                   <q-avatar color="primary" text-color="white">
                                                     {{ getInitials(getPersonName(comment.fromPartyId)) }}
@@ -319,7 +319,7 @@
                                           </q-item>
                                           <q-item>
                                           <q-item-section side class="cursor-pointer">
-                                                <q-btn @click="addComment" class="q-px-sm q-ml-sm" outline dense icon="check" label="Add Comment"></q-btn>
+                                                <q-btn class="text-primary" :disabled="!comment_body" @click="addComment" class="q-px-sm q-ml-sm" outline dense icon="check" label="Add Comment"></q-btn>
                                           </q-item-section>
                                           </q-item>
 
@@ -331,6 +331,7 @@
                                               <div class="q-gutter-sm">
                                                 <span class="text-caption q-mt-sm text-grey-8">Collaborators</span>
                                                 <q-chip
+                                                    :key="item.partyId"
                                                     v-for="item in collaborator_list"
                                                     removable
                                                     @remove="removeCollaborator(item)"
@@ -388,7 +389,7 @@
               </div>
             </q-scroll-area>
           </q-drawer>
-        <q-item>
+        <q-item class="q-py-none q-pb-xs">
               <q-item-section side>
                 <q-avatar size="49px" color="primary" text-color="white">
                                                 {{ getInitials(logged_in_user.userFullName) }}
@@ -399,9 +400,9 @@
                 <q-item-label caption>
                 </q-item-label>
               </q-item-section>
-              <q-item-section class="cls_task_detail" side>
-
-              <q-btn class="text-capitalize q-px-md" outline rounded dense label="Find Options" icon="search" @click="open_find_options_drawer=true"></q-btn>
+              <q-item-section style="display: block;" class="cls_task_detail">
+              <q-btn style="width: 130px" class="text-capitalize float-right" outline rounded dense label="Find Options" icon="search" @click="open_find_options_drawer=true"></q-btn>
+              <q-btn style="width: 130px" v-if="Object.keys(filter_params).length > 1" @click="resetFind()" class="text-capitalize float-right text-red" outline rounded dense icon="close" label="Clear"></q-btn>
               </q-item-section>
             </q-item>
             <q-btn
@@ -428,6 +429,7 @@
                             <q-table
                             bordered
                             flat
+                            @request="onPageChange"
                             :wrap-cells="true"
                                   :data="task_list"
                                   :filter="filter"
@@ -436,9 +438,7 @@
                                   row-key="notificationMessageId"
                                   separator="cell"
                                   dense
-                                  :pagination="{
-                                                       rowsPerPage: 10
-                                                     }"
+                                  :pagination.sync="pagination"
                                 >
                                 <template v-if="is_add_task" v-slot:top-row>
                                     <q-tr>
@@ -594,6 +594,12 @@ module.exports = {
             logged_in_user: {},
             is_edit_title: false,
             task_list: [],
+            pagination: {
+                page: 1,
+                rowsPerPage: 10,
+                rowsNumber: 0
+              },
+            filter_params: {},
             sel_task_comments: [],
             edit_due_date: null,
             selected_task: {},
@@ -618,12 +624,12 @@ module.exports = {
                  required: true,
                  label: 'Title',
                  align: 'left',
-                 sortable: true,
+                 sortable: false,
                  style: 'min-width: 300px'
                },
-               { name: 'person', align: 'left', label: 'Person',style: 'width: 200px', field: 'assignToPartyId', sortable: true },
-               { name: 'status', align: 'left', label: 'Status',style: 'width: 200px', field: 'statusId', sortable: true },
-               { name: 'duedate', align: 'left', label: 'Due',style: 'width: 200px', field: 'estimatedCompletionDate', sortable: true }
+               { name: 'person', align: 'left', label: 'Person',style: 'width: 200px', field: 'assignToPartyId', sortable: false },
+               { name: 'status', align: 'left', label: 'Status',style: 'width: 200px', field: 'statusId', sortable: false },
+               { name: 'duedate', align: 'left', label: 'Due',style: 'width: 200px', field: 'estimatedCompletionDate', sortable: false }
             ],
             status_color_map:{WeInPlanning: '#979391', WeApproved: '#6a97ff', WeInProgress: '#f0b057', WeComplete: '#34d391', WeOnHold: '#e8697d',
                                WeClosed: '#79c947', WeCancelled: '#e8a19e'},
@@ -660,6 +666,28 @@ module.exports = {
         }
     },
     methods: {
+        onPageChange (props) {
+            let self = this;
+            const { page, rowsNumber, rowsPerPage } = props.pagination
+            const startRow = (page - 1) * rowsPerPage
+            const fetchCount = rowsPerPage === 0 ? this.pagination.rowsNumber : rowsPerPage;
+            if (self.filter_params) {
+                var allParms = JSON.parse(JSON.stringify(self.filter_params));
+                allParms["pageOffset"] = startRow;
+                allParms["pageLimit"] = fetchCount;
+                allParms["moquiSessionToken"] = $("#confMoquiSessionToken").val();
+            }
+            else {
+                var allParms = $.extend({pageOffset: startRow, pageLimit: fetchCount ,moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            }
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/tasks", headers:{Accept:'application/json'}, data:allParms,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    self.task_list = resp.taskList;
+                    self.pagination.page = page;
+                    self.pagination.rowsPerPage = rowsPerPage;
+                }
+            });
+        },
         formatDate (dt) {
             if (dt) {
                 dt = new Date(dt);
@@ -774,28 +802,30 @@ module.exports = {
         },
         findOptions() {
             let self = this;
-            let params = {};
-            params["moquiSessionToken"] = $("#confMoquiSessionToken").val();
             if (self.mdl_filter_user) {
-                params["partyId"] = self.mdl_filter_user.partyId;
+                self.filter_params["partyId"] = self.mdl_filter_user.partyId;
             }
             if (self.mdl_filter_role) {
-                params["roleTypeId"] = self.mdl_filter_role.value;
+                self.filter_params["roleTypeId"] = self.mdl_filter_role.value;
             }
             if (self.mdl_filter_status) {
-                params["statusId"] = self.mdl_filter_status.statusId;
+                self.filter_params["statusId"] = self.mdl_filter_status.statusId;
             }
             if (self.mdl_filter_order_by) {
-                params["orderByField"] = self.mdl_filter_order_by.value;
+                self.filter_params["orderByField"] = self.mdl_filter_order_by.value;
             }
-            self.fetchAllTasks(false, params);
+            self.pagination.page = 1;
+            self.fetchTaskCount();
         },
         resetFind() {
-            this.mdl_filter_user = null;
-            this.mdl_filter_role = null;
-            this.mdl_filter_status = null;
-            this.mdl_filter_order_by = null;
-            this.fetchAllTasks();
+            let self = this;
+            self.mdl_filter_user = null;
+            self.mdl_filter_role = null;
+            self.mdl_filter_status = null;
+            self.mdl_filter_order_by = null;
+            self.filter_params = {};
+            self.pagination.page = 1;
+            self.fetchTaskCount();
         },
         selectTask (row) {
             var self = this;
@@ -862,7 +892,9 @@ module.exports = {
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.is_add_task=false;
                     self.new_task = {title: '', assignee: null, due_date: self.formatDate(new Date())};
-                    self.fetchAllTasks(true);
+                    let new_task_item = {workEffortId: resp.workEffortId};
+                    self.selectTask(new_task_item);
+                    self.fetchTaskCount();
                 }
             });
         },
@@ -880,7 +912,9 @@ module.exports = {
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/update_task", headers:{Accept:'application/json'}, data:params,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.is_edit_title = false;
-                    self.fetchAllTasks();
+                    self.onPageChange({
+                      pagination: self.pagination,
+                    });
                 }
             });
         },
@@ -892,7 +926,9 @@ module.exports = {
             params["assignToPartyId"] = (self.add_edit_assignee ? self.add_edit_assignee.partyId:null);
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/update_task", headers:{Accept:'application/json'}, data:params,
                 error:moqui.handleAjaxError, success:function(resp) {
-                    self.fetchAllTasks();
+                    self.onPageChange({
+                      pagination: self.pagination,
+                    });
                     $(".q-menu").hide();
                 }
             });
@@ -1042,13 +1078,26 @@ module.exports = {
                 });
                 return final_initials.toUpperCase();
             }
+        },
+        fetchTaskCount() {
+            let self = this;
+            self.filter_params["moquiSessionToken"] = $("#confMoquiSessionToken").val();
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/task_count", headers:{Accept:'application/json'}, data:self.filter_params,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    self.pagination.rowsNumber = resp.count;
+                    self.onPageChange({
+                      pagination: self.pagination,
+                    });
+                    self.open_find_options_drawer = false;
+                }
+            });
         }
     },
-    mounted: function () {
+    created: function () {
         this.fetchLoggedInUser();
         this.getAssigneeList();
-        this.fetchAllTasks();
         this.getStatuses();
+        this.fetchTaskCount();
     }
 }
 </script>
