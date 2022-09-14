@@ -44,17 +44,17 @@
                     </div>
                     <div class="col-6">
                         <q-select
-                            label="Role"
+                            label="Project"
                             dense
-                            outlined
-                            v-model="mdl_filter_role"
-                            use-input
                             class="bg-white"
+                            outlined
+                            v-model="mdl_filter_project"
+                            use-input
                             input-debounce="0"
-                            option-value="value"
-                            option-label="label"
-                            :options="role_options"
-                            @filter="filterFnRole"
+                            option-value="workEffortId"
+                            option-label="workEffortName"
+                            :options="project_options"
+                            @filter="filterFnProject"
                           >
                             <template v-slot:no-option>
                               <q-item>
@@ -65,7 +65,7 @@
                             </template>
                           </q-select>
                     </div>
-                    <div class="col-6">
+                    <div class="col-12">
                     <q-select
                             label="Status"
                             dense
@@ -79,6 +79,29 @@
                             option-label="description"
                             :options="status_options"
                             @filter="filterFnStatus"
+                          >
+                            <template v-slot:no-option>
+                              <q-item>
+                                <q-item-section class="text-grey">
+                                  No results
+                                </q-item-section>
+                              </q-item>
+                            </template>
+                          </q-select>
+                    </div>
+                    <div class="col-6">
+                        <q-select
+                            label="Role"
+                            dense
+                            outlined
+                            v-model="mdl_filter_role"
+                            use-input
+                            class="bg-white"
+                            input-debounce="0"
+                            option-value="value"
+                            option-label="label"
+                            :options="role_options"
+                            @filter="filterFnRole"
                           >
                             <template v-slot:no-option>
                               <q-item>
@@ -458,39 +481,35 @@
                                 <template v-if="is_add_task" v-slot:top-row>
                                     <q-tr>
                                       <q-td style="padding: 0">
-                                      <div class="row">
-                                      <div class="col-8">
-                                        <q-input class="col-8" v-model="new_task.title" autofocus square outlined style="margin:0;padding:0;" dense>
+                                          <q-input class="col-8" v-model="new_task.title" autofocus square outlined style="margin:0;padding:0;" dense>
                                             <template v-slot:before>
                                               <q-icon @click="is_add_task=false" color="red" class="cursor-pointer q-ml-xs" name="close" />
                                             </template>
                                         </q-input>
-                                        </div>
-                                        <div class="col-4 add_task_cls">
-                                            <q-select
-                                                square
-                                                hide-bottom-space
-                                                use-input
-                                                label="Project"
-                                                dense
-                                                outlined
-                                                v-model="new_task.project"
-                                                input-debounce="0"
-                                                option-value="workEffortId"
-                                                option-label="workEffortName"
-                                                :options="project_options"
-                                                class="cls_task_detail ellipsis col-4 q-pa-none q-ma-none"
-                                              >
-                                                <template v-slot:no-option>
-                                                  <q-item>
-                                                    <q-item-section class="text-grey">
-                                                      No results
-                                                    </q-item-section>
-                                                  </q-item>
-                                                </template>
-                                              </q-select>
-                                              </div>
-                                          </div>
+                                      </q-td>
+                                      <q-td class="add_task_cls" style="padding: 0">
+                                          <q-select
+                                            square
+                                            hide-bottom-space
+                                            use-input
+                                            dense
+                                            outlined
+                                            v-model="new_task.project"
+                                            input-debounce="0"
+                                            option-value="workEffortId"
+                                            option-label="workEffortName"
+                                            :options="project_options"
+                                            style="margin:0;padding:0;"
+                                            class="cls_task_detail ellipsis col-4 q-pa-none q-ma-none"
+                                          >
+                                            <template v-slot:no-option>
+                                              <q-item>
+                                                <q-item-section class="text-grey">
+                                                  No results
+                                                </q-item-section>
+                                              </q-item>
+                                            </template>
+                                          </q-select>
                                       </q-td>
                                       <q-td style="padding: 0">
                                       <q-select
@@ -546,6 +565,11 @@
                                           <q-td :props="props">
                                             {{formatDate(props.row.estimatedCompletionDate)}}
                                           </q-td>
+                                        </template>
+                                        <template v-slot:body-cell-project="props">
+                                            <q-td v-if="project_options_master.length > 0" :props="props">
+                                                {{getProjectName(props.row.rootWorkEffortId)}}
+                                            </q-td>
                                         </template>
                                         <template v-slot:body-cell-person="props">
                                           <q-td v-if="assignee_options_master.length > 0" :props="props">
@@ -673,6 +697,7 @@ module.exports = {
                  sortable: false,
                  style: 'min-width: 300px'
                },
+               { name: 'project', align: 'left', label: 'Project',style: 'width: 220px', field: 'rootWorkEffortId', sortable: false },
                { name: 'person', align: 'left', label: 'Person',style: 'width: 220px', field: 'assignToPartyId', sortable: false },
                { name: 'status', align: 'left', label: 'Status',style: 'width: 220px', field: 'statusId', sortable: false },
                { name: 'duedate', align: 'left', label: 'Due',style: 'width: 220px', field: 'estimatedCompletionDate', sortable: false }
@@ -688,6 +713,7 @@ module.exports = {
             new_collaborator: true,
             open_find_options_drawer: false,
             mdl_filter_user:null,
+            mdl_filter_project:null,
             mdl_filter_role:null,
             role_options_master: [{"label":"Assignee","value":"Assignee"},{"label":"Collaborator","value":"Collaborator"}],
             role_options: [{"label":"Assignee","value":"Assignee"},{"label":"Collaborator","value":"Collaborator"}],
@@ -718,15 +744,15 @@ module.exports = {
             const startRow = (page - 1) * rowsPerPage
             const fetchCount = rowsPerPage === 0 ? this.pagination.rowsNumber : rowsPerPage;
             if (self.filter_params) {
-                var allParms = JSON.parse(JSON.stringify(self.filter_params));
-                allParms["pageOffset"] = startRow;
-                allParms["pageLimit"] = fetchCount;
-                allParms["moquiSessionToken"] = $("#confMoquiSessionToken").val();
+                var allParams = JSON.parse(JSON.stringify(self.filter_params));
+                allParams["pageOffset"] = startRow;
+                allParams["pageLimit"] = fetchCount;
+                allParams["moquiSessionToken"] = $("#confMoquiSessionToken").val();
             }
             else {
-                var allParms = $.extend({pageOffset: startRow, pageLimit: fetchCount ,moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+                var allParams = $.extend({pageOffset: startRow, pageLimit: fetchCount ,moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
             }
-            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/tasks", headers:{Accept:'application/json'}, data:allParms,
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/tasks", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.pagination.rowsNumber = resp.count;
                     self.task_list = resp.taskList;
@@ -748,6 +774,16 @@ module.exports = {
                 });
                 if (user_full_name) {
                     return user_full_name.userFullName;
+                }
+            }
+        },
+        getProjectName(id) {
+            if (id) {
+                let project = this.project_options_master.find(function(item){
+                    return item.workEffortId === id;
+                });
+                if (project) {
+                    return project.workEffortName;
                 }
             }
         },
@@ -831,6 +867,9 @@ module.exports = {
             if (self.mdl_filter_user) {
                 self.filter_params["partyId"] = self.mdl_filter_user.partyId;
             }
+            if (self.mdl_filter_project) {
+                self.filter_params["rootWorkEffortId"] = self.mdl_filter_project.workEffortId;
+            }
             if (self.mdl_filter_role) {
                 self.filter_params["roleTypeId"] = self.mdl_filter_role.value;
             }
@@ -852,6 +891,7 @@ module.exports = {
         resetFind() {
             let self = this;
             self.mdl_filter_user = null;
+            self.mdl_filter_project = null;
             self.mdl_filter_role = null;
             self.mdl_filter_status = null;
             self.mdl_filter_order_by = null;
@@ -866,8 +906,8 @@ module.exports = {
             self.is_edit_title = false;
             self.selected_task = {};
             self.open_task_detail=true;
-            var allParms = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
-            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/task", headers:{Accept:'application/json'}, data:allParms,
+            var allParams = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/task", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.selected_task = resp.task;
                     self.edit_due_date = null;
@@ -922,12 +962,12 @@ module.exports = {
         },
         addTask () {
             var self = this;
-            var allParms = $.extend({ workEffortName: self.new_task.title,
+            var allParams = $.extend({ workEffortName: self.new_task.title,
              assignToPartyId: (self.new_task.assignee ? self.new_task.assignee.partyId:null), description: "",
              rootWorkEffortId: (self.new_task.project ? self.new_task.project.workEffortId:null),
              estimatedCompletionDate: self.new_task.due_date,
               moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
-            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/add_task", headers:{Accept:'application/json'}, data:allParms,
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/add_task", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.is_add_task=false;
                     self.new_task = {title: '', assignee: null, due_date: self.formatDate(new Date())};
@@ -984,8 +1024,8 @@ module.exports = {
         },
         getAssigneeList () {
             var self = this;
-            var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
-            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/users", headers:{Accept:'application/json'}, data:allParms,
+            var allParams = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/users", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.assignee_options_master = resp.userList;
                     self.assignee_options = resp.userList;
@@ -994,8 +1034,8 @@ module.exports = {
         },
         getStatuses () {
             var self = this;
-            var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
-            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/statuses", headers:{Accept:'application/json'}, data:allParms,
+            var allParams = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/statuses", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.status_options_master = resp.statusList;
                     self.status_options = resp.statusList;
@@ -1004,9 +1044,9 @@ module.exports = {
         },
         addComment () {
             var self = this;
-            var allParms = $.extend({ workEffortId: self.selected_task.workEffortId,
+            var allParams = $.extend({ workEffortId: self.selected_task.workEffortId,
              body: self.comment_body,moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
-            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/add_comment", headers:{Accept:'application/json'}, data:allParms,
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/add_comment", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.comment_body = "";
                     self.getComments(self.selected_task);
@@ -1015,8 +1055,8 @@ module.exports = {
         },
         getCollaborators(row) {
             var self = this;
-            var allParms = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
-            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/collaborators", headers:{Accept:'application/json'}, data:allParms,
+            var allParams = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/collaborators", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.collaborator_list = resp.collaboratorList;
                 }
@@ -1024,8 +1064,8 @@ module.exports = {
         },
         addCollaborator() {
             var self = this;
-            var allParms = $.extend({ workEffortId:self.selected_task.workEffortId, partyId: self.new_collab.partyId, roleTypeId: "Collaborator", moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
-            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/add_collaborator", headers:{Accept:'application/json'}, data:allParms,
+            var allParams = $.extend({ workEffortId:self.selected_task.workEffortId, partyId: self.new_collab.partyId, roleTypeId: "Collaborator", moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/add_collaborator", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.getCollaborators(self.selected_task);
                     self.$nextTick(function () {
@@ -1036,8 +1076,8 @@ module.exports = {
         },
         removeCollaborator(item) {
             var self = this;
-            var allParms = $.extend({ workEffortId:item.workEffortId, partyId: item.partyId, roleTypeId: item.roleTypeId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
-            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/remove_collaborator", headers:{Accept:'application/json'}, data:allParms,
+            var allParams = $.extend({ workEffortId:item.workEffortId, partyId: item.partyId, roleTypeId: item.roleTypeId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/remove_collaborator", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.getCollaborators(self.selected_task);
                 }
@@ -1045,8 +1085,8 @@ module.exports = {
         },
         getComments(row) {
             var self = this;
-            var allParms = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
-            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/comments", headers:{Accept:'application/json'}, data:allParms,
+            var allParams = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/comments", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.sel_task_comments = resp.commentList.reverse();
                 }
@@ -1054,9 +1094,9 @@ module.exports = {
         },
         updateComment() {
             var self = this;
-            var allParms = $.extend({ workEffortId: self.selected_task.workEffortId,
+            var allParams = $.extend({ workEffortId: self.selected_task.workEffortId,
              body: self.obj_edit_comment.body,communicationEventId:self.obj_edit_comment.communicationEventId,moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
-            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/update_comment", headers:{Accept:'application/json'}, data:allParms,
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/update_comment", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.obj_edit_comment = {};
                     self.is_edit_comment = false;
@@ -1066,9 +1106,9 @@ module.exports = {
         },
         deleteComment() {
             var self = this;
-            var allParms = $.extend({ workEffortId: self.selected_task.workEffortId,
+            var allParams = $.extend({ workEffortId: self.selected_task.workEffortId,
              communicationEventId:self.obj_delete_comment.communicationEventId,moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
-            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/delete_comment", headers:{Accept:'application/json'}, data:allParms,
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/delete_comment", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.obj_delete_comment = {};
                     self.is_delete_comment = false;
@@ -1105,8 +1145,8 @@ module.exports = {
         },
         fetchLoggedInUser() {
             let self = this;
-            var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
-            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/logged_in_user", headers:{Accept:'application/json'}, data:allParms,
+            var allParams = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/logged_in_user", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.logged_in_user = resp.loggedInUser;
                 }
@@ -1124,8 +1164,8 @@ module.exports = {
         },
         getProjects(name) {
             let self = this;
-            var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
-            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/projects", headers:{Accept:'application/json'}, data:allParms,
+            var allParams = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/projects", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.project_options_master = resp.projectList;
                     self.project_options = resp.projectList;
@@ -1157,10 +1197,7 @@ module.exports = {
     .ck-balloon-panel_visible {
         z-index: 10000 !important;
     }
-    .add_task_cls .q-field__label {
-        background: none !important;
-    }
     .add_task_cls .q-field__input {
-        min-width: 30px !important;
+        min-width: 5px !important;
     }
 </style>
