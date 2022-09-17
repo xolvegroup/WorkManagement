@@ -13,17 +13,7 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
 <services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
-    <service verb="get" noun="UserProjectList">
-        <in-parameters>
 
-        </in-parameters>
-        <out-parameters>
-
-        </out-parameters>
-        <actions>
-
-        </actions>
-    </service>
     <service verb="get" noun="Projects">
         <out-parameters>
             <parameter name="projectList" type="List"/>
@@ -70,6 +60,36 @@ along with this software (see the LICENSE.md file). If not, see
             <if condition="assignToPartyId">
                 <service-call name="create#mantle.work.effort.WorkEffortParty" in-map="[workEffortId:workEffortId, partyId:assignToPartyId,
                         roleTypeId:assignRoleTypeId, fromDate:ec.user.nowTimestamp, statusId:assignStatusId]"/>
+            </if>
+        </actions>
+    </service>
+    <service verb="update" noun="Project">
+        <in-parameters>
+            <parameter name="workEffortId" required="true"/>
+            <parameter name="workEffortName"/>
+            <parameter name="estimatedCompletionDate"/>
+            <parameter name="description" allow-html="safe"/>
+            <parameter name="statusId"/>
+            <!-- Parties -->
+            <parameter name="managerPartyId"/>
+        </in-parameters>
+        <actions>
+            <!-- Update Project -->
+            <service-call name="update#mantle.work.effort.WorkEffort" out-map="context" in-map="context"/>
+            <!-- Get current manager -->
+            <entity-find entity-name="mantle.work.effort.WorkEffortParty" list="assignToList">
+                <econdition field-name="workEffortId"/>
+                <econdition field-name="roleTypeId" value="Manager"/>
+                <date-filter/>
+            </entity-find>
+            <!-- It is technically possible to have more than one, so just use the first record -->
+            <if condition="managerList">
+                <set field="curManagerPartyId" from="managerList[0].partyId"/>
+            </if>
+            <!-- Update manager if current and new are different, if they are the same do nothing (user did not change manager) -->
+            <if condition="managerPartyId &amp;&amp; curManagerPartyId != managerPartyId">
+                <service-call name="mantle.work.WorkEffortServices.replace#WorkEffortParty"
+                              in-map="[workEffortId:workEffortId, roleTypeId:'Manager', newPartyId:managerPartyId, statusId:'WeptAssigned']"/>
             </if>
         </actions>
     </service>
