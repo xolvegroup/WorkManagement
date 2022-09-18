@@ -32,14 +32,13 @@ along with this software (see the LICENSE.md file). If not, see
             <entity-find-count entity-name="mantle.work.effort.WorkEffortAndParty" count-field="count" distinct="true">
                 <econdition field-name="partyId" ignore-if-empty="true"/>
                 <econdition field-name="roleTypeId" ignore-if-empty="true"/>
-                <econdition field-name="rootWorkEffortId" ignore-if-empty="true"/>
                 <econdition field-name="workEffortTypeEnumId" value="WetProject"/>
                 <econdition field-name="statusId" operator="in" from="statusId" ignore-if-empty="true"/>
                 <econditions combine="or">
                     <econditions><date-filter/><econdition field-name="partyId" from="ec.user.userAccount.partyId"/></econditions>
                     <econdition field-name="visibilityEnumId" operator="in" value="WevAllUsers"/>
                 </econditions>
-                <select-field field-name="rootWorkEffortId,workEffortId,workEffortName,statusId,estimatedCompletionDate"/>
+                <select-field field-name="workEffortId,workEffortName,statusId,estimatedCompletionDate"/>
             </entity-find-count>
             <!-- get list of projects -->
             <entity-find offset="pageOffset" limit="pageLimit" entity-name="mantle.work.effort.WorkEffortAndParty" list="weapList" distinct="true">
@@ -51,7 +50,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <econditions><date-filter/><econdition field-name="partyId" from="ec.user.userAccount.partyId"/></econditions>
                     <econdition field-name="visibilityEnumId" operator="in" value="WevAllUsers"/>
                 </econditions>
-                <select-field field-name="rootWorkEffortId,workEffortId,workEffortName,statusId,estimatedCompletionDate"/>
+                <select-field field-name="workEffortId,workEffortName,statusId,estimatedCompletionDate"/>
                 <order-by field-name="${orderByField}"/>
             </entity-find>
             <set field="projectList" from="[]"/>
