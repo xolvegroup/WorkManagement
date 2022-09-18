@@ -55,7 +55,7 @@ along with this software (see the LICENSE.md file). If not, see
                     </script>
                     <!-- Get current assignee -->
                     <entity-find entity-name="mantle.work.effort.WorkEffortParty" list="managerList">
-                        <econdition field-name="workEffortId" from="prj.workEffortId"/>
+                        <econdition field-name="workEffortId" from="weap.workEffortId"/>
                         <econdition field-name="roleTypeId" value="Manager"/>
                         <date-filter/>
                     </entity-find>
