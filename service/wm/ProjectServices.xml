@@ -93,4 +93,47 @@ along with this software (see the LICENSE.md file). If not, see
             </if>
         </actions>
     </service>
+    <service verb="get" noun="Project">
+        <in-parameters>
+            <parameter name="workEffortId" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="project" type="Map"/>
+        </out-parameters>
+        <actions>
+            <entity-find-one entity-name="mantle.work.effort.WorkEffort" value-field="workEffort"/>
+            <set field="project" from="new HashMap()"/>
+            <script>
+                project.putAll(workEffort)
+            </script>
+            <!-- Get current assignee -->
+            <entity-find entity-name="mantle.work.effort.WorkEffortParty" list="managerList">
+                <econdition field-name="workEffortId"/>
+                <econdition field-name="roleTypeId" value="Manager"/>
+                <date-filter/>
+            </entity-find>
+            <!-- It is technically possible to have more than one, so just use the first record -->
+            <if condition="managerList">
+                <set field="managerPartyId" from="managerList[0].partyId"/>
+                <script>
+                    task.put("managerPartyId",managerPartyId)
+                </script>
+            </if>
+        </actions>
+    </service>
+    <service verb="get" noun="Assignees"> <!-- for projects the role "assignee" is used to add people to a project -->
+        <in-parameters>
+            <parameter name="workEffortId" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="assigneeList" type="List"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="mantle.work.effort.WorkEffortParty" list="assigneeList">
+                <econdition field-name="workEffortId"/>
+                <econdition field-name="roleTypeId" value="Assignee"/>
+                <date-filter/>
+            </entity-find>
+        </actions>
+    </service>
 </services>
