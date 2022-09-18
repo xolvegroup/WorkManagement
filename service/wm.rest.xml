@@ -69,4 +69,19 @@ along with this software (see the LICENSE.md file). If not, see
     <resource name="projects" require-authentication="anonymous-view">
         <method type="get"><service name="wm.ProjectServices.get#Projects"/></method>
     </resource>
+    <resource name="managers" require-authentication="anonymous-view">
+        <method type="get"><service name="wm.ProjectServices.get#Managers"/></method>
+    </resource>
+    <resource name="add_project" require-authentication="anonymous-all">
+        <method type="post"><service name="wm.ProjectServices.create#Project"/></method>
+    </resource>
+    <resource name="project" require-authentication="anonymous-view">
+        <method type="get"><service name="wm.ProjectServices.get#Project"/></method>
+    </resource>
+    <resource name="assignees" require-authentication="anonymous-view">
+        <method type="get"><service name="wm.ProjectServices.get#Assignees"/></method>
+    </resource>
+    <resource name="update_project" require-authentication="anonymous-all">
+        <method type="post"><service name="wm.ProjectServices.update#Project"/></method>
+    </resource>
 </resource>

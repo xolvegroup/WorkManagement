@@ -15,20 +15,60 @@ along with this software (see the LICENSE.md file). If not, see
 <services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
 
     <service verb="get" noun="Projects">
+        <in-parameters>
+            <parameter name="pageOffset" default-value="" type="Integer"/>
+            <parameter name="pageLimit" default-value="" type="Integer"/>
+            <parameter name="orderByField" default-value="-workEffortId"/>
+        </in-parameters>
         <out-parameters>
             <parameter name="projectList" type="List"/>
+            <parameter name="count" type="Integer"/>
         </out-parameters>
         <actions>
-            <entity-find entity-name="WorkEffortAndParty" list="projectList" distinct="true">
+            <!-- get record count to support pagination -->
+            <entity-find-count entity-name="WorkEffortAndParty" count-field="count" distinct="true">
                 <search-form-inputs default-order-by="workEffortId"/>
                 <econditions combine="or">
                     <econdition field-name="visibilityEnumId" operator="in" value="WevGeneral,WevAllUsers"/>
                     <econditions><date-filter/><econdition field-name="partyId" from="ec.user.userAccount.partyId"/></econditions>
                 </econditions>
                 <econdition field-name="workEffortTypeEnumId" value="WetProject"/>
-                <select-field field-name="workEffortId,workEffortName,priority,statusId,estimatedCompletionDate,estimatedWorkTime,actualWorkTime"/>
-                <order-by field-name="workEffortId"/>
+                <select-field field-name="workEffortId,managerPartyId,workEffortName,priority,statusId,estimatedCompletionDate,estimatedWorkTime,actualWorkTime"/>
+                <order-by field-name="${orderByField}"/>
+            </entity-find-count>
+            <entity-find offset="pageOffset" limit="pageLimit" entity-name="WorkEffortAndParty" list="weapList" distinct="true">
+                <search-form-inputs default-order-by="workEffortId"/>
+                <econditions combine="or">
+                    <econdition field-name="visibilityEnumId" operator="in" value="WevGeneral,WevAllUsers"/>
+                    <econditions><date-filter/><econdition field-name="partyId" from="ec.user.userAccount.partyId"/></econditions>
+                </econditions>
+                <econdition field-name="workEffortTypeEnumId" value="WetProject"/>
+                <select-field field-name="workEffortId,managerPartyId,workEffortName,priority,statusId,estimatedCompletionDate,estimatedWorkTime,actualWorkTime"/>
+                <order-by field-name="${orderByField}"/>
             </entity-find>
+            <set field="projectList" from="[]"/>
+            <if condition="weapList">
+                <iterate list="weapList" entry="prj">
+                    <set field="project" from="new HashMap()"/>
+                    <script>
+                        project.putAll(prj)
+                        projectList.add(project)
+                    </script>
+                    <!-- Get current assignee -->
+                    <entity-find entity-name="mantle.work.effort.WorkEffortParty" list="managerList">
+                        <econdition field-name="workEffortId" from="prj.workEffortId"/>
+                        <econdition field-name="roleTypeId" value="Manager"/>
+                        <date-filter/>
+                    </entity-find>
+                    <!-- It is technically possible to have more than one, so just use the first record -->
+                    <if condition="managerList">
+                        <set field="managerPartyId" from="managerList[0].partyId"/>
+                        <script>
+                            project.put("managerPartyId",managerPartyId)
+                        </script>
+                    </if>
+                </iterate>
+            </if>
         </actions>
     </service>
     <service verb="create" noun="Project">
@@ -116,7 +156,7 @@ along with this software (see the LICENSE.md file). If not, see
             <if condition="managerList">
                 <set field="managerPartyId" from="managerList[0].partyId"/>
                 <script>
-                    task.put("managerPartyId",managerPartyId)
+                    project.put("managerPartyId",managerPartyId)
                 </script>
             </if>
         </actions>
