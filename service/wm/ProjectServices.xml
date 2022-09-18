@@ -33,8 +33,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <econditions><date-filter/><econdition field-name="partyId" from="ec.user.userAccount.partyId"/></econditions>
                 </econditions>
                 <econdition field-name="workEffortTypeEnumId" value="WetProject"/>
-                <select-field field-name="workEffortId,managerPartyId,workEffortName,priority,statusId,estimatedCompletionDate,estimatedWorkTime,actualWorkTime"/>
-                <order-by field-name="${orderByField}"/>
+                <select-field field-name="workEffortId,managerPartyId,workEffortName,priority,statusId,estimatedCompletionDate"/>
             </entity-find-count>
             <entity-find offset="pageOffset" limit="pageLimit" entity-name="WorkEffortAndParty" list="weapList" distinct="true">
                 <search-form-inputs default-order-by="workEffortId"/>
@@ -43,15 +42,15 @@ along with this software (see the LICENSE.md file). If not, see
                     <econditions><date-filter/><econdition field-name="partyId" from="ec.user.userAccount.partyId"/></econditions>
                 </econditions>
                 <econdition field-name="workEffortTypeEnumId" value="WetProject"/>
-                <select-field field-name="workEffortId,managerPartyId,workEffortName,priority,statusId,estimatedCompletionDate,estimatedWorkTime,actualWorkTime"/>
+                <select-field field-name="workEffortId,managerPartyId,workEffortName,priority,statusId,estimatedCompletionDate"/>
                 <order-by field-name="${orderByField}"/>
             </entity-find>
             <set field="projectList" from="[]"/>
             <if condition="weapList">
-                <iterate list="weapList" entry="prj">
+                <iterate list="weapList" entry="weap">
                     <set field="project" from="new HashMap()"/>
                     <script>
-                        project.putAll(prj)
+                        project.putAll(weap)
                         projectList.add(project)
                     </script>
                     <!-- Get current assignee -->
