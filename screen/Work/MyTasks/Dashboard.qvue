@@ -863,6 +863,7 @@ module.exports = {
           },
         findOptions() {
             let self = this;
+            self.filter_params = {};
             if (self.mdl_filter_user) {
                 self.filter_params["partyId"] = self.mdl_filter_user.partyId;
             }
@@ -872,7 +873,7 @@ module.exports = {
             if (self.mdl_filter_role) {
                 self.filter_params["roleTypeId"] = self.mdl_filter_role.value;
             }
-            if (self.mdl_filter_status) {
+            if (self.mdl_filter_status && self.mdl_filter_status.length > 0) {
                 let status_filters = "";
                 self.mdl_filter_status.forEach(function(item){
                     status_filters = status_filters + "," + item.statusId;

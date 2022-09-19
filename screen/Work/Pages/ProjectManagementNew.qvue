@@ -534,16 +534,15 @@ module.exports = {
             assignee_list: [],
             open_find_options_drawer: false,
             mdl_filter_user:null,
-            mdl_filter_project:null,
             mdl_filter_role:null,
-            role_options_master: [{"label":"Assignee","value":"Assignee"}],
-            role_options: [{"label":"Assignee","value":"Assignee"}],
+            role_options_master: [{"label":"Project Manager","value":"Manager"}, {"label":"Team Member","value":"Assignee"}],
+            role_options: [{"label":"Project Manager","value":"Manager"}, {"label":"Team Member","value":"Assignee"}],
             mdl_filter_status:null,
             mdl_filter_order_by:null,
             orderby_options_master: [{"label":"Project (Asc)","value":"workEffortName"},
                                      {"label":"Project (Desc)","value":"-workEffortName"},
-                                     {"label":"User (Asc)","value":"assignToPartyId"},
-                                     {"label":"User (Desc)","value":"-assignToPartyId"},
+                                     {"label":"User (Asc)","value":"partyId"},
+                                     {"label":"User (Desc)","value":"-partyId"},
                                      {"label":"Status (Asc)","value":"statusId"},
                                      {"label":"Status (Desc)","value":"-statusId"},
                                      {"label":"Due Date (Asc)","value":"estimatedCompletionDate"},
@@ -595,16 +594,6 @@ module.exports = {
                 });
                 if (user_full_name) {
                     return user_full_name.userFullName;
-                }
-            }
-        },
-        getProjectName(id) {
-            if (id) {
-                let project = this.project_options_master.find(function(item){
-                    return item.workEffortId === id;
-                });
-                if (project) {
-                    return project.workEffortName;
                 }
             }
         },
@@ -685,13 +674,14 @@ module.exports = {
           },
         findOptions() {
             let self = this;
+            self.filter_params = {};
             if (self.mdl_filter_user) {
                 self.filter_params["partyId"] = self.mdl_filter_user.partyId;
             }
             if (self.mdl_filter_role) {
                 self.filter_params["roleTypeId"] = self.mdl_filter_role.value;
             }
-            if (self.mdl_filter_status) {
+            if (self.mdl_filter_status && self.mdl_filter_status.length > 0) {
                 let status_filters = "";
                 self.mdl_filter_status.forEach(function(item){
                     status_filters = status_filters + "," + item.statusId;
@@ -709,7 +699,6 @@ module.exports = {
         resetFind() {
             let self = this;
             self.mdl_filter_user = null;
-            self.mdl_filter_project = null;
             self.mdl_filter_role = null;
             self.mdl_filter_status = null;
             self.mdl_filter_order_by = null;
