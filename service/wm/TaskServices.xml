@@ -44,6 +44,7 @@ along with this software (see the LICENSE.md file). If not, see
             <entity-find-count entity-name="mantle.work.effort.WorkEffortAndParty" count-field="count" distinct="true">
                 <econdition field-name="partyId" ignore-if-empty="true"/>
                 <econdition field-name="roleTypeId" ignore-if-empty="true"/>
+                <date-filter/>
                 <econdition field-name="rootWorkEffortId" ignore-if-empty="true"/>
                 <econdition field-name="workEffortTypeEnumId" value="WetTask"/>
                 <econdition field-name="statusId" operator="in" from="statusId"/>
@@ -58,6 +59,7 @@ along with this software (see the LICENSE.md file). If not, see
             <entity-find offset="pageOffset" limit="pageLimit" entity-name="mantle.work.effort.WorkEffortAndParty" list="weapList" distinct="true">
                 <econdition field-name="partyId" ignore-if-empty="true"/>
                 <econdition field-name="roleTypeId" ignore-if-empty="true"/>
+                <date-filter/>
                 <econdition field-name="workEffortTypeEnumId" value="WetTask"/>
                 <econdition field-name="statusId" operator="in" from="statusId"/>
                 <econditions combine="or">
