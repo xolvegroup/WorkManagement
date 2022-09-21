@@ -168,7 +168,7 @@
                                             </q-chip>
                                         <q-toolbar-title></q-toolbar-title>
                                         <q-btn @click="updateTask()" class="text-blue q-px-sm q-ml-sm" outline dense icon="check" label="Update"></q-btn>
-                                        <q-btn flat round dense icon="close" @click="open_task_detail=false"></q-btn>
+                                        <q-btn flat round dense icon="close" @click="checkUnsavedProgress"></q-btn>
                                       </q-toolbar>
                                     </q-header>
 
@@ -718,6 +718,7 @@ module.exports = {
             role_options: [{"label":"Assignee","value":"Assignee"},{"label":"Collaborator","value":"Collaborator"}],
             mdl_filter_status:null,
             mdl_filter_order_by:null,
+            task_details_current: {"assignee": null,"status": null,"project": null, "edit_due_date": null, "description": null},
             orderby_options_master: [{"label":"Task (Asc)","value":"workEffortName"},
                                      {"label":"Task (Desc)","value":"-workEffortName"},
                                      {"label":"User (Asc)","value":"assignToPartyId"},
@@ -903,6 +904,7 @@ module.exports = {
         },
         selectTask (row) {
             var self = this;
+            self.task_details_current = {"assignee": null,"status": null,"project": null, "edit_due_date": null};
             self.is_edit_title = false;
             self.selected_task = {};
             self.open_task_detail=true;
@@ -923,6 +925,18 @@ module.exports = {
                     self.project = self.project_options_master.find(function(item){
                         return item.workEffortId === self.selected_task.rootWorkEffortId;
                     });
+                    if (self.edit_due_date) {
+                        self.task_details_current["edit_due_date"] = JSON.parse(JSON.stringify(self.edit_due_date));
+                    }
+                    if (self.assignee) {
+                        self.task_details_current["assignee"] = JSON.parse(JSON.stringify(self.assignee));
+                    }
+                    if (self.status) {
+                        self.task_details_current["status"] = JSON.parse(JSON.stringify(self.status));
+                    }
+                    if (self.project) {
+                        self.task_details_current["project"] = JSON.parse(JSON.stringify(self.project));
+                    }
                     self.initializeEditor();
                 }
             });
@@ -940,11 +954,12 @@ module.exports = {
             .create( document.querySelector( '#editor' ),
             {
                 mention: {
+                    dropdownLimit: 100,
                     feeds: [
                         {
                             marker: '@',
-                            feed: getFeedItems,
-                            itemRenderer: customItemRenderer
+                            feed: self.getUsersForEditor,
+                            itemRenderer: self.customItemRenderer
                         },
                     ]
                 }
@@ -958,6 +973,7 @@ module.exports = {
              else {
                 editor.setData("");
              }
+             self.task_details_current.description = editor.getData();
          } )
         },
         addTask () {
@@ -995,6 +1011,17 @@ module.exports = {
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/update_task", headers:{Accept:'application/json'}, data:params,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.is_edit_title = false;
+                    self.task_details_current.description = window.editor.getData();
+                    self.task_details_current.edit_due_date = (self.edit_due_date ? self.edit_due_date:null);
+                    self.task_details_current.assignee = self.assignee_options_master.find(function(item){
+                        return item.partyId === params["assignToPartyId"];
+                    });
+                    self.task_details_current.status = self.status_options_master.find(function(item){
+                        return item.statusId === params["statusId"];
+                    });
+                    self.task_details_current.project = self.project_options_master.find(function(item){
+                        return item.workEffortId === params["rootWorkEffortId"];
+                    });
                     self.onPageChange({
                       pagination: self.pagination,
                     });
@@ -1171,6 +1198,70 @@ module.exports = {
                     self.project_options = resp.projectList;
                 }
             });
+        },
+        checkUnsavedProgress() {
+            let self = this;
+            let project_changed = false;
+            let assignee_changed = false;
+            let status_changed = false;
+            let due_date_changed = false;
+            let description_changed = false;
+            if ((self.task_details_current.project ? self.task_details_current.project.workEffortId:"") !== (self.project ? self.project.workEffortId:"")){
+                project_changed = true;
+            }
+            if ((self.task_details_current.status ? self.task_details_current.status.statusId:"") !== (self.status ? self.status.statusId:"")){
+                status_changed = true;
+            }
+            if ((self.task_details_current.assignee ? self.task_details_current.assignee.partyId:"") !== (self.assignee ? self.assignee.partyId:"")){
+                assignee_changed = true;
+            }
+            if (self.task_details_current.edit_due_date !== self.edit_due_date){
+                due_date_changed = true;
+            }
+            if (self.task_details_current.description !== window.editor.getData()){
+                description_changed = true;
+            }
+            if (project_changed || status_changed || assignee_changed || due_date_changed || description_changed) {
+                self.$q.dialog({
+                    title: 'Confirm',
+                    message: 'You have unsaved changed. Do you really want to leave?',
+                    cancel: true,
+                    persistent: true
+                  }).onCancel(() => {
+                    self.open_task_detail=false;
+                  })
+            }
+            else {
+                self.open_task_detail=false;
+            }
+        },
+        customItemRenderer( item ) {
+            return item.name;
+        },
+        getUsersForEditor( queryText ) {
+            let self = this;
+            let available_users = JSON.parse(JSON.stringify(self.assignee_options_master));
+            available_users.map(function(item){
+                item.id = "@" + item.userFullName;
+                item.name = item.userFullName;
+                return item;
+                })
+            return new Promise( resolve => {
+                setTimeout( () => {
+                    const itemsToDisplay = available_users
+                        .filter( isItemMatching )
+                    resolve( itemsToDisplay );
+                }, 100 );
+            } );
+
+            function isItemMatching( item ) {
+                const searchString = queryText.toLowerCase();
+
+                return (
+                    item.name.toLowerCase().includes( searchString ) ||
+                    item.id.toLowerCase().includes( searchString )
+                );
+            }
         }
     },
     created: function () {

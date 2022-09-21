@@ -145,7 +145,7 @@
                                             </q-chip>
                                         <q-toolbar-title></q-toolbar-title>
                                         <q-btn @click="updateProject()" class="text-blue q-px-sm q-ml-sm" outline dense icon="check" label="Update"></q-btn>
-                                        <q-btn flat round dense icon="close" @click="open_project_detail=false"></q-btn>
+                                        <q-btn flat round dense icon="close" @click="checkUnsavedProgress"></q-btn>
                                       </q-toolbar>
                                     </q-header>
 
@@ -539,6 +539,7 @@ module.exports = {
             role_options: [{"label":"Project Manager","value":"Manager"}, {"label":"Team Member","value":"Assignee"}],
             mdl_filter_status:null,
             mdl_filter_order_by:null,
+            project_details_current: {"assignee": null,"status": null, "edit_due_date": null, "description": null},
             orderby_options_master: [{"label":"Project (Asc)","value":"workEffortName"},
                                      {"label":"Project (Desc)","value":"-workEffortName"},
                                      {"label":"User (Asc)","value":"assignToPartyId"},
@@ -710,6 +711,7 @@ module.exports = {
         },
         selectProject (row) {
             var self = this;
+            self.project_details_current = {"assignee": null,"status": null, "edit_due_date": null};
             self.is_edit_title = false;
             self.selected_project = {};
             self.open_project_detail=true;
@@ -727,6 +729,15 @@ module.exports = {
                     self.status = self.status_options_master.find(function(item){
                         return item.statusId === self.selected_project.statusId;
                     });
+                    if (self.edit_due_date) {
+                        self.project_details_current["edit_due_date"] = JSON.parse(JSON.stringify(self.edit_due_date));
+                    }
+                    if (self.assignee) {
+                        self.project_details_current["assignee"] = JSON.parse(JSON.stringify(self.assignee));
+                    }
+                    if (self.status) {
+                        self.project_details_current["status"] = JSON.parse(JSON.stringify(self.status));
+                    }
                     self.initializeEditor();
                 }
             });
@@ -742,11 +753,12 @@ module.exports = {
             .create( document.querySelector( '#editor' ),
             {
                 mention: {
+                    dropdownLimit: 100,
                     feeds: [
                         {
                             marker: '@',
-                            feed: getFeedItems,
-                            itemRenderer: customItemRenderer
+                            feed: self.getUsersForEditor,
+                            itemRenderer: self.customItemRenderer
                         },
                     ]
                 }
@@ -760,6 +772,7 @@ module.exports = {
              else {
                 editor.setData("");
              }
+             self.project_details_current.description = editor.getData();
          } )
         },
         addProject () {
@@ -795,6 +808,14 @@ module.exports = {
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/update_project", headers:{Accept:'application/json'}, data:params,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.is_edit_title = false;
+                    self.project_details_current.description = window.editor.getData();
+                    self.project_details_current.edit_due_date = (self.edit_due_date ? self.edit_due_date:null);
+                    self.project_details_current.assignee = self.assignee_options_master.find(function(item){
+                        return item.partyId === params["managerPartyId"];
+                    });
+                    self.project_details_current.status = self.status_options_master.find(function(item){
+                        return item.statusId === params["statusId"];
+                    });
                     self.onPageChange({
                       pagination: self.pagination,
                     });
@@ -918,6 +939,66 @@ module.exports = {
                 }
             });
         },
+        checkUnsavedProgress() {
+            let self = this;
+            let assignee_changed = false;
+            let status_changed = false;
+            let due_date_changed = false;
+            let description_changed = false;
+            if ((self.project_details_current.status ? self.project_details_current.status.statusId:"") !== (self.status ? self.status.statusId:"")){
+                status_changed = true;
+            }
+            if ((self.project_details_current.assignee ? self.project_details_current.assignee.partyId:"") !== (self.assignee ? self.assignee.partyId:"")){
+                assignee_changed = true;
+            }
+            if (self.project_details_current.edit_due_date !== self.edit_due_date){
+                due_date_changed = true;
+            }
+            if (self.project_details_current.description !== window.editor.getData()){
+                description_changed = true;
+            }
+            if (status_changed || assignee_changed || due_date_changed || description_changed) {
+                self.$q.dialog({
+                    title: 'Confirm',
+                    message: 'You have unsaved changed. Do you really want to leave?',
+                    cancel: true,
+                    persistent: true
+                  }).onCancel(() => {
+                    self.open_project_detail=false;
+                  })
+            }
+            else {
+                self.open_project_detail=false;
+            }
+        },
+        customItemRenderer( item ) {
+            return item.name;
+        },
+        getUsersForEditor( queryText ) {
+            let self = this;
+            let available_users = JSON.parse(JSON.stringify(self.assignee_options_master));
+            available_users.map(function(item){
+                item.id = "@" + item.userFullName;
+                item.name = item.userFullName;
+                return item;
+                })
+            return new Promise( resolve => {
+                setTimeout( () => {
+                    const itemsToDisplay = available_users
+                        .filter( isItemMatching )
+                    resolve( itemsToDisplay );
+                }, 100 );
+            } );
+
+            function isItemMatching( item ) {
+                const searchString = queryText.toLowerCase();
+
+                return (
+                    item.name.toLowerCase().includes( searchString ) ||
+                    item.id.toLowerCase().includes( searchString )
+                );
+            }
+        }
     },
     created: function () {
         this.fetchLoggedInUser();
