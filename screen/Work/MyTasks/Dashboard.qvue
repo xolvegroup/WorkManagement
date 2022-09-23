@@ -168,7 +168,7 @@
                                             </q-chip>
                                         <q-toolbar-title></q-toolbar-title>
                                         <q-btn @click="updateTask()" class="text-blue q-px-sm q-ml-sm" outline dense icon="check" label="Update"></q-btn>
-                                        <q-btn flat round dense icon="close" @click="checkUnsavedProgress"></q-btn>
+                                        <q-btn flat round dense icon="close" @click="checkUnsavedProgress()"></q-btn>
                                       </q-toolbar>
                                     </q-header>
 
@@ -903,7 +903,11 @@ module.exports = {
             });
         },
         selectTask (row) {
-            var self = this;
+            let self = this;
+            if (self.open_task_detail && self.getUnsavedIndicator()){
+                self.checkUnsavedProgress(true);
+                return;
+            }
             self.task_details_current = {"assignee": null,"status": null,"project": null, "edit_due_date": null};
             self.is_edit_title = false;
             self.selected_task = {};
@@ -1215,7 +1219,7 @@ module.exports = {
                 }
             });
         },
-        checkUnsavedProgress() {
+        getUnsavedIndicator() {
             let self = this;
             let project_changed = false;
             let assignee_changed = false;
@@ -1237,7 +1241,12 @@ module.exports = {
             if (self.task_details_current.description !== window.editor.getData()){
                 description_changed = true;
             }
-            if (project_changed || status_changed || assignee_changed || due_date_changed || description_changed) {
+            return (project_changed || status_changed || assignee_changed || due_date_changed || description_changed)
+        },
+        checkUnsavedProgress(keep_detail_open) {
+            let self = this;
+
+            if (self.getUnsavedIndicator()) {
                 self.$q.dialog({
                     title: 'Confirm',
                     message: 'You have unsaved changed. Do you really want to leave?',
@@ -1248,7 +1257,9 @@ module.exports = {
                   })
             }
             else {
-                self.open_task_detail=false;
+                if (!keep_detail_open) {
+                    self.open_task_detail=false;
+                }
             }
         },
         customItemRenderer( item ) {
