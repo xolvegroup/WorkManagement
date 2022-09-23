@@ -21,67 +21,67 @@ along with this software (see the LICENSE.md file). If not, see
 <resource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/rest-api-3.xsd"
         name="wm" displayName="Work Management REST API" version="1.0.0">
 
-    <resource name="tasks" require-authentication="anonymous-view">
+    <resource name="tasks">
         <method type="get"><service name="wm.TaskServices.get#Tasks"/></method>
     </resource>
-    <resource name="task_count" require-authentication="anonymous-view">
+    <resource name="task_count">
         <method type="get"><service name="wm.TaskServices.get#TaskCount"/></method>
     </resource>
-    <resource name="task" require-authentication="anonymous-view">
+    <resource name="task">
         <method type="get"><service name="wm.TaskServices.get#Task"/></method>
     </resource>
-    <resource name="collaborators" require-authentication="anonymous-view">
+    <resource name="collaborators">
         <method type="get"><service name="wm.TaskServices.get#Collaborators"/></method>
     </resource>
-    <resource name="add_collaborator" require-authentication="anonymous-all">
+    <resource name="add_collaborator">
         <method type="post"><service name="mantle.work.WorkEffortServices.add#WorkEffortParty"/></method>
     </resource>
-    <resource name="remove_collaborator" require-authentication="anonymous-all">
+    <resource name="remove_collaborator">
         <method type="post"><service name="mantle.work.WorkEffortServices.remove#WorkEffortParty"/></method>
     </resource>
-    <resource name="users" require-authentication="anonymous-view">
+    <resource name="users">
         <method type="get"><service name="wm.TaskServices.get#Users"/></method>
     </resource>
-    <resource name="statuses" require-authentication="anonymous-view">
+    <resource name="statuses">
         <method type="get"><service name="wm.TaskServices.get#Statuses"/></method>
     </resource>
-    <resource name="add_task" require-authentication="anonymous-all">
+    <resource name="add_task">
         <method type="post"><service name="wm.TaskServices.create#Task"/></method>
     </resource>
-    <resource name="update_task" require-authentication="anonymous-all">
+    <resource name="update_task">
         <method type="post"><service name="wm.TaskServices.update#Task"/></method>
     </resource>
-    <resource name="comments" require-authentication="anonymous-all">
+    <resource name="comments">
         <method type="get"><service name="wm.TaskServices.get#Comments"/></method>
     </resource>
-    <resource name="add_comment" require-authentication="anonymous-all">
+    <resource name="add_comment">
         <method type="post"><service name="wm.TaskServices.add#Comment"/></method>
     </resource>
-    <resource name="update_comment" require-authentication="anonymous-all">
+    <resource name="update_comment">
         <method type="post"><service name="wm.TaskServices.update#Comment"/></method>
     </resource>
-    <resource name="delete_comment" require-authentication="anonymous-all">
+    <resource name="delete_comment">
         <method type="post"><service name="wm.TaskServices.delete#Comment"/></method>
     </resource>
-    <resource name="logged_in_user" require-authentication="anonymous-view">
+    <resource name="logged_in_user">
         <method type="get"><service name="wm.TaskServices.get#MyUserAccount"/></method>
     </resource>
-    <resource name="projects" require-authentication="anonymous-view">
+    <resource name="projects">
         <method type="get"><service name="wm.ProjectServices.get#Projects"/></method>
     </resource>
-    <resource name="managers" require-authentication="anonymous-view">
+    <resource name="managers">
         <method type="get"><service name="wm.ProjectServices.get#Managers"/></method>
     </resource>
-    <resource name="add_project" require-authentication="anonymous-all">
+    <resource name="add_project">
         <method type="post"><service name="wm.ProjectServices.create#Project"/></method>
     </resource>
-    <resource name="project" require-authentication="anonymous-view">
+    <resource name="project">
         <method type="get"><service name="wm.ProjectServices.get#Project"/></method>
     </resource>
-    <resource name="assignees" require-authentication="anonymous-view">
+    <resource name="assignees">
         <method type="get"><service name="wm.ProjectServices.get#Assignees"/></method>
     </resource>
-    <resource name="update_project" require-authentication="anonymous-all">
+    <resource name="update_project">
         <method type="post"><service name="wm.ProjectServices.update#Project"/></method>
     </resource>
 </resource>
