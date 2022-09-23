@@ -1025,6 +1025,22 @@ module.exports = {
                     self.onPageChange({
                       pagination: self.pagination,
                     });
+                    self.new_collab = {};
+                    var mentioned_users = [];
+                    var parser = new DOMParser();
+                    var mentionDoc = parser.parseFromString(editor.getData(), 'text/html');
+                    var mentionedElements = mentionDoc.getElementsByClassName('mention')
+                    for (let i=0; i < mentionedElements.length; i++){
+                        let user = mentionedElements[i].getAttribute("data-mention").substring(1);
+                        if (!mentioned_users.includes(user)) {
+                            mentioned_users.push(user);
+                            self.new_collab = self.assignee_options_master.find(function(item){
+                                return item.userFullName === user;
+                            })
+                            self.addCollaborator();
+                        }
+                    }
+                    self.new_collab = null;
                 }
             });
         },
