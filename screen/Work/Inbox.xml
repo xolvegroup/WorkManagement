@@ -1,4 +1,4 @@
-<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" default-menu-include="false"
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" menu-image="fa fa-flash" menu-image-type="icon">
 
     <actions>

@@ -166,8 +166,15 @@ along with this software (see the LICENSE.md file). If not, see
             <!-- Add assignee -->
             <if condition="assignToPartyId">
                 <service-call name="mantle.work.WorkEffortServices.add#WorkEffortParty"
-                              in-map="[workEffortId:workEffortId, roleTypeId:'Assignee', partyId:assignToPartyId]"/>
+                              in-map="[workEffortId:workEffortId, roleTypeId:'Assignee', partyId:assignToPartyId, statusId:'WeptAssigned']"/>
             </if>
+            <!-- If the current user is not the assignee, add them as a collaborator. Otherwise they will not be able to see the task after they create it.
+              This is being set automatically by front end on initial creation. Leaving this code in case we decide to change in the future.
+            <if condition="assignToPartyId != ec.user.userAccount.partyId">
+                <service-call name="mantle.work.WorkEffortServices.add#WorkEffortParty"
+                              in-map="[workEffortId:workEffortId, roleTypeId:'Collaborator', partyId:ec.user.userAccount.partyId]"/>
+            </if>
+            -->
             <!-- Add to project, if specified. It is done this way so the task gets a workEffortId before assigning it to a project. Otherwise the project ID gets prepended and scres up sorting.-->
             <if condition="rootWorkEffortId">
                 <service-call name="update#mantle.work.effort.WorkEffort" in-map="[workEffortId:workEffortId,rootWorkEffortId:rootWorkEffortId]"/>
@@ -203,10 +210,12 @@ along with this software (see the LICENSE.md file). If not, see
                 <service-call name="mantle.work.WorkEffortServices.remove#WorkEffortParty"
                               in-map="[workEffortId:workEffortId, roleTypeId:'Assignee', partyId:curAssignToPartyId]"/>
             </if>
-            <!-- Update assignee if current and new are different, if they are the same do nothing (user did not change assignee) -->
+            <!-- Update assignee if current and new are different and add current assignee as a collaborator. If they are the same do nothing (user did not change assignee) -->
             <if condition="assignToPartyId &amp;&amp; curAssignToPartyId != assignToPartyId">
                 <service-call name="mantle.work.WorkEffortServices.replace#WorkEffortParty"
                               in-map="[workEffortId:workEffortId, roleTypeId:'Assignee', newPartyId:assignToPartyId, statusId:'WeptAssigned']"/>
+                <service-call name="mantle.work.WorkEffortServices.add#WorkEffortParty"
+                              in-map="[workEffortId:workEffortId, roleTypeId:'Collaborator', partyId:curAssignToPartyId, statusId:'WeptAssigned']"/>
             </if>
         </actions>
     </service>
