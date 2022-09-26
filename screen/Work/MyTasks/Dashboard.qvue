@@ -27,7 +27,7 @@
                               v-model="mdl_filter_user"
                               class="bg-white"
                               use-input
-                              input-debounce="0"
+                              input-debounce="700"
                               option-value="partyId"
                               option-label="userFullName"
                               :options="assignee_options"
@@ -201,7 +201,7 @@
                                                       outlined
                                                       v-model="assignee"
                                                       use-input
-                                                      input-debounce="0"
+                                                      input-debounce="700"
                                                       option-value="partyId"
                                                       option-label="userFullName"
                                                       :options="assignee_options"
@@ -295,13 +295,10 @@
                                                     @remove="removeCollaborator(item)"
                                                   >
                                                     <q-avatar dense color="grey">
-                                                      {{ getInitials(getPersonName(item.partyId)) }}
+                                                      {{ getInitials(item.userFullName) }}
                                                     </q-avatar>
-                                                    {{ getPersonName(item.partyId) }}
+                                                    {{ item.userFullName }}
                                                   </q-chip>
-                                                <!--<q-avatar v-for="item in collaborator_list" size="24px" color="primary" text-color="white">
-                                                  {{ getInitials(getPersonName(item.partyId)) }}
-                                                </q-avatar>-->
                                                 <q-btn dense outline rounded color="primary" icon="add" class="text-black text-weight-bold">
                                                     <q-popup-proxy ref="collabAdd" transition-show="flip-up" transition-hide="flip-down">
                                                         <div class="q-pa-md">
@@ -311,7 +308,7 @@
                                                               v-model="new_collab"
                                                               use-input
                                                               square
-                                                              input-debounce="0"
+                                                              input-debounce="700"
                                                               option-value="partyId"
                                                               option-label="userFullName"
                                                               :options="assignee_options"
@@ -341,12 +338,12 @@
                                               <q-item :key="comment.communicationEventId" v-for="comment in sel_task_comments" class="q-my-sm">
                                                 <q-item-section avatar>
                                                   <q-avatar color="primary" text-color="white">
-                                                    {{ getInitials(getPersonName(comment.fromPartyId)) }}
+                                                    {{ getInitials(comment.userFullName) }}
                                                   </q-avatar>
                                                 </q-item-section>
 
                                                 <q-item-section class="q-pl-md">
-                                                  <q-item-label class="text-subtitle1">{{ getPersonName(comment.fromPartyId) }} <span
+                                                  <q-item-label class="text-subtitle1">{{ comment.userFullName }} <span
                                                     class="q-pl-sm text-caption text-grey-8">{{ timeSince(comment.entryDate) }}</span></q-item-label>
                                                   <q-item-label v-if="obj_edit_comment.communicationEventId != comment.communicationEventId" class="q-pt-sm" caption><span class="text-weight-medium" v-html="comment.body"></span>
                                                   <span class="q-pl-sm text-caption text-grey-8"></span></q-item-label>
@@ -499,6 +496,7 @@
                                             option-value="workEffortId"
                                             option-label="workEffortName"
                                             :options="project_options"
+                                            @filter="filterFnProject"
                                             style="margin:0;padding:0;"
                                             class="cls_task_detail ellipsis col-4 q-pa-none q-ma-none"
                                           >
@@ -518,7 +516,7 @@
                                               v-model="new_task.assignee"
                                               use-input
                                               square
-                                              input-debounce="0"
+                                              input-debounce="700"
                                               option-value="partyId"
                                               option-label="userFullName"
                                               :options="assignee_options"
@@ -572,10 +570,10 @@
                                             </q-td>
                                         </template>
                                         <template v-slot:body-cell-person="props">
-                                          <q-td v-if="assignee_options_master.length > 0" :props="props">
-                                            <span v-if="props.row.assignToPartyId">{{getPersonName(props.row.assignToPartyId)}}
+                                          <q-td :props="props">
+                                            <span v-if="props.row.assignToPartyId">{{props.row.assignedUser.userFullName}}
                                                 <q-btn class="float-right" outline dense size="sm" round color="primary" icon="person">
-                                                    <q-popup-proxy @before-show="preSetAssignee(props.row.assignToPartyId)" transition-show="flip-up" transition-hide="flip-down">
+                                                    <q-popup-proxy @before-show="add_edit_assignee = props.row.assignedUser" transition-show="flip-up" transition-hide="flip-down">
                                                         <div class="q-pa-md">
                                                         <q-select
                                                             dense
@@ -583,7 +581,7 @@
                                                               v-model="add_edit_assignee"
                                                               use-input
                                                               square
-                                                              input-debounce="0"
+                                                              input-debounce="700"
                                                               option-value="partyId"
                                                               option-label="userFullName"
                                                               :options="assignee_options"
@@ -614,7 +612,7 @@
                                                               v-model="add_edit_assignee"
                                                               use-input
                                                               square
-                                                              input-debounce="0"
+                                                              input-debounce="700"
                                                               option-value="partyId"
                                                               option-label="userFullName"
                                                               :options="assignee_options"
@@ -676,7 +674,6 @@ module.exports = {
             add_edit_assignee: null,
             new_task: {title: '', assignee: null, project: null, due_date: null},
             assignee: null,
-            assignee_options_master: [],
             assignee_options: [],
             status: null,
             status_options_master: [],
@@ -686,6 +683,7 @@ module.exports = {
             project_options: [],
             is_add_task: false,
             new_collab: null,
+            person_mapping: {},
             no_applicable_for_complete: ['WeCancelled', 'WeClosed', 'WeComplete', 'WeOnHold'],
             table_columns: [
                {
@@ -755,7 +753,10 @@ module.exports = {
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/tasks", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.pagination.rowsNumber = resp.count;
-                    self.task_list = resp.taskList;
+                    self.task_list = resp.taskList.map(function(item){
+                        item["assignedUser"] = {userFullName: item["assignedUserFirstName"]+ " " + item["assignedUserLastName"], partyId: item["assignToPartyId"]};
+                        return item;
+                    });
                     self.pagination.page = page;
                     self.pagination.rowsPerPage = rowsPerPage;
                 }
@@ -765,16 +766,6 @@ module.exports = {
             if (dt) {
                 dt = new Date(dt);
                 return dt.getFullYear() + "-" + String(dt.getMonth()+1).padStart(2, '0') + "-" + String(dt.getDate()).padStart(2, '0');
-            }
-        },
-        getPersonName(id) {
-            if (id) {
-                let user_full_name = this.assignee_options_master.find(function(item){
-                    return item.partyId === id;
-                });
-                if (user_full_name) {
-                    return user_full_name.userFullName;
-                }
             }
         },
         getProjectName(id) {
@@ -797,18 +788,23 @@ module.exports = {
                 }
             }
         },
-        filterFn (val, update) {
+        filterFn(val, update, abort) {
             let self = this;
+            if (val.length < 2) {
+                abort()
+                return
+              }
               if (val === '') {
                 update(() => {
-                  this.assignee_options = self.assignee_options_master
+                    self.assignee_options = [];
                 })
                 return
               }
-              update(() => {
-              const needle = val.toLowerCase()
-              this.assignee_options = self.assignee_options_master.filter(v => v.userFullName.toLowerCase().indexOf(needle) > -1)
-            })
+              self.getAssigneeList(val.toLowerCase()).then(function(resp){
+                update(() => {
+                    self.assignee_options = resp.userList;
+                })
+              });
           },
           filterFnRole (val, update) {
             let self = this;
@@ -916,13 +912,12 @@ module.exports = {
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/task", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.selected_task = resp.task;
+                    self.selected_task["assignedUser"] = {userFullName: self.selected_task["assignedUserFirstName"]+ " " + self.selected_task["assignedUserLastName"], partyId: self.selected_task["assignToPartyId"]};
                     self.edit_due_date = null;
                     if (self.selected_task.estimatedCompletionDate){
                         self.edit_due_date = self.formatDate(self.selected_task.estimatedCompletionDate);
                     }
-                    self.assignee = self.assignee_options_master.find(function(item){
-                        return item.partyId === self.selected_task.assignToPartyId;
-                    });
+                    self.assignee = self.selected_task.assignedUser;
                     self.status = self.status_options_master.find(function(item){
                         return item.statusId === self.selected_task.statusId;
                     });
@@ -963,7 +958,8 @@ module.exports = {
                         {
                             marker: '@',
                             feed: self.getUsersForEditor,
-                            itemRenderer: self.customItemRenderer
+                            itemRenderer: self.customItemRenderer,
+                            minimumCharacters: 2
                         },
                     ]
                 }
@@ -1017,9 +1013,7 @@ module.exports = {
                     self.is_edit_title = false;
                     self.task_details_current.description = window.editor.getData();
                     self.task_details_current.edit_due_date = (self.edit_due_date ? self.edit_due_date:null);
-                    self.task_details_current.assignee = self.assignee_options_master.find(function(item){
-                        return item.partyId === params["assignToPartyId"];
-                    });
+                    self.task_details_current.assignee = JSON.parse(JSON.stringify(self.assignee));
                     self.task_details_current.status = self.status_options_master.find(function(item){
                         return item.statusId === params["statusId"];
                     });
@@ -1038,9 +1032,7 @@ module.exports = {
                         let user = mentionedElements[i].getAttribute("data-mention").substring(1);
                         if (!mentioned_users.includes(user)) {
                             mentioned_users.push(user);
-                            self.new_collab = self.assignee_options_master.find(function(item){
-                                return item.userFullName === user;
-                            })
+                            self.new_collab = {partyId: self.person_mapping[user]}
                             self.addCollaborator();
                         }
                     }
@@ -1063,20 +1055,11 @@ module.exports = {
                 }
             });
         },
-        preSetAssignee(assignToPartyId){
-            let self = this;
-            self.add_edit_assignee = self.assignee_options_master.find(function(item){
-                return item.partyId === assignToPartyId;
-            });
-        },
-        getAssigneeList () {
+        getAssigneeList (search_keyword) {
             var self = this;
-            var allParams = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
-            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/users", headers:{Accept:'application/json'}, data:allParams,
-                error:moqui.handleAjaxError, success:function(resp) {
-                    self.assignee_options_master = resp.userList;
-                    self.assignee_options = resp.userList;
-                }
+            var allParams = $.extend({ term: search_keyword,moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            return $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/users", headers:{Accept:'application/json'}, data:allParams,
+                error:moqui.handleAjaxError
             });
         },
         getStatuses () {
@@ -1105,7 +1088,10 @@ module.exports = {
             var allParams = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/collaborators", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
-                    self.collaborator_list = resp.collaboratorList;
+                    self.collaborator_list = resp.collaboratorList.map(function(item){
+                        item["userFullName"] = item["assignedUserFirstName"]+ " " + item["assignedUserLastName"];
+                        return item;
+                    });
                 }
             });
         },
@@ -1135,7 +1121,10 @@ module.exports = {
             var allParams = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/comments", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
-                    self.sel_task_comments = resp.commentList.reverse();
+                    self.sel_task_comments = resp.commentList.map(function(item){
+                        item["userFullName"] = item["assignedUserFirstName"]+ " " + item["assignedUserLastName"];
+                        return item;
+                    }).reverse();
                 }
             });
         },
@@ -1263,24 +1252,27 @@ module.exports = {
             }
         },
         customItemRenderer( item ) {
+            let self = this;
+            self.person_mapping[item.name] = item.partyId;
             return item.name;
         },
         getUsersForEditor( queryText ) {
             let self = this;
-            let available_users = JSON.parse(JSON.stringify(self.assignee_options_master));
-            available_users.map(function(item){
-                item.id = "@" + item.userFullName;
-                item.name = item.userFullName;
-                return item;
-                })
             return new Promise( resolve => {
                 setTimeout( () => {
-                    const itemsToDisplay = available_users
-                        .filter( isItemMatching )
-                    resolve( itemsToDisplay );
+                    self.getAssigneeList(queryText.toLowerCase()).then(function(resp){
+                        let available_users = resp.userList;
+                        available_users.map(function(item){
+                            item.id = "@" + item.userFullName;
+                            item.name = item.userFullName;
+                            return item;
+                            });
+                            const itemsToDisplay = available_users
+                            .filter( isItemMatching )
+                        resolve( itemsToDisplay );
+                    });
                 }, 100 );
             } );
-
             function isItemMatching( item ) {
                 const searchString = queryText.toLowerCase();
 
@@ -1293,7 +1285,6 @@ module.exports = {
     },
     created: function () {
         this.fetchLoggedInUser();
-        this.getAssigneeList();
         this.getStatuses();
         this.getProjects();
         this.onPageChange({

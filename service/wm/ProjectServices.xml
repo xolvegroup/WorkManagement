@@ -75,6 +75,17 @@ along with this software (see the LICENSE.md file). If not, see
                         <script>
                             project.put("managerPartyId",managerPartyId)
                         </script>
+                        <entity-find-one entity-name="mantle.party.PartyDetail" value-field="partyDetail">
+                            <field-map field-name="partyId" from="managerPartyId"/>
+                        </entity-find-one>
+                        <if condition="partyDetail">
+                            <set field="managerFirstName" from="partyDetail.firstName"/>
+                            <set field="managerLastName" from="partyDetail.lastName"/>
+                            <script>
+                                project.put("managerFirstName",managerFirstName)
+                                project.put("managerLastName",managerLastName)
+                            </script>
+                        </if>
                     </if>
                 </iterate>
             </if>
@@ -167,6 +178,17 @@ along with this software (see the LICENSE.md file). If not, see
                 <script>
                     project.put("managerPartyId",managerPartyId)
                 </script>
+                <entity-find-one entity-name="mantle.party.PartyDetail" value-field="partyDetail">
+                    <field-map field-name="partyId" from="managerPartyId"/>
+                </entity-find-one>
+                <if condition="partyDetail">
+                    <set field="managerFirstName" from="partyDetail.firstName"/>
+                    <set field="managerLastName" from="partyDetail.lastName"/>
+                    <script>
+                        project.put("managerFirstName",managerFirstName)
+                        project.put("managerLastName",managerLastName)
+                    </script>
+                </if>
             </if>
         </actions>
     </service>
@@ -178,11 +200,33 @@ along with this software (see the LICENSE.md file). If not, see
             <parameter name="assigneeList" type="List"/>
         </out-parameters>
         <actions>
-            <entity-find entity-name="mantle.work.effort.WorkEffortParty" list="assigneeList">
+            <entity-find entity-name="mantle.work.effort.WorkEffortParty" list="asgnList">
                 <econdition field-name="workEffortId"/>
                 <econdition field-name="roleTypeId" value="Assignee"/>
                 <date-filter/>
             </entity-find>
+            <set field="assigneeList" from="[]"/>
+            <if condition="asgnList">
+                <iterate list="asgnList" entry="asgn">
+                    <set field="assignee" from="new HashMap()"/>
+                    <script>
+                        assignee.putAll(asgn)
+                        assigneeList.add(assignee)
+                    </script>
+                    <!-- Get current assignee -->
+                    <entity-find-one entity-name="mantle.party.PartyDetail" value-field="partyDetail">
+                        <field-map field-name="partyId" from="assignee.partyId"/>
+                    </entity-find-one>
+                    <if condition="partyDetail">
+                        <set field="assignedUserFirstName" from="partyDetail.firstName"/>
+                        <set field="assignedUserLastName" from="partyDetail.lastName"/>
+                        <script>
+                            assignee.put("assignedUserFirstName",assignedUserFirstName)
+                            assignee.put("assignedUserLastName",assignedUserLastName)
+                        </script>
+                    </if>
+                </iterate>
+            </if>
         </actions>
     </service>
 </services>

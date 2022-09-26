@@ -27,7 +27,7 @@
                               v-model="mdl_filter_user"
                               class="bg-white"
                               use-input
-                              input-debounce="0"
+                              input-debounce="700"
                               option-value="partyId"
                               option-label="userFullName"
                               :options="assignee_options"
@@ -145,7 +145,7 @@
                                             </q-chip>
                                         <q-toolbar-title></q-toolbar-title>
                                         <q-btn @click="updateProject()" class="text-blue q-px-sm q-ml-sm" outline dense icon="check" label="Update"></q-btn>
-                                        <q-btn flat round dense icon="close" @click="checkUnsavedProgress"></q-btn>
+                                        <q-btn flat round dense icon="close" @click="checkUnsavedProgress()"></q-btn>
                                       </q-toolbar>
                                     </q-header>
 
@@ -178,7 +178,7 @@
                                                       outlined
                                                       v-model="assignee"
                                                       use-input
-                                                      input-debounce="0"
+                                                      input-debounce="700"
                                                       option-value="partyId"
                                                       option-label="userFullName"
                                                       :options="assignee_options"
@@ -250,12 +250,12 @@
                                                     @remove="removeAssignees(item)"
                                                   >
                                                     <q-avatar dense color="grey">
-                                                      {{ getInitials(getPersonName(item.partyId)) }}
+                                                      {{ getInitials(item.userFullName) }}
                                                     </q-avatar>
-                                                    {{ getPersonName(item.partyId) }}
+                                                    {{ item.userFullName }}
                                                   </q-chip>
                                                 <!--<q-avatar v-for="item in assignee_list" size="24px" color="primary" text-color="white">
-                                                  {{ getInitials(getPersonName(item.partyId)) }}
+                                                  {{ getInitials(item.userFullName) }}
                                                 </q-avatar>-->
                                                 <q-btn dense outline rounded color="primary" icon="add" class="text-black text-weight-bold">
                                                     <q-popup-proxy ref="assigneeAdd" transition-show="flip-up" transition-hide="flip-down">
@@ -266,7 +266,7 @@
                                                               v-model="new_assignee"
                                                               use-input
                                                               square
-                                                              input-debounce="0"
+                                                              input-debounce="700"
                                                               option-value="partyId"
                                                               option-label="userFullName"
                                                               :options="assignee_options"
@@ -364,7 +364,7 @@
                                               v-model="new_project.assignee"
                                               use-input
                                               square
-                                              input-debounce="0"
+                                              input-debounce="700"
                                               option-value="partyId"
                                               option-label="userFullName"
                                               :options="assignee_options"
@@ -407,16 +407,16 @@
                                             <span>{{props.row.workEffortName}}</span>
                                           </q-td>
                                         </template>
-                                    <template v-slot:body-cell-duedate="props">
+                                        <template v-slot:body-cell-duedate="props">
                                           <q-td :props="props">
                                             {{formatDate(props.row.estimatedCompletionDate)}}
                                           </q-td>
                                         </template>
                                         <template v-slot:body-cell-manager="props">
-                                          <q-td v-if="assignee_options_master.length > 0" :props="props">
-                                            <span v-if="props.row.managerPartyId">{{getPersonName(props.row.managerPartyId)}}
+                                          <q-td :props="props">
+                                            <span>{{props.row.assignedUser.userFullName}}
                                                 <q-btn class="float-right" outline dense size="sm" round color="primary" icon="person">
-                                                    <q-popup-proxy @before-show="preSetAssignee(props.row.managerPartyId)" transition-show="flip-up" transition-hide="flip-down">
+                                                    <q-popup-proxy @before-show="add_edit_assignee = props.row.assignedUser" transition-show="flip-up" transition-hide="flip-down">
                                                         <div class="q-pa-md">
                                                         <q-select
                                                             dense
@@ -424,7 +424,7 @@
                                                               v-model="add_edit_assignee"
                                                               use-input
                                                               square
-                                                              input-debounce="0"
+                                                              input-debounce="700"
                                                               option-value="partyId"
                                                               option-label="userFullName"
                                                               :options="assignee_options"
@@ -455,7 +455,7 @@
                                                               v-model="add_edit_assignee"
                                                               use-input
                                                               square
-                                                              input-debounce="0"
+                                                              input-debounce="700"
                                                               option-value="partyId"
                                                               option-label="userFullName"
                                                               :options="assignee_options"
@@ -515,13 +515,13 @@ module.exports = {
             add_edit_assignee: null,
             new_project: {title: '', assignee: null, due_date: null},
             assignee: null,
-            assignee_options_master: [],
             assignee_options: [],
             status: null,
             status_options_master: [],
             status_options: [],
             is_add_project: false,
             new_assignee: null,
+            person_mapping: {},
             no_applicable_for_complete: ['WeCancelled', 'WeClosed', 'WeComplete', 'WeOnHold'],
             table_columns: [
                { name: 'name', align: 'left', style: 'min-width: 300px', label: 'Project Name', field: 'workEffortName', sortable: false },
@@ -576,7 +576,10 @@ module.exports = {
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/projects", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.pagination.rowsNumber = resp.count;
-                    self.project_list = resp.projectList;
+                    self.project_list = resp.projectList.map(function(item){
+                        item["assignedUser"] = {userFullName: item["managerFirstName"]+ " " + item["managerLastName"], partyId: item["managerPartyId"]};
+                        return item;
+                    });;
                     self.pagination.page = page;
                     self.pagination.rowsPerPage = rowsPerPage;
                 }
@@ -586,16 +589,6 @@ module.exports = {
             if (dt) {
                 dt = new Date(dt);
                 return dt.getFullYear() + "-" + String(dt.getMonth()+1).padStart(2, '0') + "-" + String(dt.getDate()).padStart(2, '0');
-            }
-        },
-        getPersonName(id) {
-            if (id) {
-                let user_full_name = this.assignee_options_master.find(function(item){
-                    return item.partyId === id;
-                });
-                if (user_full_name) {
-                    return user_full_name.userFullName;
-                }
             }
         },
         getStatusName(id) {
@@ -608,18 +601,23 @@ module.exports = {
                 }
             }
         },
-        filterFn (val, update) {
+        filterFn(val, update, abort) {
             let self = this;
+            if (val.length < 2) {
+                abort()
+                return
+              }
               if (val === '') {
                 update(() => {
-                  this.assignee_options = self.assignee_options_master
+                    self.assignee_options = [];
                 })
                 return
               }
-              update(() => {
-              const needle = val.toLowerCase()
-              this.assignee_options = self.assignee_options_master.filter(v => v.userFullName.toLowerCase().indexOf(needle) > -1)
-            })
+              self.getAssigneeList(val.toLowerCase()).then(function(resp){
+                update(() => {
+                    self.assignee_options = resp.userList;
+                })
+              });
           },
           filterFnRole (val, update) {
             let self = this;
@@ -711,6 +709,10 @@ module.exports = {
         },
         selectProject (row) {
             var self = this;
+            if (self.open_project_detail && self.getUnsavedIndicator()){
+                self.checkUnsavedProgress(true);
+                return;
+            }
             self.project_details_current = {"assignee": null,"status": null, "edit_due_date": null};
             self.is_edit_title = false;
             self.selected_project = {};
@@ -719,13 +721,12 @@ module.exports = {
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/project", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.selected_project = resp.project;
+                    self.selected_project["assignedUser"] = {userFullName: self.selected_project["managerFirstName"]+ " " + self.selected_project["managerLastName"], partyId: self.selected_project["managerPartyId"]};
                     self.edit_due_date = null;
                     if (self.selected_project.estimatedCompletionDate){
                         self.edit_due_date = self.formatDate(self.selected_project.estimatedCompletionDate);
                     }
-                    self.assignee = self.assignee_options_master.find(function(item){
-                        return item.partyId === self.selected_project.managerPartyId;
-                    });
+                    self.assignee = self.selected_project.assignedUser;
                     self.status = self.status_options_master.find(function(item){
                         return item.statusId === self.selected_project.statusId;
                     });
@@ -758,7 +759,8 @@ module.exports = {
                         {
                             marker: '@',
                             feed: self.getUsersForEditor,
-                            itemRenderer: self.customItemRenderer
+                            itemRenderer: self.customItemRenderer,
+                            minimumCharacters: 2
                         },
                     ]
                 }
@@ -810,15 +812,27 @@ module.exports = {
                     self.is_edit_title = false;
                     self.project_details_current.description = window.editor.getData();
                     self.project_details_current.edit_due_date = (self.edit_due_date ? self.edit_due_date:null);
-                    self.project_details_current.assignee = self.assignee_options_master.find(function(item){
-                        return item.partyId === params["managerPartyId"];
-                    });
+                    self.project_details_current.assignee = JSON.parse(JSON.stringify(self.assignee));
                     self.project_details_current.status = self.status_options_master.find(function(item){
                         return item.statusId === params["statusId"];
                     });
                     self.onPageChange({
                       pagination: self.pagination,
                     });
+                    self.new_assignee = {};
+                    var mentioned_users = [];
+                    var parser = new DOMParser();
+                    var mentionDoc = parser.parseFromString(editor.getData(), 'text/html');
+                    var mentionedElements = mentionDoc.getElementsByClassName('mention')
+                    for (let i=0; i < mentionedElements.length; i++){
+                        let user = mentionedElements[i].getAttribute("data-mention").substring(1);
+                        if (!mentioned_users.includes(user)) {
+                            mentioned_users.push(user);
+                            self.new_assignee = {partyId: self.person_mapping[user]}
+                            self.addAssignee();
+                        }
+                    }
+                    self.new_assignee = null;
                 }
             });
         },
@@ -837,12 +851,6 @@ module.exports = {
                 }
             });
         },
-        preSetAssignee(assignToPartyId){
-            let self = this;
-            self.add_edit_assignee = self.assignee_options_master.find(function(item){
-                return item.partyId === assignToPartyId;
-            });
-        },
         getStatuses () {
             var self = this;
             var allParams = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
@@ -858,7 +866,10 @@ module.exports = {
             var allParams = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/assignees", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
-                    self.assignee_list = resp.assigneeList;
+                    self.assignee_list = resp.assigneeList.map(function(item){
+                        item["userFullName"] = item["assignedUserFirstName"]+ " " + item["assignedUserLastName"];
+                        return item;
+                    });
                 }
             });
         },
@@ -929,17 +940,14 @@ module.exports = {
                 return final_initials.toUpperCase();
             }
         },
-        getAssigneeList () {
+        getAssigneeList (search_keyword) {
             var self = this;
-            var allParams = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
-            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/users", headers:{Accept:'application/json'}, data:allParams,
-                error:moqui.handleAjaxError, success:function(resp) {
-                    self.assignee_options_master = resp.userList;
-                    self.assignee_options = resp.userList;
-                }
+            var allParams = $.extend({ term: search_keyword,moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            return $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/users", headers:{Accept:'application/json'}, data:allParams,
+                error:moqui.handleAjaxError
             });
         },
-        checkUnsavedProgress() {
+        getUnsavedIndicator() {
             let self = this;
             let assignee_changed = false;
             let status_changed = false;
@@ -957,7 +965,12 @@ module.exports = {
             if (self.project_details_current.description !== window.editor.getData()){
                 description_changed = true;
             }
-            if (status_changed || assignee_changed || due_date_changed || description_changed) {
+            return (status_changed || assignee_changed || due_date_changed || description_changed)
+        },
+        checkUnsavedProgress(keep_detail_open) {
+            let self = this;
+
+            if (self.getUnsavedIndicator()) {
                 self.$q.dialog({
                     title: 'Confirm',
                     message: 'You have unsaved changed. Do you really want to leave?',
@@ -968,28 +981,33 @@ module.exports = {
                   })
             }
             else {
-                self.open_project_detail=false;
+                if (!keep_detail_open) {
+                    self.open_project_detail=false;
+                }
             }
         },
         customItemRenderer( item ) {
+            let self = this;
+            self.person_mapping[item.name] = item.partyId;
             return item.name;
         },
         getUsersForEditor( queryText ) {
             let self = this;
-            let available_users = JSON.parse(JSON.stringify(self.assignee_options_master));
-            available_users.map(function(item){
-                item.id = "@" + item.userFullName;
-                item.name = item.userFullName;
-                return item;
-                })
             return new Promise( resolve => {
                 setTimeout( () => {
-                    const itemsToDisplay = available_users
-                        .filter( isItemMatching )
-                    resolve( itemsToDisplay );
+                    self.getAssigneeList(queryText.toLowerCase()).then(function(resp){
+                        let available_users = resp.userList;
+                        available_users.map(function(item){
+                            item.id = "@" + item.userFullName;
+                            item.name = item.userFullName;
+                            return item;
+                            });
+                            const itemsToDisplay = available_users
+                            .filter( isItemMatching )
+                        resolve( itemsToDisplay );
+                    });
                 }, 100 );
             } );
-
             function isItemMatching( item ) {
                 const searchString = queryText.toLowerCase();
 
@@ -1002,7 +1020,6 @@ module.exports = {
     },
     created: function () {
         this.fetchLoggedInUser();
-        this.getAssigneeList();
         this.getStatuses();
         this.onPageChange({
           pagination: this.pagination,

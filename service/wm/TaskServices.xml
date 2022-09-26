@@ -91,6 +91,17 @@ along with this software (see the LICENSE.md file). If not, see
                         <script>
                             task.put("assignToPartyId",assignToPartyId)
                         </script>
+                        <entity-find-one entity-name="mantle.party.PartyDetail" value-field="partyDetail">
+                            <field-map field-name="partyId" from="assignToPartyId"/>
+                        </entity-find-one>
+                        <if condition="partyDetail">
+                            <set field="assignedUserFirstName" from="partyDetail.firstName"/>
+                            <set field="assignedUserLastName" from="partyDetail.lastName"/>
+                            <script>
+                                task.put("assignedUserFirstName",assignedUserFirstName)
+                                task.put("assignedUserLastName",assignedUserLastName)
+                            </script>
+                        </if>
                     </if>
                 </iterate>
             </if>
@@ -121,15 +132,36 @@ along with this software (see the LICENSE.md file). If not, see
                 <script>
                     task.put("assignToPartyId",assignToPartyId)
                 </script>
+                <entity-find-one entity-name="mantle.party.PartyDetail" value-field="partyDetail">
+                    <field-map field-name="partyId" from="assignToPartyId"/>
+                </entity-find-one>
+                <if condition="partyDetail">
+                    <set field="assignedUserFirstName" from="partyDetail.firstName"/>
+                    <set field="assignedUserLastName" from="partyDetail.lastName"/>
+                    <script>
+                        task.put("assignedUserFirstName",assignedUserFirstName)
+                        task.put("assignedUserLastName",assignedUserLastName)
+                    </script>
+                </if>
             </if>
         </actions>
     </service>
     <service verb="get" noun="Users">
+        <in-parameters>
+            <parameter name="term" />
+        </in-parameters>
         <out-parameters>
             <parameter name="userList" type="List"/>
         </out-parameters>
         <actions>
+            <set field="term" from="term ?: ''"/>
             <entity-find entity-name="mantle.party.PersonWithUserAccount" list="userList">
+                <econditions combine="or">
+                    <econdition field-name="partyId" operator="like" value="%${term}%" ignore-case="true" ignore-if-empty="true" />
+                    <econdition field-name="firstName" operator="like" value="%${term}%" ignore-case="true" ignore-if-empty="true"/>
+                    <econdition field-name="lastName" operator="like" value="%${term}%" ignore-case="true" ignore-if-empty="true"/>
+                    <econdition field-name="userFullName" operator="like" value="%${term}%" ignore-case="true" ignore-if-empty="true"/>
+                </econditions>
                 <select-field field-name="userId,userFullName,partyId,firstName,lastName"/>
             </entity-find>
         </actions>
@@ -228,11 +260,33 @@ along with this software (see the LICENSE.md file). If not, see
             <parameter name="collaboratorList" type="List"/>
         </out-parameters>
         <actions>
-            <entity-find entity-name="mantle.work.effort.WorkEffortParty" list="collaboratorList">
+            <entity-find entity-name="mantle.work.effort.WorkEffortParty" list="collabList">
                 <econdition field-name="workEffortId"/>
                 <econdition field-name="roleTypeId" value="Collaborator"/>
                 <date-filter/>
             </entity-find>
+            <set field="collaboratorList" from="[]"/>
+            <if condition="collabList">
+                <iterate list="collabList" entry="collab">
+                    <set field="collaborator" from="new HashMap()"/>
+                    <script>
+                        collaborator.putAll(collab)
+                        collaboratorList.add(collaborator)
+                    </script>
+                    <!-- Get current assignee -->
+                    <entity-find-one entity-name="mantle.party.PartyDetail" value-field="partyDetail">
+                        <field-map field-name="partyId" from="collab.partyId"/>
+                    </entity-find-one>
+                    <if condition="partyDetail">
+                        <set field="assignedUserFirstName" from="partyDetail.firstName"/>
+                        <set field="assignedUserLastName" from="partyDetail.lastName"/>
+                        <script>
+                            collaborator.put("assignedUserFirstName",assignedUserFirstName)
+                            collaborator.put("assignedUserLastName",assignedUserLastName)
+                        </script>
+                    </if>
+                </iterate>
+            </if>
         </actions>
     </service>
     <service verb="get" noun="Comments">
@@ -243,8 +297,31 @@ along with this software (see the LICENSE.md file). If not, see
             <parameter name="commentList"/>
         </out-parameters>
         <actions>
-            <entity-find entity-name="mantle.work.effort.WorkEffortCommEventDetail" list="commentList">
-                <econdition field-name="workEffortId"/><order-by field-name="entryDate"/></entity-find>
+            <entity-find entity-name="mantle.work.effort.WorkEffortCommEventDetail" list="cmtList">
+                <econdition field-name="workEffortId"/><order-by field-name="entryDate"/>
+            </entity-find>
+            <set field="commentList" from="[]"/>
+            <if condition="cmtList">
+                <iterate list="cmtList" entry="cmt">
+                    <set field="comment" from="new HashMap()"/>
+                    <script>
+                        comment.putAll(cmt)
+                        commentList.add(comment)
+                    </script>
+                    <!-- Get current assignee -->
+                    <entity-find-one entity-name="mantle.party.PartyDetail" value-field="partyDetail">
+                        <field-map field-name="partyId" from="cmt.fromPartyId"/>
+                    </entity-find-one>
+                    <if condition="partyDetail">
+                        <set field="assignedUserFirstName" from="partyDetail.firstName"/>
+                        <set field="assignedUserLastName" from="partyDetail.lastName"/>
+                        <script>
+                            comment.put("assignedUserFirstName",assignedUserFirstName)
+                            comment.put("assignedUserLastName",assignedUserLastName)
+                        </script>
+                    </if>
+                </iterate>
+            </if>
         </actions>
     </service>
     <service verb="add" noun="Comment">
