@@ -1,0 +1,11 @@
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd" menu-image="fa fa-flash" menu-image-type="icon">
+
+
+    <subscreens default-item="Project">
+        <subscreens-item name="Wiki" menu-title="Wiki" location="component://SimpleScreens/screen/SimpleScreens/Wiki.xml" menu-index="99"/>
+    </subscreens>
+    <widgets>
+        <subscreens-panel id="work-panel" type="popup"/>
+    </widgets>
+</screen>

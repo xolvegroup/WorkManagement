@@ -15,7 +15,7 @@ along with this software (see the LICENSE.md file). If not, see
 <entity-facade-xml type="seed-initial">
     <!-- Work Management App -->
     <moqui.security.ArtifactGroup artifactGroupId="XOLVE_WORK" description="Work Management"/>
-    <moqui.security.ArtifactGroupMember artifactGroupId="XOLVE_WORK" artifactName="component://WorkManagement/screen/Work.xml"
+    <moqui.security.ArtifactGroupMember artifactGroupId="XOLVE_WORK" artifactName="component://WorkManagement/screen/wm.xml"
                                         artifactTypeEnumId="AT_XML_SCREEN" inheritAuthz="Y"/>
     <!-- authz/permission for ADMIN users -->
     <moqui.security.ArtifactAuthz artifactAuthzId="XOLVE_WORK" userGroupId="ADMIN" artifactGroupId="XOLVE_WORK"

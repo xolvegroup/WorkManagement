@@ -4,7 +4,7 @@
             xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/moqui-conf-3.xsd">
     <screen-facade>
         <screen location="component://webroot/screen/webroot/apps.xml">
-            <subscreens-item name="Work" menu-title="Work Management" menu-index="96" location="component://WorkManagement/screen/Work.xml"/>
+            <subscreens-item name="wm" menu-title="Work Management" menu-index="96" location="component://WorkManagement/screen/wm.xml"/>
         </screen>
     </screen-facade>
 </moqui-conf>
