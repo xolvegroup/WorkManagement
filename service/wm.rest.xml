@@ -23,21 +23,24 @@ along with this software (see the LICENSE.md file). If not, see
 
     <resource name="tasks">
         <method type="get"><service name="wm.TaskServices.get#Tasks"/></method>
-    </resource>
-    <resource name="task_count">
-        <method type="get"><service name="wm.TaskServices.get#TaskCount"/></method>
-    </resource>
-    <resource name="task">
-        <method type="get"><service name="wm.TaskServices.get#Task"/></method>
+        <resource name="task">
+            <method type="get"><service name="wm.TaskServices.get#Task"/></method>
+        </resource>
+        <resource name="addTask">
+            <method type="post"><service name="wm.TaskServices.create#Task"/></method>
+        </resource>
+        <resource name="updateTask">
+            <method type="post"><service name="wm.TaskServices.update#Task"/></method>
+        </resource>
     </resource>
     <resource name="collaborators">
         <method type="get"><service name="wm.TaskServices.get#Collaborators"/></method>
-    </resource>
-    <resource name="add_collaborator">
-        <method type="post"><service name="mantle.work.WorkEffortServices.add#WorkEffortParty"/></method>
-    </resource>
-    <resource name="remove_collaborator">
-        <method type="post"><service name="mantle.work.WorkEffortServices.remove#WorkEffortParty"/></method>
+        <resource name="addCollaborator">
+            <method type="post"><service name="mantle.work.WorkEffortServices.add#WorkEffortParty"/></method>
+        </resource>
+        <resource name="removeCollaborator">
+            <method type="post"><service name="mantle.work.WorkEffortServices.remove#WorkEffortParty"/></method>
+        </resource>
     </resource>
     <resource name="users">
         <method type="get"><service name="wm.TaskServices.get#Users"/></method>
@@ -45,43 +48,34 @@ along with this software (see the LICENSE.md file). If not, see
     <resource name="statuses">
         <method type="get"><service name="wm.TaskServices.get#Statuses"/></method>
     </resource>
-    <resource name="add_task">
-        <method type="post"><service name="wm.TaskServices.create#Task"/></method>
-    </resource>
-    <resource name="update_task">
-        <method type="post"><service name="wm.TaskServices.update#Task"/></method>
-    </resource>
     <resource name="comments">
         <method type="get"><service name="wm.TaskServices.get#Comments"/></method>
-    </resource>
-    <resource name="add_comment">
-        <method type="post"><service name="wm.TaskServices.add#Comment"/></method>
-    </resource>
-    <resource name="update_comment">
+        <resource name="addComment">
+            <method type="post"><service name="wm.TaskServices.add#Comment"/></method>
+        </resource>
+        <resource name="updateComment">
         <method type="post"><service name="wm.TaskServices.update#Comment"/></method>
+        </resource>
+        <resource name="deleteComment">
+            <method type="post"><service name="wm.TaskServices.delete#Comment"/></method>
+        </resource>
     </resource>
-    <resource name="delete_comment">
-        <method type="post"><service name="wm.TaskServices.delete#Comment"/></method>
-    </resource>
-    <resource name="logged_in_user">
+    <resource name="loggedInUser">
         <method type="get"><service name="wm.TaskServices.get#MyUserAccount"/></method>
     </resource>
     <resource name="projects">
         <method type="get"><service name="wm.ProjectServices.get#Projects"/></method>
-    </resource>
-    <resource name="managers">
-        <method type="get"><service name="wm.ProjectServices.get#Managers"/></method>
-    </resource>
-    <resource name="add_project">
-        <method type="post"><service name="wm.ProjectServices.create#Project"/></method>
-    </resource>
-    <resource name="project">
-        <method type="get"><service name="wm.ProjectServices.get#Project"/></method>
-    </resource>
-    <resource name="assignees">
-        <method type="get"><service name="wm.ProjectServices.get#Assignees"/></method>
-    </resource>
-    <resource name="update_project">
-        <method type="post"><service name="wm.ProjectServices.update#Project"/></method>
+        <resource name="addProject">
+            <method type="post"><service name="wm.ProjectServices.create#Project"/></method>
+        </resource>
+        <resource name="project">
+            <method type="get"><service name="wm.ProjectServices.get#Project"/></method>
+        </resource>
+        <resource name="assignees">
+            <method type="get"><service name="wm.ProjectServices.get#Assignees"/></method>
+        </resource>
+        <resource name="updateProject">
+            <method type="post"><service name="wm.ProjectServices.update#Project"/></method>
+        </resource>
     </resource>
 </resource>

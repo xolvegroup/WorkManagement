@@ -910,7 +910,7 @@ module.exports = {
             self.selected_task = {};
             self.open_task_detail=true;
             var allParams = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
-            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/task", headers:{Accept:'application/json'}, data:allParams,
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/tasks/task", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.selected_task = resp.task;
                     self.selected_task["assignedUser"] = {userFullName: self.selected_task["assignedUserFirstName"]+ " " + self.selected_task["assignedUserLastName"], partyId: self.selected_task["assignToPartyId"]};
@@ -984,7 +984,7 @@ module.exports = {
              rootWorkEffortId: (self.new_task.project ? self.new_task.project.workEffortId:null),
              estimatedCompletionDate: self.new_task.due_date,
               moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
-            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/add_task", headers:{Accept:'application/json'}, data:allParams,
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/tasks/addTask", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.is_add_task=false;
                     self.new_task = {title: '', assignee: null, due_date: self.formatDate(new Date())};
@@ -1009,7 +1009,7 @@ module.exports = {
             }
             params["description"] = window.editor.getData();
             params["estimatedCompletionDate"] = (self.edit_due_date ? self.edit_due_date:null);
-            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/update_task", headers:{Accept:'application/json'}, data:params,
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/tasks/updateTask", headers:{Accept:'application/json'}, data:params,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.is_edit_title = false;
                     self.task_details_current.description = window.editor.getData();
@@ -1047,7 +1047,7 @@ module.exports = {
             params["moquiSessionToken"] = $("#confMoquiSessionToken").val();
             params["workEffortId"] = workEffortId;
             params["assignToPartyId"] = (self.add_edit_assignee ? self.add_edit_assignee.partyId:null);
-            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/update_task", headers:{Accept:'application/json'}, data:params,
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/tasks/updateTask", headers:{Accept:'application/json'}, data:params,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.onPageChange({
                       pagination: self.pagination,
@@ -1077,7 +1077,7 @@ module.exports = {
             var self = this;
             var allParams = $.extend({ workEffortId: self.selected_task.workEffortId,
              body: self.comment_body,moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
-            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/add_comment", headers:{Accept:'application/json'}, data:allParams,
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/comments/addComment", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.comment_body = "";
                     self.getComments(self.selected_task);
@@ -1099,7 +1099,7 @@ module.exports = {
         addCollaborator() {
             var self = this;
             var allParams = $.extend({ workEffortId:self.selected_task.workEffortId, partyId: self.new_collab.partyId, roleTypeId: "Collaborator", moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
-            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/add_collaborator", headers:{Accept:'application/json'}, data:allParams,
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/collaborators/addCollaborator", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.getCollaborators(self.selected_task);
                     self.$nextTick(function () {
@@ -1111,7 +1111,7 @@ module.exports = {
         removeCollaborator(item) {
             var self = this;
             var allParams = $.extend({ workEffortId:item.workEffortId, partyId: item.partyId, roleTypeId: item.roleTypeId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
-            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/remove_collaborator", headers:{Accept:'application/json'}, data:allParams,
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/collaborators/removeCollaborator", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.getCollaborators(self.selected_task);
                 }
@@ -1133,7 +1133,7 @@ module.exports = {
             var self = this;
             var allParams = $.extend({ workEffortId: self.selected_task.workEffortId,
              body: self.obj_edit_comment.body,communicationEventId:self.obj_edit_comment.communicationEventId,moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
-            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/update_comment", headers:{Accept:'application/json'}, data:allParams,
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/comments/updateComment", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.obj_edit_comment = {};
                     self.is_edit_comment = false;
@@ -1145,7 +1145,7 @@ module.exports = {
             var self = this;
             var allParams = $.extend({ workEffortId: self.selected_task.workEffortId,
              communicationEventId:self.obj_delete_comment.communicationEventId,moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
-            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/delete_comment", headers:{Accept:'application/json'}, data:allParams,
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/comments/deleteComment", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.obj_delete_comment = {};
                     self.is_delete_comment = false;
@@ -1183,7 +1183,7 @@ module.exports = {
         fetchLoggedInUser() {
             let self = this;
             var allParams = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
-            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/logged_in_user", headers:{Accept:'application/json'}, data:allParams,
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/loggedInUser", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.logged_in_user = resp.loggedInUser;
                 }
