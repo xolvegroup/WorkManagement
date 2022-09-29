@@ -825,6 +825,7 @@ module.exports = {
                     self.onPageChange({
                       pagination: self.pagination,
                     });
+                    self.getAssignees(self.selected_project);
                     self.new_assignee = {};
                     var mentioned_users = [];
                     var parser = new DOMParser();
