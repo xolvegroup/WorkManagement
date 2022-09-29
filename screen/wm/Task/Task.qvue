@@ -755,7 +755,10 @@ module.exports = {
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.pagination.rowsNumber = resp.count;
                     self.task_list = resp.taskList.map(function(item){
-                        item["assignedUser"] = {userFullName: item["assignedUserFirstName"]+ " " + item["assignedUserLastName"], partyId: item["assignToPartyId"]};
+                        item["assignedUser"] = null;
+                        if (item["assignToPartyId"]) {
+                            item["assignedUser"] = {userFullName: item["assignedUserFirstName"]+ " " + item["assignedUserLastName"], partyId: item["assignToPartyId"]};
+                        }
                         return item;
                     });
                     self.pagination.page = page;
@@ -913,7 +916,10 @@ module.exports = {
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/tasks/task", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.selected_task = resp.task;
-                    self.selected_task["assignedUser"] = {userFullName: self.selected_task["assignedUserFirstName"]+ " " + self.selected_task["assignedUserLastName"], partyId: self.selected_task["assignToPartyId"]};
+                    self.selected_task["assignedUser"] = null;
+                    if (self.selected_task["assignToPartyId"]) {
+                        self.selected_task["assignedUser"] = {userFullName: self.selected_task["assignedUserFirstName"]+ " " + self.selected_task["assignedUserLastName"], partyId: self.selected_task["assignToPartyId"]};
+                    }
                     self.edit_due_date = null;
                     if (self.selected_task.estimatedCompletionDate){
                         self.edit_due_date = self.formatDate(self.selected_task.estimatedCompletionDate);

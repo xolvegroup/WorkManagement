@@ -577,7 +577,10 @@ module.exports = {
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.pagination.rowsNumber = resp.count;
                     self.project_list = resp.projectList.map(function(item){
-                        item["assignedUser"] = {userFullName: item["managerFirstName"]+ " " + item["managerLastName"], partyId: item["managerPartyId"]};
+                        item["assignedUser"] = null;
+                        if (item["managerPartyId"]) {
+                            item["assignedUser"] = {userFullName: item["managerFirstName"]+ " " + item["managerLastName"], partyId: item["managerPartyId"]};
+                        }
                         return item;
                     });;
                     self.pagination.page = page;
@@ -721,7 +724,10 @@ module.exports = {
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/projects/project", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.selected_project = resp.project;
-                    self.selected_project["assignedUser"] = {userFullName: self.selected_project["managerFirstName"]+ " " + self.selected_project["managerLastName"], partyId: self.selected_project["managerPartyId"]};
+                    self.selected_project["assignedUser"] = null;
+                    if (self.selected_project["managerPartyId"]) {
+                        self.selected_project["assignedUser"] = {userFullName: self.selected_project["managerFirstName"]+ " " + self.selected_project["managerLastName"], partyId: self.selected_project["managerPartyId"]};
+                    }
                     self.edit_due_date = null;
                     if (self.selected_project.estimatedCompletionDate){
                         self.edit_due_date = self.formatDate(self.selected_project.estimatedCompletionDate);
