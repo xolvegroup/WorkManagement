@@ -1027,6 +1027,7 @@ module.exports = {
                     self.task_details_current.project = self.project_options_master.find(function(item){
                         return item.workEffortId === params["rootWorkEffortId"];
                     });
+                    self.getCollaborators(self.selected_task);
                     self.onPageChange({
                       pagination: self.pagination,
                     });
