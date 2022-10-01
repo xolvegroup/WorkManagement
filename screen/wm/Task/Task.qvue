@@ -149,11 +149,11 @@
             side="right"
             v-model="open_task_detail"
             bordered
-            :width="700"
+            :width="is_full_screen ? drawer_width : 700"
             :breakpoint="700"
             content-class="bg-grey-3"
           >
-            <q-scroll-area class="fit">
+            <q-scroll-area :style="'left: ' + (is_full_screen?drawer_left:0) + 'px'" :class="is_full_screen? 'max_width_700': ''" class="fit">
               <div class="q-pa-sm">
                 <q-layout v-if="selected_task" view="Lhh lpR fff" container class="bg-white" style="height: 85vh;">
                                     <q-header class="bg-white text-black">
@@ -180,6 +180,16 @@
                                               <q-icon color="primary" size="20px" name="info"></q-icon>
                                             </q-item-section>
                                             <q-item-section> Task details</q-item-section>
+                                            <q-item-section side>
+                                                <div class="text-grey-8 q-gutter-xs">
+                                                    <q-btn v-if="!is_full_screen" flat round dense icon="link" @click="copyTaskLink(selected_task.workEffortId)">
+                                                    <q-tooltip content-style="font-size: 12px">Copy task link</q-tooltip>
+                                                    </q-btn>
+                                                    <q-btn v-if="!is_full_screen" flat round dense icon="fullscreen" @click="fullScreenTask()">
+                                                    <q-tooltip content-style="font-size: 12px">Fullscreen</q-tooltip>
+                                                    </q-btn>
+                                                </div>
+                                            </q-item-section>
                                           </q-item>
                                         </q-list>
                                         <div class="q-pa-md" style="padding-bottom: 3px;">
@@ -425,6 +435,7 @@
               </div>
             </q-scroll-area>
           </q-drawer>
+          <div v-show="is_main_content_visible">
         <q-item class="q-py-none q-pb-xs">
               <q-item-section side>
                 <q-avatar size="49px" color="primary" text-color="white">
@@ -555,7 +566,7 @@
                                     </q-tr>
                                   </template>
                                 <template v-slot:body-cell-title-text="props">
-                                          <q-td :style="'padding:6px;border-left: 5px solid ' + status_color_map[props.row.statusId]" @click="selectTask(props.row)" class="cursor-pointer" :props="props">
+                                          <q-td :style="'padding:6px;border-left: 5px solid ' + status_color_map[props.row.statusId]" @click="is_full_screen = false;selectTask(props.row)" class="cursor-pointer" :props="props">
                                             <span><q-icon name="check_circle_outline" class="block float-left cursor-pointer text-grey" style="font-size: 22px;" /></span>
                                             <span>{{props.row.workEffortName}}</span>
                                           </q-td>
@@ -651,12 +662,16 @@
                           </q-card-section>
                         </q-card>
                       </q-expansion-item>
+              </div>
     </div>
 </template>
 <script>
 module.exports = {
     data: function () {
         return {
+            drawer_width: window.innerWidth,
+            drawer_left: (window.innerWidth - 700)/2,
+            is_main_content_visible: false,
             logged_in_user: {},
             is_edit_title: false,
             task_list: [],
@@ -685,6 +700,7 @@ module.exports = {
             is_add_task: false,
             new_collab: null,
             person_mapping: {},
+            is_full_screen: false,
             no_applicable_for_complete: ['WeCancelled', 'WeClosed', 'WeComplete', 'WeOnHold'],
             table_columns: [
                {
@@ -1017,6 +1033,11 @@ module.exports = {
             params["estimatedCompletionDate"] = (self.edit_due_date ? self.edit_due_date:null);
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/tasks/updateTask", headers:{Accept:'application/json'}, data:params,
                 error:moqui.handleAjaxError, success:function(resp) {
+                    if (status) {
+                        self.status = self.status_options_master.find(function(item){
+                            return item.statusId === status;
+                        });
+                    }
                     self.is_edit_title = false;
                     self.task_details_current.description = window.editor.getData();
                     self.task_details_current.edit_due_date = (self.edit_due_date ? self.edit_due_date:null);
@@ -1077,8 +1098,35 @@ module.exports = {
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.status_options_master = resp.statusList;
                     self.status_options = resp.statusList;
+                    self.checkIfTaskFullView();
                 }
             });
+        },
+        fullScreenTask() {
+            let self = this;
+            self.is_full_screen = true;
+            self.is_main_content_visible = false;
+        },
+        checkIfTaskFullView() {
+            let self = this;
+            if (Object.keys(self.$route.query).indexOf("id") > -1) {
+                var allParams = $.extend({ workEffortId: self.$route.query.id,moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+                $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/tasks/checkAccess", headers:{Accept:'application/json'}, data:allParams,
+                    error:moqui.handleAjaxError, success:function(resp) {
+                        if (resp.authorized === "Y") {
+                            self.is_full_screen = true;
+                            let new_task_item = {workEffortId: self.$route.query.id};
+                            self.selectTask(new_task_item);
+                        }
+                        else {
+                            self.is_main_content_visible = true;
+                        }
+                    }
+                });
+            }
+            else {
+                self.is_main_content_visible = true;
+            }
         },
         addComment () {
             var self = this;
@@ -1213,6 +1261,7 @@ module.exports = {
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.project_options_master = resp.projectList;
                     self.project_options = resp.projectList;
+                    self.getStatuses();
                 }
             });
         },
@@ -1250,12 +1299,20 @@ module.exports = {
                     cancel: true,
                     persistent: true
                   }).onCancel(() => {
-                    self.open_task_detail=false;
+                    if (!self.is_full_screen) {
+                        self.open_task_detail=false;
+                    }
+                    self.is_full_screen = false;
+                    self.is_main_content_visible = true;
                   })
             }
             else {
                 if (!keep_detail_open) {
-                    self.open_task_detail=false;
+                    if (!self.is_full_screen) {
+                        self.open_task_detail=false;
+                    }
+                    self.is_full_screen = false;
+                    self.is_main_content_visible = true;
                 }
             }
         },
@@ -1289,11 +1346,23 @@ module.exports = {
                     item.id.toLowerCase().includes( searchString )
                 );
             }
+        },
+        copyTaskLink(task_id) {
+            var dummy = document.createElement('input'),
+            text = (window.location.href).split("?")[0] + "?id=" + task_id;
+            document.body.appendChild(dummy);
+            dummy.value = text;
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+            this.$q.notify({
+                message: 'Copied task link.',
+                position: 'bottom-left',
+              })
         }
     },
     created: function () {
         this.fetchLoggedInUser();
-        this.getStatuses();
         this.getProjects();
         this.onPageChange({
           pagination: this.pagination,
@@ -1316,5 +1385,11 @@ module.exports = {
     }
     .add_task_cls .q-field__input {
         min-width: 5px !important;
+    }
+    body {
+        overflow-x: hidden !important;
+    }
+    .max_width_700 {
+        max-width: 700px !important;
     }
 </style>

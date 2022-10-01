@@ -32,6 +32,9 @@ along with this software (see the LICENSE.md file). If not, see
         <resource name="updateTask">
             <method type="post"><service name="wm.TaskServices.update#Task"/></method>
         </resource>
+        <resource name="checkAccess">
+            <method type="get"><service name="wm.TaskServices.check#Access"/></method>
+        </resource>
     </resource>
     <resource name="collaborators">
         <method type="get"><service name="wm.TaskServices.get#Collaborators"/></method>
