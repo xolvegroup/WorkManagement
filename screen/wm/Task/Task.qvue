@@ -1,5 +1,20 @@
 <template>
     <div>
+    <q-dialog v-model="task_no_access_alert">
+      <q-card class="q-px-sm q-pt-sm" style="width: 300px">
+        <q-card-section>
+          <div class="text-h5">Alert</div>
+        </q-card-section>
+
+        <q-card-section style="font-size: 16px" class="q-pt-none">
+          You don't have access to this task.
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="OK" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
     <q-drawer
             side="right"
             v-model="open_find_options_drawer"
@@ -693,6 +708,7 @@ module.exports = {
             assignee_options: [],
             status: null,
             status_options_master: [],
+            task_no_access_alert: false,
             status_options: [],
             project: null,
             project_options_master: [],
@@ -1119,6 +1135,7 @@ module.exports = {
                             self.selectTask(new_task_item);
                         }
                         else {
+                            self.task_no_access_alert = true;
                             self.is_main_content_visible = true;
                         }
                     }
