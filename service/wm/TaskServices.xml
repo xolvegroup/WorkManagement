@@ -146,6 +146,18 @@ along with this software (see the LICENSE.md file). If not, see
             </if>
         </actions>
     </service>
+    <!-- TODO: add logic to verify user has access to a project or task. This is for when direct links are shared. -->
+    <service verb="check" noun="Access">
+        <in-parameters>
+            <parameter name="workEffortId" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="authorized"/>
+        </out-parameters>
+        <actions>
+            <set field="authorized" value="Y"/>
+        </actions>
+    </service>
     <service verb="get" noun="Users">
         <in-parameters>
             <parameter name="term" />
