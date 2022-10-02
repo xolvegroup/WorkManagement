@@ -43,6 +43,29 @@
                             </q-select>
                     </div>
                     <div class="col-6">
+                        <q-select
+                            label="Role"
+                            dense
+                            outlined
+                            v-model="mdl_filter_role"
+                            use-input
+                            class="bg-white"
+                            input-debounce="0"
+                            option-value="value"
+                            option-label="label"
+                            :options="role_options"
+                            @filter="filterFnRole"
+                          >
+                            <template v-slot:no-option>
+                              <q-item>
+                                <q-item-section class="text-grey">
+                                  No results
+                                </q-item-section>
+                              </q-item>
+                            </template>
+                          </q-select>
+                    </div>
+                    <div class="col-6">
                     <q-select
                             label="Status"
                             dense
@@ -56,29 +79,6 @@
                             option-label="description"
                             :options="status_options"
                             @filter="filterFnStatus"
-                          >
-                            <template v-slot:no-option>
-                              <q-item>
-                                <q-item-section class="text-grey">
-                                  No results
-                                </q-item-section>
-                              </q-item>
-                            </template>
-                          </q-select>
-                    </div>
-                    <div class="col-6">
-                        <q-select
-                            label="Role"
-                            dense
-                            outlined
-                            v-model="mdl_filter_role"
-                            use-input
-                            class="bg-white"
-                            input-debounce="0"
-                            option-value="value"
-                            option-label="label"
-                            :options="role_options"
-                            @filter="filterFnRole"
                           >
                             <template v-slot:no-option>
                               <q-item>
