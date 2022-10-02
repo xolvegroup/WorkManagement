@@ -389,10 +389,10 @@
                                                   </q-avatar>
                                                 </q-item-section>
 
-                                                <q-item-section class="q-pl-md">
+                                                <q-item-section class="q-pl-md q-pt-sm">
                                                   <q-item-label class="text-subtitle1">{{ comment.userFullName }} <span
                                                     class="q-pl-sm text-caption text-grey-8">{{ timeSince(comment.entryDate) }}</span></q-item-label>
-                                                  <q-item-label v-if="obj_edit_comment.communicationEventId != comment.communicationEventId" class="q-pt-sm" caption><span style="white-space: pre;" class="text-weight-medium" v-html="comment.body"></span>
+                                                  <q-item-label v-if="obj_edit_comment.communicationEventId != comment.communicationEventId" class="q-pt-sm" caption><span style="white-space: pre-line;" class="text-weight-medium" v-html="comment.body"></span>
                                                   <span class="q-pl-sm text-caption text-grey-8"></span></q-item-label>
 
                                                 <div class="q-mt-sm" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId">
@@ -410,7 +410,7 @@
 
                                                 </q-item-section>
 
-                                                 <q-item-section side class="q-pt-sm">
+                                                 <q-item-section side top class="q-pt-none">
                                                      <div>
                                                         <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId != comment.communicationEventId" @click="obj_edit_comment=comment;" class="text-blue q-px-sm q-ml-sm" flat dense icon="edit"></q-btn>
                                                         <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId" @click="updateComment();" class="text-blue q-px-sm q-ml-sm" outline flat dense icon="save"></q-btn>
