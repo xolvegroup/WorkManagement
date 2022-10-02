@@ -241,7 +241,7 @@
                                                       </template>
                                                     </q-select>
                                             </div>
-                                            <div class="col-6">
+                                            <div class="col-6 cls_task_detail">
                                               <q-select
                                                         label="Project"
                                                         dense
@@ -263,7 +263,7 @@
                                                         </template>
                                                       </q-select>
                                             </div>
-                                            <div class="col-6">
+                                            <div class="col-4 cls_task_detail">
                                               <q-select
                                                         label="Status"
                                                         dense
@@ -285,7 +285,29 @@
                                                         </template>
                                                       </q-select>
                                             </div>
-                                            <div class="col-6">
+                                            <div class="col-4 cls_task_detail">
+                                              <q-select
+                                                        label="Priority"
+                                                        dense
+                                                        outlined
+                                                        v-model="priority"
+                                                        use-input
+                                                        input-debounce="0"
+                                                        option-value="value"
+                                                        option-label="label"
+                                                        :options="priority_options"
+                                                        @filter="filterFnPriority"
+                                                      >
+                                                        <template v-slot:no-option>
+                                                          <q-item>
+                                                            <q-item-section class="text-grey">
+                                                              No results
+                                                            </q-item-section>
+                                                          </q-item>
+                                                        </template>
+                                                      </q-select>
+                                            </div>
+                                            <div class="col-4 cls_task_detail">
                                                 <q-input label="Due Date" style="margin:0;padding:0;" outlined dense v-model="edit_due_date">
                                                     <template v-slot:append>
                                                       <q-icon name="event" class="cursor-pointer">
@@ -512,6 +534,29 @@
                                         </q-input>
                                       </q-td>
                                       <q-td class="add_task_cls" style="padding: 0">
+                                        <q-select
+                                            dense
+                                              outlined
+                                              v-model="new_task.priority"
+                                              use-input
+                                              square
+                                              input-debounce="0"
+                                              option-value="value"
+                                              option-label="label"
+                                              :options="priority_options"
+                                              @filter="filterFnPriority"
+                                              style="margin:0;padding:0;width: 100px;"
+                                            >
+                                              <template v-slot:no-option>
+                                                <q-item>
+                                                  <q-item-section class="text-grey">
+                                                    No results
+                                                  </q-item-section>
+                                                </q-item>
+                                              </template>
+                                        </q-select>
+                                      </q-td>
+                                      <q-td class="add_task_cls" style="padding: 0">
                                           <q-select
                                             square
                                             hide-bottom-space
@@ -585,6 +630,11 @@
                                             <span><q-icon name="check_circle_outline" class="block float-left cursor-pointer text-grey" style="font-size: 22px;" /></span>
                                             <span>{{props.row.workEffortName}}</span>
                                           </q-td>
+                                        </template>
+                                        <template v-slot:body-cell-priority="props">
+                                            <q-td :props="props">
+                                              {{props.row.priority}}
+                                            </q-td>
                                         </template>
                                     <template v-slot:body-cell-duedate="props">
                                           <q-td :props="props">
@@ -705,6 +755,7 @@ module.exports = {
             add_edit_assignee: null,
             new_task: {title: '', assignee: null, project: null, due_date: null},
             assignee: null,
+            priority: null,
             assignee_options: [],
             status: null,
             status_options_master: [],
@@ -728,10 +779,11 @@ module.exports = {
                  sortable: false,
                  style: 'min-width: 300px'
                },
-               { name: 'project', align: 'left', label: 'Project',style: 'width: 220px', field: 'rootWorkEffortId', sortable: false },
-               { name: 'person', align: 'left', label: 'Person',style: 'width: 220px', field: 'assignToPartyId', sortable: false },
-               { name: 'status', align: 'left', label: 'Status',style: 'width: 220px', field: 'statusId', sortable: false },
-               { name: 'duedate', align: 'left', label: 'Due',style: 'width: 220px', field: 'estimatedCompletionDate', sortable: false }
+               { name: 'priority', align: 'left', label: 'Priority',style: 'width: 100px', field: 'priority', sortable: false },
+               { name: 'project', align: 'left', label: 'Project',style: 'width: 210px', field: 'rootWorkEffortId', sortable: false },
+               { name: 'person', align: 'left', label: 'Person',style: 'width: 210px', field: 'assignToPartyId', sortable: false },
+               { name: 'status', align: 'left', label: 'Status',style: 'width: 210px', field: 'statusId', sortable: false },
+               { name: 'duedate', align: 'left', label: 'Due',style: 'width: 210px', field: 'estimatedCompletionDate', sortable: false }
             ],
             status_color_map:{WeInPlanning: '#979391', WeApproved: '#6a97ff', WeInProgress: '#f0b057', WeComplete: '#34d391', WeOnHold: '#e8697d',
                                WeClosed: '#79c947', WeCancelled: '#e8a19e'},
@@ -747,9 +799,11 @@ module.exports = {
             mdl_filter_role:null,
             role_options_master: [{"label":"Assignee","value":"Assignee"},{"label":"Collaborator","value":"Collaborator"}],
             role_options: [{"label":"Assignee","value":"Assignee"},{"label":"Collaborator","value":"Collaborator"}],
+            priority_options_master: [{"label":"1","value":1},{"label":"2","value":2},{"label":"3","value":3},{"label":"4","value":4},{"label":"5","value":5}],
+            priority_options: [{"label":"1","value":1},{"label":"2","value":2},{"label":"3","value":3},{"label":"4","value":4},{"label":"5","value":5}],
             mdl_filter_status:null,
             mdl_filter_order_by:null,
-            task_details_current: {"assignee": null,"status": null,"project": null, "edit_due_date": null, "description": null},
+            task_details_current: {"assignee": null,"status": null,"priority": null,"project": null, "edit_due_date": null, "description": null},
             orderby_options_master: [{"label":"Task (Asc)","value":"workEffortName"},
                                      {"label":"Task (Desc)","value":"-workEffortName"},
                                      {"label":"User (Asc)","value":"assignToPartyId"},
@@ -894,6 +948,19 @@ module.exports = {
               this.project_options = self.project_options_master.filter(v => v.workEffortName.toLowerCase().indexOf(needle) > -1)
             })
           },
+        filterFnPriority (val, update) {
+            let self = this;
+              if (val === '') {
+                update(() => {
+                  this.priority_options = self.priority_options_master
+                })
+                return
+              }
+              update(() => {
+              const needle = val.toLowerCase()
+              this.priority_options = self.priority_options.filter(v => v.label.toLowerCase().indexOf(needle) > -1)
+            })
+          },
         findOptions() {
             let self = this;
             self.filter_params = {};
@@ -940,7 +1007,7 @@ module.exports = {
                 self.checkUnsavedProgress(true);
                 return;
             }
-            self.task_details_current = {"assignee": null,"status": null,"project": null, "edit_due_date": null};
+            self.task_details_current = {"assignee": null,"status": null,"priority": null,"project": null, "edit_due_date": null};
             self.is_edit_title = false;
             self.selected_task = {};
             self.open_task_detail=true;
@@ -960,6 +1027,9 @@ module.exports = {
                     self.status = self.status_options_master.find(function(item){
                         return item.statusId === self.selected_task.statusId;
                     });
+                    self.priority = self.priority_options_master.find(function(item){
+                        return item.value === self.selected_task.priority;
+                    });
                     self.project = self.project_options_master.find(function(item){
                         return item.workEffortId === self.selected_task.rootWorkEffortId;
                     });
@@ -971,6 +1041,9 @@ module.exports = {
                     }
                     if (self.status) {
                         self.task_details_current["status"] = JSON.parse(JSON.stringify(self.status));
+                    }
+                    if (self.priority) {
+                        self.task_details_current["priority"] = JSON.parse(JSON.stringify(self.priority));
                     }
                     if (self.project) {
                         self.task_details_current["project"] = JSON.parse(JSON.stringify(self.project));
@@ -1021,6 +1094,7 @@ module.exports = {
              assignToPartyId: (self.new_task.assignee ? self.new_task.assignee.partyId:null), description: "",
              rootWorkEffortId: (self.new_task.project ? self.new_task.project.workEffortId:null),
              estimatedCompletionDate: self.new_task.due_date,
+             priority: self.new_task.priority.value,
               moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/tasks/addTask", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
@@ -1042,6 +1116,7 @@ module.exports = {
             params["assignToPartyId"] = (self.assignee ? self.assignee.partyId:null);
             params["rootWorkEffortId"] = (self.project ? self.project.workEffortId:null);
             params["statusId"] = self.status.statusId;
+            params["priority"] = (self.priority ? self.priority.value:null);
             if (status) {
                 params["statusId"] = status;
             }
@@ -1060,6 +1135,9 @@ module.exports = {
                     self.task_details_current.assignee = JSON.parse(JSON.stringify(self.assignee));
                     self.task_details_current.status = self.status_options_master.find(function(item){
                         return item.statusId === params["statusId"];
+                    });
+                    self.task_details_current.priority = self.priority_options_master.find(function(item){
+                        return item.value === params["priority"];
                     });
                     self.task_details_current.project = self.project_options_master.find(function(item){
                         return item.workEffortId === params["rootWorkEffortId"];
@@ -1287,6 +1365,7 @@ module.exports = {
             let project_changed = false;
             let assignee_changed = false;
             let status_changed = false;
+            let priority_changed = false;
             let due_date_changed = false;
             let description_changed = false;
             if ((self.task_details_current.project ? self.task_details_current.project.workEffortId:"") !== (self.project ? self.project.workEffortId:"")){
@@ -1294,6 +1373,9 @@ module.exports = {
             }
             if ((self.task_details_current.status ? self.task_details_current.status.statusId:"") !== (self.status ? self.status.statusId:"")){
                 status_changed = true;
+            }
+            if ((self.task_details_current.priority ? self.task_details_current.priority.value:"") !== (self.priority ? self.priority.value:"")){
+                priority_changed = true;
             }
             if ((self.task_details_current.assignee ? self.task_details_current.assignee.partyId:"") !== (self.assignee ? self.assignee.partyId:"")){
                 assignee_changed = true;
@@ -1304,7 +1386,7 @@ module.exports = {
             if (self.task_details_current.description !== window.editor.getData()){
                 description_changed = true;
             }
-            return (project_changed || status_changed || assignee_changed || due_date_changed || description_changed)
+            return (project_changed || status_changed || priority_changed || assignee_changed || due_date_changed || description_changed)
         },
         checkUnsavedProgress(keep_detail_open) {
             let self = this;

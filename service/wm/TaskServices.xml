@@ -68,7 +68,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <econditions><date-filter/><econdition field-name="partyId" from="ec.user.userAccount.partyId"/></econditions>
                     <econdition field-name="visibilityEnumId" operator="in" value="WevAllUsers"/>
                 </econditions>
-                <select-field field-name="rootWorkEffortId,workEffortId,workEffortName,statusId,estimatedCompletionDate"/>
+                <select-field field-name="rootWorkEffortId,workEffortId,workEffortName,statusId,estimatedCompletionDate,priority"/>
                 <order-by field-name="${orderByField}"/>
             </entity-find>
             <set field="taskList" from="[]"/>
@@ -198,6 +198,7 @@ along with this software (see the LICENSE.md file). If not, see
             <parameter name="purposeEnumId" default-value="WepTask"/>
             <parameter name="workEffortTypeEnumId" default-value="WetTask"/>
             <parameter name="statusId" default-value="WeInPlanning"/>
+            <parameter name="priority"/>
             <parameter name="rootWorkEffortId"/>
             <!-- Parties. Default assignee to user that creates the task if no one is specified. -->
             <parameter name="assignToPartyId" default="ec.user.userAccount.partyId"/>
@@ -234,6 +235,7 @@ along with this software (see the LICENSE.md file). If not, see
             <parameter name="estimatedCompletionDate"/>
             <parameter name="description" allow-html="safe"/>
             <parameter name="statusId"/>
+            <parameter name="priority"/>
             <!-- Parties -->
             <parameter name="assignToPartyId"/>
         </in-parameters>
