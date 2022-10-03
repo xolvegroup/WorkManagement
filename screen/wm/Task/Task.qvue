@@ -381,45 +381,37 @@
                                         </q-list>
                                         </div>
                                         <div v-if="sel_task_comments.length > 0">
-                                            <q-list separator bordered>
-                                              <q-item :key="comment.communicationEventId" v-for="comment in sel_task_comments" class="q-my-sm">
-                                                <q-item-section avatar>
-                                                  <q-avatar color="primary" text-color="white">
-                                                    {{ getInitials(comment.userFullName) }}
-                                                  </q-avatar>
-                                                </q-item-section>
+                                            <q-list>
+                                            <span :key="comment.communicationEventId" v-for="comment in sel_task_comments">
+                                                  <q-item style="border-top: 1px solid #e1dddd;" class="q-my-sm q-pt-md">
+                                                    <q-item-section avatar>
+                                                      <q-avatar color="primary" text-color="white">
+                                                        {{ getInitials(comment.userFullName) }}
+                                                      </q-avatar>
+                                                    </q-item-section>
 
-                                                <q-item-section class="q-pl-md q-pt-sm">
-                                                  <q-item-label class="text-subtitle1">{{ comment.userFullName }} <span
-                                                    class="q-pl-sm text-caption text-grey-8">{{ timeSince(comment.entryDate) }}</span></q-item-label>
-                                                  <q-item-label v-if="obj_edit_comment.communicationEventId != comment.communicationEventId" class="q-pt-sm" caption><span style="white-space: pre-line;" class="text-weight-medium" v-html="comment.body"></span>
-                                                  <span class="q-pl-sm text-caption text-grey-8"></span></q-item-label>
+                                                    <q-item-section class="q-pl-md">
+                                                      <q-item-label class="text-subtitle1">{{ comment.userFullName }} <span
+                                                        class="q-pl-sm text-caption text-grey-8">{{ timeSince(comment.entryDate) }}</span></q-item-label>
+                                                      <q-item-label v-if="obj_edit_comment.communicationEventId != comment.communicationEventId" class="q-pt-sm" caption><span class="text-weight-medium" v-html="comment.body"></span>
+                                                      </q-item-label>
 
-                                                <div class="q-mt-sm" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId">
-                                                  <q-input
-                                                        style="width: 100%"
-                                                        v-model="obj_edit_comment.body"
-                                                        dense
-                                                        outlined
-                                                        rows="3"
-                                                        class="bg-white"
-                                                        type="textarea"
-                                                        placeholder="Edit comment..."
-                                                      />
-                                                  </div>
+                                                    </q-item-section>
 
-                                                </q-item-section>
+                                                     <q-item-section side top class="q-pt-none">
+                                                         <div>
+                                                            <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId != comment.communicationEventId" @click="editComment(comment)" class="text-blue q-px-sm q-ml-sm" flat dense icon="edit"></q-btn>
+                                                            <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId" @click="updateComment();" class="text-blue q-px-sm q-ml-sm" outline flat dense icon="save"></q-btn>
+                                                            <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId" @click="obj_edit_comment={};" class="text-red q-px-sm q-ml-sm" outline flat dense icon="close"></q-btn>
+                                                            <q-btn style="padding: 0;" @click="obj_delete_comment=comment;is_delete_comment=true;" class="text-red q-px-sm q-ml-sm" flat dense icon="delete"></q-btn>
+                                                        </div>
+                                                     </q-item-section>
 
-                                                 <q-item-section side top class="q-pt-none">
-                                                     <div>
-                                                        <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId != comment.communicationEventId" @click="obj_edit_comment=comment;" class="text-blue q-px-sm q-ml-sm" flat dense icon="edit"></q-btn>
-                                                        <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId" @click="updateComment();" class="text-blue q-px-sm q-ml-sm" outline flat dense icon="save"></q-btn>
-                                                        <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId" @click="obj_edit_comment={};" class="text-red q-px-sm q-ml-sm" outline flat dense icon="close"></q-btn>
-                                                        <q-btn style="padding: 0;" @click="obj_delete_comment=comment;is_delete_comment=true;" class="text-red q-px-sm q-ml-sm" flat dense icon="delete"></q-btn>
+                                                  </q-item>
+                                                  <div class="comment_section edit_comment_section q-mt-sm q-px-lg" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId">
+                                                      <div id="editCommentEditor"></div>
                                                     </div>
-                                                 </q-item-section>
-
-                                              </q-item>
+                                              </span>
                                               </q-list>
                                         </div>
 
@@ -439,7 +431,7 @@
 
                                       </q-page>
                                     </q-page-container>
-                                <q-footer class="bg-grey-2 text-black">
+                                <q-footer class="comment_section add_comment_section bg-grey-2 text-black">
                                       <div>
                                         <q-list separator bordered>
                                           <q-item class="q-my-sm">
@@ -449,20 +441,12 @@
                                               </q-avatar>
                                             </q-item-section>
                                             <q-item-section>
-                                              <q-input
-                                                style="width: 100%"
-                                                v-model="comment_body"
-                                                outlined
-                                                rows="3"
-                                                class="bg-white"
-                                                type="textarea"
-                                                label="Add the comment..."
-                                              />
+                                            <div id="addCommentEditor"></div>
                                             </q-item-section>
                                           </q-item>
                                           <q-item>
                                           <q-item-section side class="cursor-pointer">
-                                                <q-btn class="text-primary" :disabled="!comment_body" @click="addComment" class="q-px-sm q-ml-sm" outline dense icon="check" label="Add Comment"></q-btn>
+                                                <q-btn class="text-primary" @click="addComment" class="q-px-sm q-ml-sm" outline dense icon="check" label="Add Comment"></q-btn>
                                           </q-item-section>
                                           </q-item>
                                         </q-list>
@@ -787,7 +771,6 @@ module.exports = {
             ],
             status_color_map:{WeInPlanning: '#979391', WeApproved: '#6a97ff', WeInProgress: '#f0b057', WeComplete: '#34d391', WeOnHold: '#e8697d',
                                WeClosed: '#79c947', WeCancelled: '#e8a19e'},
-            comment_body:"",
             is_edit_comment:false,
             obj_edit_comment:{},
             is_delete_comment:false,
@@ -1048,21 +1031,24 @@ module.exports = {
                     if (self.project) {
                         self.task_details_current["project"] = JSON.parse(JSON.stringify(self.project));
                     }
-                    self.initializeEditor();
+                    self.initializeEditor("#editor");
                 }
             });
             self.sel_task_comments = [];
             self.getComments(row);
             self.getCollaborators(row);
-
+            self.initializeEditor("#addCommentEditor");
             if (document.querySelector('.ck-editor__editable')) {
                 document.querySelector('.ck-editor__editable').ckeditorInstance.destroy();
             }
+            if (document.querySelector('.add_comment_section .ck-editor__editable')) {
+                document.querySelector('.add_comment_section .ck-editor__editable').ckeditorInstance.destroy();
+            }
         },
-        initializeEditor() {
+        initializeEditor(elem) {
             let self = this;
             ClassicEditor
-            .create( document.querySelector( '#editor' ),
+            .create( document.querySelector( elem ),
             {
                 mention: {
                     dropdownLimit: 100,
@@ -1078,14 +1064,28 @@ module.exports = {
             })
             .then( editor => {
             MentionCustomization(editor);
-             window.editor = editor;
-             if (self.selected_task.description){
-                editor.setData(self.selected_task.description);
+             if (elem === "#addCommentEditor"){
+                 window.add_comment_editor = editor;
              }
-             else {
-                editor.setData("");
+             else if (elem === "#editCommentEditor"){
+                 window.edit_comment_editor = editor;
+                 if (self.obj_edit_comment.body){
+                    editor.setData(self.obj_edit_comment.body);
+                 }
+                 else {
+                    editor.setData("");
+                 }
              }
-             self.task_details_current.description = editor.getData();
+             else if (elem === "#editor"){
+                 window.editor = editor;
+                 if (self.selected_task.description){
+                    editor.setData(self.selected_task.description);
+                 }
+                 else {
+                    editor.setData("");
+                 }
+                 self.task_details_current.description = editor.getData();
+             }
          } )
         },
         addTask () {
@@ -1223,14 +1223,38 @@ module.exports = {
                 self.is_main_content_visible = true;
             }
         },
+        editComment (comment) {
+            let self = this;
+            self.obj_edit_comment=comment;
+            setTimeout( () => {
+                self.initializeEditor("#editCommentEditor");
+            }, 200 );
+            if (document.querySelector('.edit_comment_section .ck-editor__editable')) {
+                document.querySelector('.edit_comment_section .ck-editor__editable').ckeditorInstance.destroy();
+            }
+        },
         addComment () {
             var self = this;
             var allParams = $.extend({ workEffortId: self.selected_task.workEffortId,
-             body: self.comment_body,moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
+             body: window.add_comment_editor.getData(),moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/comments/addComment", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
-                    self.comment_body = "";
                     self.getComments(self.selected_task);
+                    self.new_collab = {};
+                    var mentioned_users = [];
+                    var parser = new DOMParser();
+                    var mentionDoc = parser.parseFromString(add_comment_editor.getData(), 'text/html');
+                    var mentionedElements = mentionDoc.getElementsByClassName('mention')
+                    for (let i=0; i < mentionedElements.length; i++){
+                        let user = mentionedElements[i].getAttribute("data-mention").substring(1);
+                        if (!mentioned_users.includes(user)) {
+                            mentioned_users.push(user);
+                            self.new_collab = {partyId: self.person_mapping[user]}
+                            self.addCollaborator();
+                        }
+                    }
+                    self.new_collab = null;
+                    window.add_comment_editor.setData("");
                 }
             });
         },
@@ -1282,12 +1306,26 @@ module.exports = {
         updateComment() {
             var self = this;
             var allParams = $.extend({ workEffortId: self.selected_task.workEffortId,
-             body: self.obj_edit_comment.body,communicationEventId:self.obj_edit_comment.communicationEventId,moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
+             body: window.edit_comment_editor.getData(),communicationEventId:self.obj_edit_comment.communicationEventId,moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/comments/updateComment", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.obj_edit_comment = {};
                     self.is_edit_comment = false;
                     self.getComments(self.selected_task);
+                    self.new_collab = {};
+                    var mentioned_users = [];
+                    var parser = new DOMParser();
+                    var mentionDoc = parser.parseFromString(edit_comment_editor.getData(), 'text/html');
+                    var mentionedElements = mentionDoc.getElementsByClassName('mention')
+                    for (let i=0; i < mentionedElements.length; i++){
+                        let user = mentionedElements[i].getAttribute("data-mention").substring(1);
+                        if (!mentioned_users.includes(user)) {
+                            mentioned_users.push(user);
+                            self.new_collab = {partyId: self.person_mapping[user]}
+                            self.addCollaborator();
+                        }
+                    }
+                    self.new_collab = null;
                 }
             });
         },
@@ -1490,5 +1528,9 @@ module.exports = {
     }
     .max_width_700 {
         max-width: 700px !important;
+    }
+    .comment_section .ck-editor__editable_inline {
+        min-height: 90px !important;
+        height: 90px !important;
     }
 </style>
