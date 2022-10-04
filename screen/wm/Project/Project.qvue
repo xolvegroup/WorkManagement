@@ -310,7 +310,7 @@
               </q-item-section>
               <q-item-section style="display: block;" class="cls_project_detail">
               <q-btn style="width: 130px" class="text-capitalize float-right" outline rounded dense label="Find Options" icon="search" @click="open_find_options_drawer=true"></q-btn>
-              <q-btn style="width: 130px" v-if="Object.keys(filter_params).length > 0" @click="resetFind()" class="text-capitalize float-right text-red" outline rounded dense icon="close" label="Clear"></q-btn>
+              <q-btn style="width: 130px" v-if="Object.keys(filter_params).length > 1 || (filter_params['orderByField'] != '-workEffortId' && mdl_filter_order_by !== null)" @click="resetFind()" class="text-capitalize float-right text-red" outline rounded dense icon="close" label="Clear"></q-btn>
               </q-item-section>
             </q-item>
             <q-btn
@@ -324,175 +324,166 @@
                   label="Add Project"
                 >
                 </q-btn>
-                <q-expansion-item
-                        default-opened
-                        switch-toggle-side
+                    <q-card flat class="q-mt-sm">
+                      <q-card-section style="padding: 0px;">
+                        <q-table
+                        bordered
                         flat
-                        dense
-                        label="All Projects"
-                        header-class="text-blue text-weight-bold text-h6"
-                      >
-                        <q-card>
-                          <q-card-section style="padding-top: 0px;">
-                            <q-table
-                            bordered
-                            flat
-                            @request="onPageChange"
-                            :wrap-cells="true"
-                                  :data="project_list"
-                                  :filter="filter"
-                                  table-header-class="custom_table_header"
-                                  :columns="table_columns"
-                                  row-key="notificationMessageId"
-                                  separator="cell"
-                                  dense
-                                  :pagination.sync="pagination"
-                                >
-                                <template v-if="is_add_project" v-slot:top-row>
-                                    <q-tr>
-                                      <q-td style="padding: 0">
-                                          <q-input class="col-8" v-model="new_project.title" autofocus square outlined style="margin:0;padding:0;" dense>
-                                            <template v-slot:before>
-                                              <q-icon @click="is_add_project=false" color="red" class="cursor-pointer q-ml-xs" name="close" />
-                                            </template>
-                                        </q-input>
+                        @request="onPageChange"
+                        :wrap-cells="true"
+                              :data="project_list"
+                              :filter="filter"
+                              table-header-class="custom_table_header"
+                              :columns="table_columns"
+                              row-key="notificationMessageId"
+                              separator="cell"
+                              dense
+                              :pagination.sync="pagination"
+                            >
+                            <template v-if="is_add_project" v-slot:top-row>
+                                <q-tr>
+                                  <q-td style="padding: 0">
+                                      <q-input class="col-8" v-model="new_project.title" autofocus square outlined style="margin:0;padding:0;" dense>
+                                        <template v-slot:before>
+                                          <q-icon @click="is_add_project=false" color="red" class="cursor-pointer q-ml-xs" name="close" />
+                                        </template>
+                                    </q-input>
+                                  </q-td>
+                                  <q-td style="padding: 0">
+                                  <q-select
+                                        dense
+                                          outlined
+                                          v-model="new_project.assignee"
+                                          use-input
+                                          square
+                                          input-debounce="700"
+                                          option-value="partyId"
+                                          option-label="userFullName"
+                                          :options="assignee_options"
+                                          @filter="filterFn"
+                                          style="margin:0;padding:0;"
+                                        >
+                                          <template v-slot:no-option>
+                                            <q-item>
+                                              <q-item-section class="text-grey">
+                                                No results
+                                              </q-item-section>
+                                            </q-item>
+                                          </template>
+                                        </q-select></q-td>
+                                  <q-td>In Planning</q-td>
+                                  <q-td style="padding: 0 7px 0 0">
+                                      <q-input style="margin:0;padding:0;" square outlined dense v-model="new_project.due_date">
+                                        <template v-slot:append>
+                                          <q-icon name="event" class="cursor-pointer">
+                                            <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                                              <q-date mask="YYYY-MM-DD" v-model="new_project.due_date">
+                                                <div class="row items-center justify-end">
+                                                  <q-btn v-close-popup label="Close" color="primary" flat />
+                                                </div>
+                                              </q-date>
+                                            </q-popup-proxy>
+                                          </q-icon>
+                                        </template>
+                                        <template v-slot:after>
+                                          <!--<q-icon @click="addProject" class="text-green" style="cursor: pointer;" class="q-mr-sm" name="check_circle" />-->
+                                          <q-btn @click="addProject" :disabled="!new_project.title" square color="primary" size="md" icon="add_task" />
+                                        </template>
+                                      </q-input>
+                                  </q-td>
+                                </q-tr>
+                              </template>
+                            <template v-slot:body-cell-name="props">
+                                      <q-td :style="'padding:6px;border-left: 5px solid ' + status_color_map[props.row.statusId]" @click="selectProject(props.row)" class="cursor-pointer" :props="props">
+                                        <span><q-icon name="check_circle_outline" class="block float-left cursor-pointer text-grey" style="font-size: 22px;" /></span>
+                                        <span>{{props.row.workEffortName}}</span>
                                       </q-td>
-                                      <q-td style="padding: 0">
-                                      <q-select
-                                            dense
-                                              outlined
-                                              v-model="new_project.assignee"
-                                              use-input
-                                              square
-                                              input-debounce="700"
-                                              option-value="partyId"
-                                              option-label="userFullName"
-                                              :options="assignee_options"
-                                              @filter="filterFn"
-                                              style="margin:0;padding:0;"
-                                            >
-                                              <template v-slot:no-option>
-                                                <q-item>
-                                                  <q-item-section class="text-grey">
-                                                    No results
-                                                  </q-item-section>
-                                                </q-item>
-                                              </template>
-                                            </q-select></q-td>
-                                      <q-td>In Planning</q-td>
-                                      <q-td style="padding: 0 7px 0 0">
-                                          <q-input style="margin:0;padding:0;" square outlined dense v-model="new_project.due_date">
-                                            <template v-slot:append>
-                                              <q-icon name="event" class="cursor-pointer">
-                                                <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                                                  <q-date mask="YYYY-MM-DD" v-model="new_project.due_date">
-                                                    <div class="row items-center justify-end">
-                                                      <q-btn v-close-popup label="Close" color="primary" flat />
+                                    </template>
+                                    <template v-slot:body-cell-duedate="props">
+                                      <q-td :props="props">
+                                        {{formatDate(props.row.estimatedCompletionDate)}}
+                                      </q-td>
+                                    </template>
+                                    <template v-slot:body-cell-manager="props">
+                                      <q-td :props="props">
+                                        <span>{{props.row.assignedUser.userFullName}}
+                                            <q-btn class="float-right" outline dense size="sm" round color="primary" icon="person">
+                                                <q-popup-proxy @before-show="add_edit_assignee = props.row.assignedUser" transition-show="flip-up" transition-hide="flip-down">
+                                                    <div class="q-pa-md">
+                                                    <q-select
+                                                        dense
+                                                          outlined
+                                                          v-model="add_edit_assignee"
+                                                          use-input
+                                                          square
+                                                          input-debounce="700"
+                                                          option-value="partyId"
+                                                          option-label="userFullName"
+                                                          :options="assignee_options"
+                                                          @filter="filterFn"
+                                                        >
+                                                          <template v-slot:no-option>
+                                                            <q-item>
+                                                              <q-item-section class="text-grey">
+                                                                No results
+                                                              </q-item-section>
+                                                            </q-item>
+                                                          </template>
+                                                          <template v-slot:after>
+                                                            <q-icon :disabled="!add_edit_assignee" color="primary" @click="addEditAssignee(props.row.workEffortId)" name="save" class="cursor-pointer" />
+                                                          </template>
+                                                        </q-select>
                                                     </div>
-                                                  </q-date>
-                                                </q-popup-proxy>
-                                              </q-icon>
-                                            </template>
-                                            <template v-slot:after>
-                                              <!--<q-icon @click="addProject" class="text-green" style="cursor: pointer;" class="q-mr-sm" name="check_circle" />-->
-                                              <q-btn @click="addProject" :disabled="!new_project.title" square color="primary" size="md" icon="add_task" />
-                                            </template>
-                                          </q-input>
+                                                  </q-popup-proxy>
+                                            </q-btn>
+                                        </span>
+                                        <span v-if="!props.row.managerPartyId">
+                                            <q-btn class="float-right" outline dense size="sm" round color="primary" icon="person">
+                                                <q-popup-proxy @before-show="add_edit_assignee=null" transition-show="flip-up" transition-hide="flip-down">
+                                                    <div class="q-pa-md">
+                                                    <q-select
+                                                        dense
+                                                          outlined
+                                                          v-model="add_edit_assignee"
+                                                          use-input
+                                                          square
+                                                          input-debounce="700"
+                                                          option-value="partyId"
+                                                          option-label="userFullName"
+                                                          :options="assignee_options"
+                                                          @filter="filterFn"
+                                                        >
+                                                          <template v-slot:no-option>
+                                                            <q-item>
+                                                              <q-item-section class="text-grey">
+                                                                No results
+                                                              </q-item-section>
+                                                            </q-item>
+                                                          </template>
+                                                          <template v-slot:after>
+                                                            <q-icon :disabled="!add_edit_assignee" color="primary" @click="addEditAssignee(props.row.workEffortId)" name="save" class="cursor-pointer" />
+                                                          </template>
+                                                        </q-select>
+                                                    </div>
+                                                  </q-popup-proxy>
+                                            </q-btn>
+                                        </span>
                                       </q-td>
-                                    </q-tr>
-                                  </template>
-                                <template v-slot:body-cell-name="props">
-                                          <q-td :style="'padding:6px;border-left: 5px solid ' + status_color_map[props.row.statusId]" @click="selectProject(props.row)" class="cursor-pointer" :props="props">
-                                            <span><q-icon name="check_circle_outline" class="block float-left cursor-pointer text-grey" style="font-size: 22px;" /></span>
-                                            <span>{{props.row.workEffortName}}</span>
-                                          </q-td>
-                                        </template>
-                                        <template v-slot:body-cell-duedate="props">
-                                          <q-td :props="props">
-                                            {{formatDate(props.row.estimatedCompletionDate)}}
-                                          </q-td>
-                                        </template>
-                                        <template v-slot:body-cell-manager="props">
-                                          <q-td :props="props">
-                                            <span>{{props.row.assignedUser.userFullName}}
-                                                <q-btn class="float-right" outline dense size="sm" round color="primary" icon="person">
-                                                    <q-popup-proxy @before-show="add_edit_assignee = props.row.assignedUser" transition-show="flip-up" transition-hide="flip-down">
-                                                        <div class="q-pa-md">
-                                                        <q-select
-                                                            dense
-                                                              outlined
-                                                              v-model="add_edit_assignee"
-                                                              use-input
-                                                              square
-                                                              input-debounce="700"
-                                                              option-value="partyId"
-                                                              option-label="userFullName"
-                                                              :options="assignee_options"
-                                                              @filter="filterFn"
-                                                            >
-                                                              <template v-slot:no-option>
-                                                                <q-item>
-                                                                  <q-item-section class="text-grey">
-                                                                    No results
-                                                                  </q-item-section>
-                                                                </q-item>
-                                                              </template>
-                                                              <template v-slot:after>
-                                                                <q-icon :disabled="!add_edit_assignee" color="primary" @click="addEditAssignee(props.row.workEffortId)" name="save" class="cursor-pointer" />
-                                                              </template>
-                                                            </q-select>
-                                                        </div>
-                                                      </q-popup-proxy>
-                                                </q-btn>
-                                            </span>
-                                            <span v-if="!props.row.managerPartyId">
-                                                <q-btn class="float-right" outline dense size="sm" round color="primary" icon="person">
-                                                    <q-popup-proxy @before-show="add_edit_assignee=null" transition-show="flip-up" transition-hide="flip-down">
-                                                        <div class="q-pa-md">
-                                                        <q-select
-                                                            dense
-                                                              outlined
-                                                              v-model="add_edit_assignee"
-                                                              use-input
-                                                              square
-                                                              input-debounce="700"
-                                                              option-value="partyId"
-                                                              option-label="userFullName"
-                                                              :options="assignee_options"
-                                                              @filter="filterFn"
-                                                            >
-                                                              <template v-slot:no-option>
-                                                                <q-item>
-                                                                  <q-item-section class="text-grey">
-                                                                    No results
-                                                                  </q-item-section>
-                                                                </q-item>
-                                                              </template>
-                                                              <template v-slot:after>
-                                                                <q-icon :disabled="!add_edit_assignee" color="primary" @click="addEditAssignee(props.row.workEffortId)" name="save" class="cursor-pointer" />
-                                                              </template>
-                                                            </q-select>
-                                                        </div>
-                                                      </q-popup-proxy>
-                                                </q-btn>
-                                            </span>
-                                          </q-td>
-                                        </template>
-                                        <template v-slot:body-cell-status="props">
-                                          <q-td :props="props">
-                                            <q-chip
-                                              :style="'background-color: ' + status_color_map[props.row.statusId]"
-                                              text-color="white"
-                                              dense
-                                              round
-                                            > <span class="q-mr-xs" style="font-size:22px;">●</span> {{getStatusName(props.row.statusId)}}
-                                            </q-chip>
-                                          </q-td>
-                                        </template>
-                                </q-table>
-                          </q-card-section>
-                        </q-card>
-                      </q-expansion-item>
+                                    </template>
+                                    <template v-slot:body-cell-status="props">
+                                      <q-td :props="props">
+                                        <q-chip
+                                          :style="'background-color: ' + status_color_map[props.row.statusId]"
+                                          text-color="white"
+                                          dense
+                                          round
+                                        > <span class="q-mr-xs" style="font-size:22px;">●</span> {{getStatusName(props.row.statusId)}}
+                                        </q-chip>
+                                      </q-td>
+                                    </template>
+                            </q-table>
+                      </q-card-section>
+                    </q-card>
     </div>
 </template>
 <script>
@@ -505,7 +496,9 @@ module.exports = {
             pagination: {
                 page: 1,
                 rowsPerPage: 10,
-                rowsNumber: 0
+                rowsNumber: 0,
+                sortBy: 'workEffortId',
+                descending: true,
               },
             filter_params: {},
             edit_due_date: null,
@@ -524,11 +517,13 @@ module.exports = {
             person_mapping: {},
             no_applicable_for_complete: ['WeCancelled', 'WeClosed', 'WeComplete', 'WeOnHold'],
             table_columns: [
-               { name: 'name', align: 'left', style: 'min-width: 300px', label: 'Project Name', field: 'workEffortName', sortable: false },
-               { name: 'manager', align: 'left', label: 'Manager',style: 'width: 220px', field: 'managerPartyId', sortable: false },
-               { name: 'status', align: 'left', label: 'Status',style: 'width: 220px', field: 'statusId', sortable: false },
-              { name: 'duedate', align: 'left', label: 'Due',style: 'width: 220px', field: 'estimatedCompletionDate', sortable: false }
+               { name: 'name', align: 'left', style: 'min-width: 300px', label: 'Project Name', field: 'workEffortName', sortable: true },
+               { name: 'manager', align: 'left', label: 'Manager',style: 'width: 220px', field: 'managerPartyId', sortable: true },
+               { name: 'status', align: 'left', label: 'Status',style: 'width: 220px', field: 'statusId', sortable: true },
+              { name: 'duedate', align: 'left', label: 'Due',style: 'width: 220px', field: 'estimatedCompletionDate', sortable: true }
             ],
+            column_to_field_mapping: {"workEffortId": "workEffortId", "name": "workEffortName", "manager": "managerPartyId",
+                                        "status":"statusId", "duedate": "estimatedCompletionDate"},
             status_color_map:{WeInPlanning: '#979391', WeApproved: '#6a97ff', WeInProgress: '#f0b057', WeComplete: '#34d391', WeOnHold: '#e8697d',
                                WeClosed: '#79c947', WeCancelled: '#e8a19e'},
             assignee_list: [],
@@ -540,28 +535,43 @@ module.exports = {
             mdl_filter_status:null,
             mdl_filter_order_by:null,
             project_details_current: {"assignee": null,"status": null, "edit_due_date": null, "description": null},
-            orderby_options_master: [{"label":"Project (Asc)","value":"workEffortName"},
-                                     {"label":"Project (Desc)","value":"-workEffortName"},
-                                     {"label":"User (Asc)","value":"assignToPartyId"},
-                                     {"label":"User (Desc)","value":"-assignToPartyId"},
-                                     {"label":"Status (Asc)","value":"statusId"},
-                                     {"label":"Status (Desc)","value":"-statusId"},
-                                     {"label":"Due Date (Asc)","value":"estimatedCompletionDate"},
-                                     {"label":"Due Date(Desc)","value":"-estimatedCompletionDate"}],
-            orderby_options: [{"label":"Project (Asc)","value":"workEffortName"},
-                                     {"label":"Project (Desc)","value":"-workEffortName"},
-                                     {"label":"User (Asc)","value":"assignToPartyId"},
-                                     {"label":"User (Desc)","value":"-assignToPartyId"},
-                                     {"label":"Status (Asc)","value":"statusId"},
-                                     {"label":"Status (Desc)","value":"-statusId"},
-                                     {"label":"Due Date (Asc)","value":"estimatedCompletionDate"},
-                                     {"label":"Due Date(Desc)","value":"-estimatedCompletionDate"}],
+            orderby_options_master: [{"label":"Project (Asc)","value":"name"},
+                                     {"label":"Project (Desc)","value":"-name"},
+                                     {"label":"User (Asc)","value":"manager"},
+                                     {"label":"User (Desc)","value":"-manager"},
+                                     {"label":"Status (Asc)","value":"status"},
+                                     {"label":"Status (Desc)","value":"-status"},
+                                     {"label":"Due Date (Asc)","value":"duedate"},
+                                     {"label":"Due Date(Desc)","value":"-duedate"}],
+            orderby_options: [{"label":"Project (Asc)","value":"name"},
+                                     {"label":"Project (Desc)","value":"-name"},
+                                     {"label":"User (Asc)","value":"manager"},
+                                     {"label":"User (Desc)","value":"-manager"},
+                                     {"label":"Status (Asc)","value":"status"},
+                                     {"label":"Status (Desc)","value":"-status"},
+                                     {"label":"Due Date (Asc)","value":"duedate"},
+                                     {"label":"Due Date(Desc)","value":"-duedate"}],
         }
     },
     methods: {
         onPageChange (props) {
             let self = this;
-            const { page, rowsNumber, rowsPerPage } = props.pagination
+            const page = props.pagination.page;
+            const rowsNumber = props.pagination.rowsNumber;
+            const rowsPerPage = props.pagination.rowsPerPage;
+            const sortBy = props.pagination.sortBy;
+            const descending = props.pagination.descending;
+            if (sortBy) {
+                if (descending) {
+                    self.filter_params["orderByField"] = "-" + (self.column_to_field_mapping[sortBy] || sortBy);
+                }
+                else {
+                    self.filter_params["orderByField"] = (self.column_to_field_mapping[sortBy] || sortBy);
+                }
+            }
+            else {
+                self.filter_params["orderByField"] = "-workEffortId";
+            }
             const startRow = (page - 1) * rowsPerPage
             const fetchCount = rowsPerPage === 0 ? this.pagination.rowsNumber : rowsPerPage;
             if (self.filter_params) {
@@ -585,6 +595,8 @@ module.exports = {
                     });;
                     self.pagination.page = page;
                     self.pagination.rowsPerPage = rowsPerPage;
+                    self.pagination.sortBy = sortBy;
+                    self.pagination.descending = descending;
                 }
             });
         },
@@ -691,7 +703,14 @@ module.exports = {
                 self.filter_params["statusId"] = status_filters.replace(",", "");
             }
             if (self.mdl_filter_order_by) {
-                self.filter_params["orderByField"] = self.mdl_filter_order_by.value;
+                if (self.mdl_filter_order_by.value.startsWith("-")) {
+                    self.pagination.sortBy = self.mdl_filter_order_by.value.slice(1);
+                    self.pagination.descending = true;
+                }
+                else {
+                    self.pagination.sortBy = self.mdl_filter_order_by.value;
+                    self.pagination.descending = false;
+                }
             }
             self.pagination.page = 1;
             self.onPageChange({
@@ -705,6 +724,8 @@ module.exports = {
             self.mdl_filter_status = null;
             self.mdl_filter_order_by = null;
             self.filter_params = {};
+            self.pagination.sortBy = "workEffortId";
+            self.pagination.descending = true;
             self.pagination.page = 1;
             self.onPageChange({
               pagination: self.pagination,
@@ -981,7 +1002,8 @@ module.exports = {
                 self.$q.dialog({
                     title: 'Confirm',
                     message: 'You have unsaved changed. Do you really want to leave?',
-                    cancel: true,
+                    cancel: {label: "Discard Changes", noCaps: true, outline: true, color: "Black"},
+                    ok: {label: "Return to Editing", noCaps: true, outline: true},
                     persistent: true
                   }).onCancel(() => {
                     self.open_project_detail=false;
