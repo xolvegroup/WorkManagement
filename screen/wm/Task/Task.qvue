@@ -190,11 +190,19 @@
                                     <q-page-container>
                                       <q-page>
                                         <q-list class="bg-grey-2" bordered>
-                                          <q-item>
-                                            <q-item-section avatar>
-                                              <q-icon color="primary" size="20px" name="info"></q-icon>
+                                          <q-item class="q-py-xs">
+                                            <q-item-section class="q-py-none">
+                                              <div style="margin: 0" class="text-weight-bold text-h6">
+                                              <span v-if="!is_edit_title">{{selected_task.workEffortName}} <q-btn flat round dense icon="edit" @click="is_edit_title=true"></q-btn></span>
+                                              <span v-if="is_edit_title">
+                                              <q-input dense outlined v-model="selected_task.workEffortName">
+                                                <template v-slot:after>
+                                                    <q-btn @click="updateTask()" :disabled="!selected_task.workEffortName" square color="primary" size="md" icon="save" />
+                                                  </template>
+                                              </q-input>
+                                              </span>
+                                              </div>
                                             </q-item-section>
-                                            <q-item-section> Task details</q-item-section>
                                             <q-item-section side>
                                                 <div class="text-grey-8 q-gutter-xs">
                                                     <q-btn v-if="!is_full_screen" flat round dense icon="link" @click="copyTaskLink(selected_task.workEffortId)">
@@ -208,16 +216,6 @@
                                           </q-item>
                                         </q-list>
                                         <div class="q-pa-md" style="padding-bottom: 3px;">
-                                          <div class="text-weight-bold q-pb-sm q-pt-xs text-h6">
-                                          <span v-if="!is_edit_title">{{selected_task.workEffortName}} <q-btn flat round dense icon="edit" @click="is_edit_title=true"></q-btn></span>
-                                          <span v-if="is_edit_title">
-                                          <q-input dense outlined v-model="selected_task.workEffortName">
-                                            <template v-slot:after>
-                                                <q-btn @click="updateTask()" :disabled="!selected_task.workEffortName" square color="primary" size="md" icon="save" />
-                                              </template>
-                                          </q-input>
-                                          </span>
-                                          </div>
                                           <div class="cls_task_detail row q-col-gutter-md text-grey-8">
                                             <div class="col-6">
                                               <q-select
@@ -457,24 +455,11 @@
             </q-scroll-area>
           </q-drawer>
           <div v-show="is_main_content_visible">
-        <q-item class="q-py-none q-pb-xs">
-              <q-item-section side>
-                <q-avatar size="49px" color="primary" text-color="white">
-                                                {{ getInitials(logged_in_user.userFullName) }}
-                                              </q-avatar>
-              </q-item-section>
+        <q-item class="q-pa-none q-pt-xs">
               <q-item-section>
-                <q-item-label class="text-h5">{{logged_in_user.userFullName}}</q-item-label>
-                <q-item-label caption>
-                </q-item-label>
-              </q-item-section>
-              <q-item-section style="display: block;" class="cls_task_detail">
-              <q-btn style="width: 130px" class="text-capitalize float-right" outline rounded dense label="Find Options" icon="search" @click="open_find_options_drawer=true"></q-btn>
-              <q-btn style="width: 130px" v-if="Object.keys(filter_params).length > 1 || (filter_params['orderByField'] != '-workEffortId' && mdl_filter_order_by !== null)" @click="resetFind()" class="text-capitalize float-right text-red" outline rounded dense icon="close" label="Clear"></q-btn>
-              </q-item-section>
-            </q-item>
-            <q-btn
-            class="custom_btn_dropdown q-my-xs q-ml-sm"
+                <q-btn
+                style="width: 109px;"
+            class="custom_btn_dropdown"
             dense
                   split
                   @click="new_task={title: '', assignee: null, project: null, due_date: null};is_add_task=true"
@@ -484,6 +469,12 @@
                   label="Add Task"
                 >
                 </q-btn>
+              </q-item-section>
+              <q-item-section style="display: block;" class="cls_task_detail">
+              <q-btn style="width: 130px" class="text-capitalize float-right" outline rounded dense label="Find Options" icon="search" @click="open_find_options_drawer=true"></q-btn>
+              <q-btn style="width: 130px" v-if="Object.keys(filter_params).length > 1 || (filter_params['orderByField'] != '-workEffortId' && mdl_filter_order_by !== null)" @click="resetFind()" class="text-capitalize float-right text-red" outline rounded dense icon="close" label="Clear"></q-btn>
+              </q-item-section>
+            </q-item>
                     <q-card flat class="q-mt-sm">
                       <q-card-section style="padding: 0px;">
                         <q-table
@@ -1005,7 +996,7 @@ module.exports = {
               pagination: self.pagination,
             });
         },
-        selectTask (row) {
+        selectTask (row, is_from_add_task) {
             let self = this;
             if (self.open_task_detail && self.getUnsavedIndicator()){
                 self.checkUnsavedProgress(true);
@@ -1028,6 +1019,13 @@ module.exports = {
                         self.edit_due_date = self.formatDate(self.selected_task.estimatedCompletionDate);
                     }
                     self.assignee = self.selected_task.assignedUser;
+
+                    if (is_from_add_task && self.assignee && self.assignee.partyId != self.logged_in_user.userId) {
+                        self.new_collab = {partyId: self.logged_in_user.userId}
+                        self.addCollaborator();
+                        self.new_collab = null;
+                    }
+
                     self.status = self.status_options_master.find(function(item){
                         return item.statusId === self.selected_task.statusId;
                     });
@@ -1115,14 +1113,14 @@ module.exports = {
              assignToPartyId: (self.new_task.assignee ? self.new_task.assignee.partyId:null), description: "",
              rootWorkEffortId: (self.new_task.project ? self.new_task.project.workEffortId:null),
              estimatedCompletionDate: self.new_task.due_date,
-             priority: self.new_task.priority.value,
+             priority: (self.new_task.priority ? self.new_task.priority.value:null),
               moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/tasks/addTask", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.is_add_task=false;
                     self.new_task = {title: '', assignee: null, due_date: self.formatDate(new Date())};
                     let new_task_item = {workEffortId: resp.workEffortId};
-                    self.selectTask(new_task_item);
+                    self.selectTask(new_task_item, true);
                     self.pagination.page = 1;
                     self.onPageChange({
                       pagination: self.pagination,
@@ -1178,6 +1176,7 @@ module.exports = {
                             mentioned_users.push(user);
                             self.new_collab = {partyId: self.person_mapping[user]}
                             self.addCollaborator();
+                            self.new_collab = null;
                         }
                     }
                     self.new_collab = null;
@@ -1272,6 +1271,7 @@ module.exports = {
                             mentioned_users.push(user);
                             self.new_collab = {partyId: self.person_mapping[user]}
                             self.addCollaborator();
+                            self.new_collab = null;
                         }
                     }
                     self.new_collab = null;
@@ -1299,7 +1299,8 @@ module.exports = {
                     self.getCollaborators(self.selected_task);
                     self.$nextTick(function () {
                         self.$refs.collabAdd.hide();
-                      })
+                      });
+                    self.new_collab = null;
                 }
             });
         },
@@ -1344,6 +1345,7 @@ module.exports = {
                             mentioned_users.push(user);
                             self.new_collab = {partyId: self.person_mapping[user]}
                             self.addCollaborator();
+                            self.new_collab = null;
                         }
                     }
                     self.new_collab = null;

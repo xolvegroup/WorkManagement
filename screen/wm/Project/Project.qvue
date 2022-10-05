@@ -152,24 +152,22 @@
                                     <q-page-container>
                                       <q-page>
                                         <q-list class="bg-grey-2" bordered>
-                                          <q-item>
-                                            <q-item-section avatar>
-                                              <q-icon color="primary" size="20px" name="info"></q-icon>
+                                          <q-item class="q-py-xs">
+                                            <q-item-section class="q-py-none">
+                                              <div style="margin: 0" class="text-weight-bold text-h6">
+                                              <span v-if="!is_edit_title">{{selected_project.workEffortName}} <q-btn flat round dense icon="edit" @click="is_edit_title=true"></q-btn></span>
+                                              <span v-if="is_edit_title">
+                                              <q-input dense outlined v-model="selected_project.workEffortName">
+                                                <template v-slot:after>
+                                                    <q-btn @click="updateProject()" :disabled="!selected_project.workEffortName" square color="primary" size="md" icon="save" />
+                                                  </template>
+                                              </q-input>
+                                              </span>
+                                              </div>
                                             </q-item-section>
-                                            <q-item-section> Project details</q-item-section>
                                           </q-item>
                                         </q-list>
                                         <div class="q-pa-md" style="padding-bottom: 3px;">
-                                          <div class="text-weight-bold q-pb-sm q-pt-xs text-h6">
-                                          <span v-if="!is_edit_title">{{selected_project.workEffortName}} <q-btn flat round dense icon="edit" @click="is_edit_title=true"></q-btn></span>
-                                          <span v-if="is_edit_title">
-                                          <q-input dense outlined v-model="selected_project.workEffortName">
-                                            <template v-slot:after>
-                                                <q-btn @click="updateProject()" :disabled="!selected_project.workEffortName" square color="primary" size="md" icon="save" />
-                                              </template>
-                                          </q-input>
-                                          </span>
-                                          </div>
                                           <div class="cls_project_detail fix_selectbox_cls row q-col-gutter-md text-grey-8">
                                             <div class="col-4">
                                               <q-select
@@ -297,23 +295,10 @@
               </div>
             </q-scroll-area>
           </q-drawer>
-        <q-item class="q-py-none q-pb-xs">
-              <q-item-section side>
-                <q-avatar size="49px" color="primary" text-color="white">
-                                                {{ getInitials(logged_in_user.userFullName) }}
-                                              </q-avatar>
-              </q-item-section>
+        <q-item class="q-pa-none q-pt-xs">
               <q-item-section>
-                <q-item-label class="text-h5">{{logged_in_user.userFullName}}</q-item-label>
-                <q-item-label caption>
-                </q-item-label>
-              </q-item-section>
-              <q-item-section style="display: block;" class="cls_project_detail">
-              <q-btn style="width: 130px" class="text-capitalize float-right" outline rounded dense label="Find Options" icon="search" @click="open_find_options_drawer=true"></q-btn>
-              <q-btn style="width: 130px" v-if="Object.keys(filter_params).length > 1 || (filter_params['orderByField'] != '-workEffortId' && mdl_filter_order_by !== null)" @click="resetFind()" class="text-capitalize float-right text-red" outline rounded dense icon="close" label="Clear"></q-btn>
-              </q-item-section>
-            </q-item>
-            <q-btn
+                <q-btn
+                style="width: 125px;"
             class="custom_btn_dropdown q-my-xs q-ml-sm"
             dense
                   split
@@ -324,6 +309,12 @@
                   label="Add Project"
                 >
                 </q-btn>
+              </q-item-section>
+              <q-item-section style="display: block;" class="cls_project_detail">
+              <q-btn style="width: 130px" class="text-capitalize float-right" outline rounded dense label="Find Options" icon="search" @click="open_find_options_drawer=true"></q-btn>
+              <q-btn style="width: 130px" v-if="Object.keys(filter_params).length > 1 || (filter_params['orderByField'] != '-workEffortId' && mdl_filter_order_by !== null)" @click="resetFind()" class="text-capitalize float-right text-red" outline rounded dense icon="close" label="Clear"></q-btn>
+              </q-item-section>
+            </q-item>
                     <q-card flat class="q-mt-sm">
                       <q-card-section style="padding: 0px;">
                         <q-table
