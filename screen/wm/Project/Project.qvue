@@ -231,7 +231,7 @@
                                           </div>
                                           <div class="row text-grey-8 q-mt-lg">
                                             <div class="col-12">
-                                                <div id="editor"></div>
+                                                <div style="border: 1px solid #c2c2c2;" id="editor"></div>
                                             </div>
                                           </div>
                                         </div>
@@ -768,7 +768,7 @@ module.exports = {
         },
         initializeEditor() {
             let self = this;
-            ClassicEditor
+            InlineEditor
             .create( document.querySelector( '#editor' ),
             {
                 mention: {
@@ -784,7 +784,7 @@ module.exports = {
                 }
             })
             .then( editor => {
-            MentionCustomization(editor);
+             self.MentionCustomization(editor);
              window.editor = editor;
              if (self.selected_project.description){
                 editor.setData(self.selected_project.description);
@@ -794,6 +794,52 @@ module.exports = {
              }
              self.project_details_current.description = editor.getData();
          } )
+        },
+        MentionCustomization( editor ) {
+            editor.conversion.for( 'upcast' ).elementToAttribute( {
+                view: {
+                    name: 'a',
+                    key: 'data-mention',
+                    classes: 'mention',
+                    attributes: {
+                        href: true,
+                        'data-user-id': true
+                    }
+                },
+                model: {
+                    key: 'mention',
+                    value: viewItem => {
+                        const mentionAttribute = editor.plugins.get( 'Mention' ).toMentionAttribute( viewItem, {
+                            // Add any other properties that you need.
+                            link: viewItem.getAttribute( 'href' ),
+                            userId: viewItem.getAttribute( 'data-user-id' )
+                        } );
+
+                        return mentionAttribute;
+                    }
+                },
+                converterPriority: 'high'
+            } );
+
+            editor.conversion.for( 'downcast' ).attributeToElement( {
+                model: 'mention',
+                view: ( modelAttributeValue, { writer } ) => {
+                    if ( !modelAttributeValue ) {
+                        return;
+                    }
+
+                    return writer.createAttributeElement( 'a', {
+                        class: 'mention',
+                        'data-mention': modelAttributeValue.id,
+                        'data-user-id': modelAttributeValue.userId,
+                        'href': modelAttributeValue.link
+                    }, {
+                        priority: 20,
+                        id: modelAttributeValue.uid
+                    } );
+                },
+                converterPriority: 'high'
+            } );
         },
         addProject () {
             var self = this;
@@ -840,15 +886,16 @@ module.exports = {
                     self.getAssignees(self.selected_project);
                     self.new_assignee = {};
                     var mentioned_users = [];
-                    var parser = new DOMParser();
-                    var mentionDoc = parser.parseFromString(editor.getData(), 'text/html');
-                    var mentionedElements = mentionDoc.getElementsByClassName('mention')
+                    var mentioned_users = [];
+                    var mentionedElements = editor.getData().match(/(?<=\[@)(.*?)(?=\])/g) || [];
                     for (let i=0; i < mentionedElements.length; i++){
-                        let user = mentionedElements[i].getAttribute("data-mention").substring(1);
+                        let user = mentionedElements[i];
                         if (!mentioned_users.includes(user)) {
                             mentioned_users.push(user);
-                            self.new_assignee = {partyId: self.person_mapping[user]}
-                            self.addAssignee();
+                            if (user in self.person_mapping) {
+                                self.new_assignee = {partyId: self.person_mapping[user]}
+                                self.addAssignee();
+                            }
                         }
                     }
                     self.new_assignee = null;
@@ -1062,5 +1109,13 @@ module.exports = {
     }
     .fix_selectbox_cls .q-field__input {
         min-width: 5px !important;
+    }
+    .ck-editor {
+        width: 100% !important;
+        margin-bottom: 9px !important;
+    }
+    .ck-editor__editable {
+        min-height: 150px !important;
+        color: black !important;
     }
 </style>

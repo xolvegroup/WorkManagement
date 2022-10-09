@@ -6,6 +6,14 @@
         <subscreens-item name="Wiki" menu-title="Wiki" location="component://SimpleScreens/screen/SimpleScreens/Wiki.xml" menu-index="99"/>
     </subscreens>
     <widgets>
+        <render-mode>
+            <text type="text,vue,qvue" location="component://WorkManagement/screen/scripts/ckeditor.js"/>
+            </render-mode>
         <subscreens-panel id="work-panel" type="popup"/>
+        <render-mode><text type="html,vuet,qvt,qvue"><![CDATA[
+        <script type=text/javascript src="${sri.buildUrl('Scripts/ckeditor.js').url}" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js" integrity="sha512-LhccdVNGe2QMEfI3x4DVV3ckMRe36TfydKss6mJpdHjNFiV07dFpS2xzeZedptKZrwxfICJpez09iNioiSZ3hA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        ]]></text></render-mode>
     </widgets>
+
 </screen>

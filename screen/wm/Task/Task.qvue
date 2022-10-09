@@ -323,7 +323,7 @@
                                           </div>
                                           <div class="row text-grey-8 q-mt-lg">
                                             <div class="col-12">
-                                                <div id="editor"></div>
+                                                <div style="border: 1px solid #c2c2c2;" id="editor"></div>
                                             </div>
                                           </div>
                                         </div>
@@ -391,7 +391,7 @@
                                                     <q-item-section class="q-pl-md">
                                                       <q-item-label class="text-subtitle1">{{ comment.userFullName }} <span
                                                         class="q-pl-sm text-caption text-grey-8">{{ timeSince(comment.entryDate) }}</span></q-item-label>
-                                                      <q-item-label v-if="obj_edit_comment.communicationEventId != comment.communicationEventId" class="q-pt-sm" caption><span class="text-weight-medium" v-html="comment.body"></span>
+                                                      <q-item-label v-if="obj_edit_comment.communicationEventId != comment.communicationEventId" class="q-pt-sm" caption><span class="text-weight-medium" v-html="getHtmlForMD(comment.body)"></span>
                                                       </q-item-label>
 
                                                     </q-item-section>
@@ -407,7 +407,7 @@
 
                                                   </q-item>
                                                   <div class="comment_section edit_comment_section q-mt-sm q-px-lg" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId">
-                                                      <div id="editCommentEditor"></div>
+                                                      <div style="border: 1px solid #c2c2c2;width: 80%" id="editCommentEditor"></div>
                                                     </div>
                                               </span>
                                               </q-list>
@@ -439,7 +439,7 @@
                                               </q-avatar>
                                             </q-item-section>
                                             <q-item-section>
-                                            <div id="addCommentEditor"></div>
+                                            <div class="bg-white" style="border: 1px solid #c2c2c2;height: 100px;" id="addCommentEditor"></div>
                                             </q-item-section>
                                           </q-item>
                                           <q-item>
@@ -996,8 +996,14 @@ module.exports = {
               pagination: self.pagination,
             });
         },
+        getHtmlForMD(content) {
+            if (content) {
+                return this.md_conv.makeHtml(content);
+            }
+        },
         selectTask (row, is_from_add_task) {
             let self = this;
+            self.md_conv = new showdown.Converter({metadata: true});
             if (self.open_task_detail && self.getUnsavedIndicator()){
                 self.checkUnsavedProgress(true);
                 return;
@@ -1050,23 +1056,25 @@ module.exports = {
                     if (self.project) {
                         self.task_details_current["project"] = JSON.parse(JSON.stringify(self.project));
                     }
+                    if (document.querySelector('.ck-editor__editable')) {
+                        document.querySelector('.ck-editor__editable').ckeditorInstance.destroy();
+                    }
                     self.initializeEditor("#editor");
                 }
             });
             self.sel_task_comments = [];
             self.getComments(row);
             self.getCollaborators(row);
-            self.initializeEditor("#addCommentEditor");
-            if (document.querySelector('.ck-editor__editable')) {
-                document.querySelector('.ck-editor__editable').ckeditorInstance.destroy();
-            }
             if (document.querySelector('.add_comment_section .ck-editor__editable')) {
                 document.querySelector('.add_comment_section .ck-editor__editable').ckeditorInstance.destroy();
             }
+            setTimeout( () => {
+                self.initializeEditor("#addCommentEditor");
+            }, 300 );
         },
         initializeEditor(elem) {
             let self = this;
-            ClassicEditor
+            InlineEditor
             .create( document.querySelector( elem ),
             {
                 mention: {
@@ -1082,7 +1090,7 @@ module.exports = {
                 }
             })
             .then( editor => {
-            MentionCustomization(editor);
+            self.MentionCustomization(editor);
              if (elem === "#addCommentEditor"){
                  window.add_comment_editor = editor;
              }
@@ -1106,6 +1114,52 @@ module.exports = {
                  self.task_details_current.description = editor.getData();
              }
          } )
+        },
+        MentionCustomization( editor ) {
+            editor.conversion.for( 'upcast' ).elementToAttribute( {
+                view: {
+                    name: 'a',
+                    key: 'data-mention',
+                    classes: 'mention',
+                    attributes: {
+                        href: true,
+                        'data-user-id': true
+                    }
+                },
+                model: {
+                    key: 'mention',
+                    value: viewItem => {
+                        const mentionAttribute = editor.plugins.get( 'Mention' ).toMentionAttribute( viewItem, {
+                            // Add any other properties that you need.
+                            link: viewItem.getAttribute( 'href' ),
+                            userId: viewItem.getAttribute( 'data-user-id' )
+                        } );
+
+                        return mentionAttribute;
+                    }
+                },
+                converterPriority: 'high'
+            } );
+
+            editor.conversion.for( 'downcast' ).attributeToElement( {
+                model: 'mention',
+                view: ( modelAttributeValue, { writer } ) => {
+                    if ( !modelAttributeValue ) {
+                        return;
+                    }
+
+                    return writer.createAttributeElement( 'a', {
+                        class: 'mention',
+                        'data-mention': modelAttributeValue.id,
+                        'data-user-id': modelAttributeValue.userId,
+                        'href': modelAttributeValue.link
+                    }, {
+                        priority: 20,
+                        id: modelAttributeValue.uid
+                    } );
+                },
+                converterPriority: 'high'
+            } );
         },
         addTask () {
             var self = this;
@@ -1167,16 +1221,15 @@ module.exports = {
                     });
                     self.new_collab = {};
                     var mentioned_users = [];
-                    var parser = new DOMParser();
-                    var mentionDoc = parser.parseFromString(editor.getData(), 'text/html');
-                    var mentionedElements = mentionDoc.getElementsByClassName('mention')
+                    var mentionedElements = editor.getData().match(/(?<=\[@)(.*?)(?=\])/g) || [];
                     for (let i=0; i < mentionedElements.length; i++){
-                        let user = mentionedElements[i].getAttribute("data-mention").substring(1);
+                        let user = mentionedElements[i];
                         if (!mentioned_users.includes(user)) {
                             mentioned_users.push(user);
-                            self.new_collab = {partyId: self.person_mapping[user]}
-                            self.addCollaborator();
-                            self.new_collab = null;
+                            if (user in self.person_mapping) {
+                                self.new_collab = {partyId: self.person_mapping[user]}
+                                self.addCollaborator();
+                            }
                         }
                     }
                     self.new_collab = null;
@@ -1246,12 +1299,12 @@ module.exports = {
         editComment (comment) {
             let self = this;
             self.obj_edit_comment=comment;
-            setTimeout( () => {
-                self.initializeEditor("#editCommentEditor");
-            }, 200 );
             if (document.querySelector('.edit_comment_section .ck-editor__editable')) {
                 document.querySelector('.edit_comment_section .ck-editor__editable').ckeditorInstance.destroy();
             }
+            setTimeout( () => {
+                self.initializeEditor("#editCommentEditor");
+            }, 300 );
         },
         addComment () {
             var self = this;
@@ -1262,16 +1315,15 @@ module.exports = {
                     self.getComments(self.selected_task);
                     self.new_collab = {};
                     var mentioned_users = [];
-                    var parser = new DOMParser();
-                    var mentionDoc = parser.parseFromString(add_comment_editor.getData(), 'text/html');
-                    var mentionedElements = mentionDoc.getElementsByClassName('mention')
+                    var mentionedElements = add_comment_editor.getData().match(/(?<=\[@)(.*?)(?=\])/g) || [];
                     for (let i=0; i < mentionedElements.length; i++){
-                        let user = mentionedElements[i].getAttribute("data-mention").substring(1);
+                        let user = mentionedElements[i];
                         if (!mentioned_users.includes(user)) {
                             mentioned_users.push(user);
-                            self.new_collab = {partyId: self.person_mapping[user]}
-                            self.addCollaborator();
-                            self.new_collab = null;
+                            if (user in self.person_mapping) {
+                                self.new_collab = {partyId: self.person_mapping[user]}
+                                self.addCollaborator();
+                            }
                         }
                     }
                     self.new_collab = null;
@@ -1336,16 +1388,15 @@ module.exports = {
                     self.getComments(self.selected_task);
                     self.new_collab = {};
                     var mentioned_users = [];
-                    var parser = new DOMParser();
-                    var mentionDoc = parser.parseFromString(edit_comment_editor.getData(), 'text/html');
-                    var mentionedElements = mentionDoc.getElementsByClassName('mention')
+                    var mentionedElements = edit_comment_editor.getData().match(/(?<=\[@)(.*?)(?=\])/g) || [];
                     for (let i=0; i < mentionedElements.length; i++){
-                        let user = mentionedElements[i].getAttribute("data-mention").substring(1);
+                        let user = mentionedElements[i];
                         if (!mentioned_users.includes(user)) {
                             mentioned_users.push(user);
-                            self.new_collab = {partyId: self.person_mapping[user]}
-                            self.addCollaborator();
-                            self.new_collab = null;
+                            if (user in self.person_mapping) {
+                                self.new_collab = {partyId: self.person_mapping[user]}
+                                self.addCollaborator();
+                            }
                         }
                     }
                     self.new_collab = null;
@@ -1466,7 +1517,9 @@ module.exports = {
                     }
                     self.is_full_screen = false;
                     self.is_main_content_visible = true;
-                    self.$router.replace(self.$route.path);
+                    if (Object.keys(self.$route.query).indexOf("id") > -1) {
+                        self.$router.replace(self.$route.path);
+                    }
                   })
             }
             else {
@@ -1476,7 +1529,9 @@ module.exports = {
                     }
                     self.is_full_screen = false;
                     self.is_main_content_visible = true;
-                    self.$router.replace(self.$route.path);
+                    if (Object.keys(self.$route.query).indexOf("id") > -1) {
+                        self.$router.replace(self.$route.path);
+                    }
                 }
             }
         },
@@ -1559,5 +1614,13 @@ module.exports = {
     .comment_section .ck-editor__editable_inline {
         min-height: 90px !important;
         height: 90px !important;
+    }
+    .ck-editor {
+        width: 100% !important;
+        margin-bottom: 9px !important;
+    }
+    .ck-editor__editable {
+        min-height: 150px !important;
+        color: black !important;
     }
 </style>
