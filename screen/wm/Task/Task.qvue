@@ -1060,17 +1060,15 @@ module.exports = {
                         document.querySelector('.ck-editor__editable').ckeditorInstance.destroy();
                     }
                     self.initializeEditor("#editor");
+                    if (document.querySelector('.add_comment_section .ck-editor__editable')) {
+                        document.querySelector('.add_comment_section .ck-editor__editable').ckeditorInstance.destroy();
+                    }
+                    self.initializeEditor("#addCommentEditor");
                 }
             });
             self.sel_task_comments = [];
             self.getComments(row);
             self.getCollaborators(row);
-            if (document.querySelector('.add_comment_section .ck-editor__editable')) {
-                document.querySelector('.add_comment_section .ck-editor__editable').ckeditorInstance.destroy();
-            }
-            setTimeout( () => {
-                self.initializeEditor("#addCommentEditor");
-            }, 300 );
         },
         initializeEditor(elem) {
             let self = this;
