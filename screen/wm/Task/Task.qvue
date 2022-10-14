@@ -22,7 +22,7 @@
             overlay
             :width="550"
             :breakpoint="550"
-            content-class="bg-grey-3"
+            :content-class="!$q.dark.isActive?'bg-grey-3':'bg-black'"
           >
           <div class="q-pa-sm q-px-md">
                 <div class="row">
@@ -40,7 +40,7 @@
                               dense
                               outlined
                               v-model="mdl_filter_user"
-                              class="bg-white"
+                              :class="!$q.dark.isActive?'bg-white':''"
                               use-input
                               input-debounce="700"
                               option-value="partyId"
@@ -64,7 +64,7 @@
                             outlined
                             v-model="mdl_filter_role"
                             use-input
-                            class="bg-white"
+                            :class="!$q.dark.isActive?'bg-white':''"
                             input-debounce="0"
                             option-value="value"
                             option-label="label"
@@ -84,7 +84,7 @@
                         <q-select
                             label="Project"
                             dense
-                            class="bg-white"
+                            :class="!$q.dark.isActive?'bg-white':''"
                             outlined
                             v-model="mdl_filter_project"
                             use-input
@@ -109,7 +109,7 @@
                             dense
                             outlined
                             v-model="mdl_filter_status"
-                            class="bg-white"
+                            :class="!$q.dark.isActive?'bg-white':''"
                             use-input
                             multiple
                             input-debounce="0"
@@ -131,7 +131,7 @@
                         <q-select
                             label="Order By"
                             dense
-                            class="bg-white"
+                            :class="!$q.dark.isActive?'bg-white':''"
                             outlined
                             v-model="mdl_filter_order_by"
                             use-input
@@ -166,12 +166,12 @@
             bordered
             :width="is_full_screen ? drawer_width : 700"
             :breakpoint="700"
-            content-class="bg-grey-3"
+            :content-class="!$q.dark.isActive?'bg-grey-3':''"
           >
             <q-scroll-area :style="'left: ' + (is_full_screen?drawer_left:0) + 'px'" :class="is_full_screen? 'max_width_700': ''" class="fit">
               <div class="q-pa-sm">
-                <q-layout v-if="selected_task" view="Lhh lpR fff" container class="bg-white" style="height: 85vh;">
-                                    <q-header class="bg-white text-black">
+                <q-layout v-if="selected_task" view="Lhh lpR fff" container :class="!$q.dark.isActive?'bg-white':''" style="height: 85vh;">
+                                    <q-header :class="!$q.dark.isActive?'bg-white text-black':'bg-black text-white'">
                                       <q-toolbar>
                                         <q-btn v-if="no_applicable_for_complete.indexOf(selected_task.statusId) === -1" @click="updateTask('WeComplete')" class="q-px-sm q-ml-sm" outline dense icon="check" label="Mark complete"></q-btn>
                                         <q-chip v-if="no_applicable_for_complete.indexOf(selected_task.statusId) > -1"
@@ -189,7 +189,7 @@
 
                                     <q-page-container>
                                       <q-page>
-                                        <q-list class="bg-grey-2" bordered>
+                                        <q-list :class="!$q.dark.isActive?'bg-grey-2':''" bordered>
                                           <q-item class="q-py-xs">
                                             <q-item-section class="q-py-none">
                                               <div style="margin: 0" class="text-weight-bold text-h6">
@@ -204,7 +204,7 @@
                                               </div>
                                             </q-item-section>
                                             <q-item-section side>
-                                                <div class="text-grey-8 q-gutter-xs">
+                                                <div class="text-grey-7 q-gutter-xs">
                                                     <q-btn v-if="!is_full_screen" flat round dense icon="link" @click="copyTaskLink(selected_task.workEffortId)">
                                                     <q-tooltip content-style="font-size: 12px">Copy task link</q-tooltip>
                                                     </q-btn>
@@ -216,7 +216,7 @@
                                           </q-item>
                                         </q-list>
                                         <div class="q-pa-md" style="padding-bottom: 3px;">
-                                          <div class="cls_task_detail row q-col-gutter-md text-grey-8">
+                                          <div class="cls_task_detail row q-col-gutter-md text-grey-7">
                                             <div class="col-6">
                                               <q-select
                                                       label="Assignee"
@@ -321,9 +321,9 @@
                                                   </q-input>
                                             </div>
                                           </div>
-                                          <div class="row text-grey-8 q-mt-lg">
+                                          <div class="row text-grey-7 q-mt-lg">
                                             <div class="col-12">
-                                                <div style="border: 1px solid #c2c2c2;" id="editor"></div>
+                                                <div :class="$q.dark.isActive?'text-white':'text-black'" style="border: 1px solid #c2c2c2;min-height: 150px !important;" id="editor"></div>
                                             </div>
                                           </div>
                                         </div>
@@ -332,7 +332,7 @@
                                             <q-item class="q-my-none q-py-none">
                                             <q-item-section class="q-pt-sm">
                                               <div class="q-gutter-sm">
-                                                <span class="text-caption q-mt-sm text-grey-8">Collaborators</span>
+                                                <span class="text-caption q-mt-sm text-grey-7">Collaborators</span>
                                                 <q-chip
                                                     :key="item.partyId"
                                                     v-for="item in collaborator_list"
@@ -344,7 +344,7 @@
                                                     </q-avatar>
                                                     {{ item.userFullName }}
                                                   </q-chip>
-                                                <q-btn dense outline rounded color="primary" icon="add" class="text-black text-weight-bold">
+                                                <q-btn dense outline rounded color="primary" icon="add" :class="$q.dark.isActive?'text-white':''" class="text-weight-bold">
                                                     <q-popup-proxy ref="collabAdd" transition-show="flip-up" transition-hide="flip-down">
                                                         <div class="q-pa-md">
                                                         <q-select
@@ -390,7 +390,7 @@
 
                                                     <q-item-section class="q-pl-md">
                                                       <q-item-label class="text-subtitle1">{{ comment.userFullName }} <span
-                                                        class="q-pl-sm text-caption text-grey-8">{{ timeSince(comment.entryDate) }}</span></q-item-label>
+                                                        class="q-pl-sm text-caption text-grey-7">{{ timeSince(comment.entryDate) }}</span></q-item-label>
                                                       <q-item-label v-if="obj_edit_comment.communicationEventId != comment.communicationEventId" class="q-pt-sm" caption><span class="text-weight-medium" v-html="getHtmlForMD(comment.body)"></span>
                                                       </q-item-label>
 
@@ -429,7 +429,7 @@
 
                                       </q-page>
                                     </q-page-container>
-                                <q-footer class="comment_section add_comment_section bg-grey-2 text-black">
+                                <q-footer :class="!$q.dark.isActive?'bg-grey-2 text-black':'bg-black text-white'" class="comment_section add_comment_section">
                                       <div>
                                         <q-list separator bordered>
                                           <q-item class="q-my-sm">
@@ -439,7 +439,7 @@
                                               </q-avatar>
                                             </q-item-section>
                                             <q-item-section>
-                                            <div class="bg-white" style="border: 1px solid #c2c2c2;height: 100px;" id="addCommentEditor"></div>
+                                            <div :class="!$q.dark.isActive?'bg-white':''" style="border: 1px solid #c2c2c2;height: 100px;" id="addCommentEditor"></div>
                                             </q-item-section>
                                           </q-item>
                                           <q-item>
@@ -1619,6 +1619,5 @@ module.exports = {
     }
     .ck-editor__editable {
         min-height: 150px !important;
-        color: black !important;
     }
 </style>

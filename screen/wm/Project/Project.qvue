@@ -7,7 +7,7 @@
             overlay
             :width="550"
             :breakpoint="550"
-            content-class="bg-grey-3"
+            :content-class="!$q.dark.isActive?'bg-grey-3':'bg-black'"
           >
           <div class="q-pa-sm q-px-md">
                 <div class="row">
@@ -25,7 +25,7 @@
                               dense
                               outlined
                               v-model="mdl_filter_user"
-                              class="bg-white"
+                              :class="!$q.dark.isActive?'bg-white':''"
                               use-input
                               input-debounce="700"
                               option-value="partyId"
@@ -49,7 +49,7 @@
                             outlined
                             v-model="mdl_filter_role"
                             use-input
-                            class="bg-white"
+                            :class="!$q.dark.isActive?'bg-white':''"
                             input-debounce="0"
                             option-value="value"
                             option-label="label"
@@ -71,7 +71,7 @@
                             dense
                             outlined
                             v-model="mdl_filter_status"
-                            class="bg-white"
+                            :class="!$q.dark.isActive?'bg-white':''"
                             use-input
                             multiple
                             input-debounce="0"
@@ -93,7 +93,7 @@
                         <q-select
                             label="Order By"
                             dense
-                            class="bg-white"
+                            :class="!$q.dark.isActive?'bg-white':''"
                             outlined
                             v-model="mdl_filter_order_by"
                             use-input
@@ -128,12 +128,12 @@
             bordered
             :width="700"
             :breakpoint="700"
-            content-class="bg-grey-3"
+            :content-class="!$q.dark.isActive?'bg-grey-3':''"
           >
             <q-scroll-area class="fit">
               <div class="q-pa-sm">
-                <q-layout v-if="selected_project" view="Lhh lpR fff" container class="bg-white" style="height: 85vh;">
-                                    <q-header class="bg-white text-black">
+                <q-layout v-if="selected_project" view="Lhh lpR fff" container :class="!$q.dark.isActive?'bg-white':''" style="height: 85vh;">
+                                    <q-header :class="!$q.dark.isActive?'bg-white text-black':'bg-black text-white'">
                                       <q-toolbar>
                                         <q-btn v-if="no_applicable_for_complete.indexOf(selected_project.statusId) === -1" @click="updateProject('WeComplete')" class="q-px-sm q-ml-sm" outline dense icon="check" label="Mark complete"></q-btn>
                                         <q-chip v-if="no_applicable_for_complete.indexOf(selected_project.statusId) > -1"
@@ -151,7 +151,7 @@
 
                                     <q-page-container>
                                       <q-page>
-                                        <q-list class="bg-grey-2" bordered>
+                                        <q-list :class="!$q.dark.isActive?'bg-grey-2':''" bordered>
                                           <q-item class="q-py-xs">
                                             <q-item-section class="q-py-none">
                                               <div style="margin: 0" class="text-weight-bold text-h6">
@@ -231,7 +231,7 @@
                                           </div>
                                           <div class="row text-grey-8 q-mt-lg">
                                             <div class="col-12">
-                                                <div style="border: 1px solid #c2c2c2;" id="editor"></div>
+                                                <div :class="$q.dark.isActive?'text-white':'text-black'" style="border: 1px solid #c2c2c2;min-height: 150px !important;" id="editor"></div>
                                             </div>
                                           </div>
                                         </div>
@@ -240,7 +240,7 @@
                                             <q-item class="q-my-none q-py-none">
                                             <q-item-section class="q-pt-sm">
                                               <div class="q-gutter-sm">
-                                                <span class="text-caption q-mt-sm text-grey-8">Project Team</span>
+                                                <span :class="$q.dark.isActive?'text-white':'text-grey-8'" class="text-caption q-mt-sm">Project Team</span>
                                                 <q-chip
                                                     :key="item.partyId"
                                                     v-for="item in assignee_list"
@@ -255,7 +255,7 @@
                                                 <!--<q-avatar v-for="item in assignee_list" size="24px" color="primary" text-color="white">
                                                   {{ getInitials(item.userFullName) }}
                                                 </q-avatar>-->
-                                                <q-btn dense outline rounded color="primary" icon="add" class="text-black text-weight-bold">
+                                                <q-btn dense outline rounded color="primary" icon="add" :class="$q.dark.isActive?'text-white':''" class="text-weight-bold">
                                                     <q-popup-proxy ref="assigneeAdd" transition-show="flip-up" transition-hide="flip-down">
                                                         <div class="q-pa-md">
                                                         <q-select
@@ -1116,6 +1116,5 @@ module.exports = {
     }
     .ck-editor__editable {
         min-height: 150px !important;
-        color: black !important;
     }
 </style>
