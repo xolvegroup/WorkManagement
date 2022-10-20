@@ -1,0 +1,88 @@
+<template>
+    <div>
+        <div>
+            <q-btn
+                style="width: 125px;"
+                dense
+                split
+                color="primary"
+                no-caps
+                icon="add"
+                label="New Space"
+                >
+            </q-btn>
+        </div>
+        <div>
+            <q-card flat class="q-mt-sm">
+              <q-card-section style="padding: 0px;">
+                <q-table
+                    bordered
+                    flat
+                    :wrap-cells="true"
+                      :data="wiki_space_list"
+                      table-header-class="custom_table_header"
+                      :columns="table_columns"
+                      row-key="wikiSpaceId"
+                      separator="cell"
+                      dense
+                    >
+                    <template v-slot:body-cell-publicpageurl="props">
+                        <q-td :props="props">
+                          <div>{{props.row.publicPageUrl}}</div>
+                          <div>{{props.row.publicAttachmentUrl}}</div>
+                        </q-td>
+                    </template>
+                    <template v-slot:body-cell-description="props">
+                        <q-td :props="props">
+                          <div>{{props.row.description}}</div>
+                          <div>{{props.row.rootPageLocation}}</div>
+                        </q-td>
+                    </template>
+                    <template v-slot:body-cell-action="props">
+                        <q-td :props="props">
+                          <q-btn class="text-primary text-capitalize" dense label="View Pages" outline></q-btn>
+                          <q-btn class="text-primary text-capitalize" dense label="Blog Posts" outline></q-btn>
+                        </q-td>
+                    </template>
+                </q-table>
+                <q-card-section>
+            </q-card>
+        </div>
+    </div>
+</template>
+<script>
+module.exports = {
+    data: function () {
+        return {
+            wiki_space_list: [],
+            table_columns: [
+               { name: 'spaceid', align: 'left', label: 'Space ID',style: 'width: 120px', field: 'wikiSpaceId', sortable: true },
+               { name: 'description', align: 'left', label: 'Description',style: 'width: 300px', field: 'description', sortable: true },
+               { name: 'publicpageurl', align: 'left', label: 'Public Page',style: 'width: 250px', field: 'publicPageUrl', sortable: true },
+               { name: 'restrictview', align: 'left', label: 'Restrict View',style: 'width: 100px', field: 'restrictView', sortable: true },
+               { name: 'anyhtml', align: 'left', label: 'Any HTML',style: 'width: 100px', field: 'allowAnyHtml', sortable: true },
+               { name: 'action', align: 'center', label: 'Action',style: 'width: 200px', field: '', sortable: false }
+            ],
+        }
+    },
+    methods: {
+        fetchWikiSpaces() {
+            var self = this;
+            var allParams = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/wikiSpaces", headers:{Accept:'application/json'}, data:allParams,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    self.wiki_space_list = resp.spaceList;
+                }
+            });
+        }
+    },
+    created: function () {
+        this.fetchWikiSpaces();
+    }
+}
+</script>
+<style>
+    .custom_table_header {
+        height: 38px !important;
+    }
+</style>

@@ -81,4 +81,7 @@ along with this software (see the LICENSE.md file). If not, see
             <method type="post"><service name="wm.ProjectServices.update#Project"/></method>
         </resource>
     </resource>
+    <resource name="wikiSpaces">
+        <method type="get"><service name="wm.TaskServices.get#WikiSpaces"/></method>
+    </resource>
 </resource>
