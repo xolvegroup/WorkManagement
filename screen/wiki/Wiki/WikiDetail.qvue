@@ -1,0 +1,31 @@
+<template>
+    <div>
+        This is Wiki space detail page.
+    </div>
+</template>
+<script>
+module.exports = {
+    data: function () {
+        return {
+
+        }
+    },
+    methods: {
+
+    },
+    created: function () {
+
+    }
+}
+</script>
+<style>
+    .custom_table_header {
+        height: 45px !important;
+    }
+    .cls_space .q-field__label {
+        top: 10px !important;
+    }
+    .cls_space .q-field--float .q-field__label {
+        top: 0px !important;
+    }
+</style>

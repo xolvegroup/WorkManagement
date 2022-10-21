@@ -4,7 +4,8 @@
 
     <subscreens default-item="Task">
         <subscreens-item name="WikiOld" menu-title="Wiki Old" location="component://SimpleScreens/screen/SimpleScreens/Wiki.xml" menu-index="99"/>
-        <subscreens-item name="Wiki" menu-title="Wiki" location="component://WorkManagement/screen/wiki/Wiki.xml" menu-index="100"/>
+        <subscreens-item name="WikiSpaces" menu-title="Wiki" location="component://WorkManagement/screen/wiki/WikiSpaces.xml" menu-index="100"/>
+        <subscreens-item name="WikiDetail" menu-title="Wiki Detail" location="component://WorkManagement/screen/wiki/WikiDetail.xml" menu-index="101" menu-include="false"/>
     </subscreens>
     <widgets>
         <render-mode>
