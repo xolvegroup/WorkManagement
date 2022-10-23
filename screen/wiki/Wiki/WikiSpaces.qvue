@@ -48,11 +48,8 @@
                     </template>-->
                     <template v-slot:body-cell-action="props">
                         <q-td :props="props">
-                          <q-btn class="text-primary text-capitalize" dense icon="article" outline>
-                            <q-tooltip content-style="font-size: 12px">View Pages</q-tooltip>
-                          </q-btn>
-                          <q-btn class="text-primary text-capitalize" dense icon="rss_feed" outline>
-                            <q-tooltip content-style="font-size: 12px">Blog Posts</q-tooltip>
+                          <q-btn class="text-primary text-capitalize" dense icon="edit" outline>
+                            <q-tooltip content-style="font-size: 12px">Edit</q-tooltip>
                           </q-btn>
                         </q-td>
                     </template>
@@ -208,7 +205,7 @@
             </q-card-section>
             <q-separator></q-separator>
             <q-card-actions class="q-pl-lg q-py-md" align="left">
-              <q-btn outline dense label="Create Space" class="text-capitalize
+              <q-btn @click="createSpace" outline dense label="Create Space" class="text-capitalize
         q-mb-md" color="primary" v-close-popup />
             </q-card-actions>
           </q-card>
@@ -225,7 +222,7 @@ module.exports = {
                { name: 'description', align: 'left', label: 'Description',style: 'width: 200px', field: 'description', sortable: true },
                { name: 'restrictview', align: 'left', label: 'Restrict View',style: 'width: 100px', field: 'restrictView', sortable: true },
                { name: 'anyhtml', align: 'left', label: 'Any HTML',style: 'width: 100px', field: 'allowAnyHtml', sortable: true },
-               { name: 'action', align: 'center', label: 'Action',style: 'width: 80px', field: '', sortable: false }
+               { name: 'action', align: 'center', label: 'Action',style: 'width: 60px', field: '', sortable: false }
             ],
             pagination: {
                 page: 0,
@@ -326,7 +323,25 @@ module.exports = {
                   const needle = val.toLowerCase()
                   this.root_page_directory_options = self.root_page_directory_options.filter(v => v.label.toLowerCase().indexOf(needle) > -1)
                 })
-          }
+          },
+          createSpace() {
+              let self = this;
+              var allParams = $.extend({wikiSpaceId: self.new_space.wiki_space_id,
+                                      description: self.new_space.description,
+                                      restrictView: self.new_space.restrict_value?self.new_space.restrict_value.value:null,
+                                      restrictUpdate: self.new_space.restrict_update?self.new_space.restrict_update.value:null,
+                                      allowAnyHtml: self.new_space.allow_any_html?self.new_space.allow_any_html.value:null,
+                                      wikiType: self.new_space.wiki_type?self.new_space.wiki_type.value:null,
+                                      rootPageDirectory: self.new_space.root_page_direction?self.new_space.root_page_direction.value:null,
+                                      rootPageLocation: self.new_space.root_page_override,
+                                      moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+              $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/createWikiSpace", headers:{Accept:'application/json'}, data:allParams,
+                  error:moqui.handleAjaxError, success:function(resp) {
+                      self.new_space = {};
+                      self.fetchWikiSpaces();
+                  }
+              });
+            }
     },
     created: function () {
         this.fetchWikiSpaces();
