@@ -82,9 +82,15 @@ along with this software (see the LICENSE.md file). If not, see
         </resource>
     </resource>
     <resource name="wikiSpaces">
-        <method type="get"><service name="wm.WikiServices.get#WikiSpaces"/></method>
+        <method type="get"><service name="org.moqui.impl.WikiServices.get#UserWikiSpaces"/></method>
     </resource>
     <resource name="createWikiSpace">
         <method type="post"><service name="org.moqui.impl.WikiServices.create#WikiSpace"/></method>
+    </resource>
+    <resource name="getWikiSpaceTree">
+        <method type="get"><service name="org.moqui.impl.WikiServices.get#UserSpaceWikiPages"/></method>
+    </resource>
+    <resource name="getWikiPageInfoById">
+        <method type="get"><service name="org.moqui.impl.WikiServices.get#WikiPageInfoById"/></method>
     </resource>
 </resource>

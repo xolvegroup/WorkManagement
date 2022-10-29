@@ -255,7 +255,7 @@ module.exports = {
             var allParams = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/wikiSpaces", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
-                    self.wiki_space_list = resp.spaceList;
+                    self.wiki_space_list = resp.wikiSpaceAndUserList;
                 }
             });
         },

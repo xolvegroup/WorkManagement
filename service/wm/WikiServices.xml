@@ -15,13 +15,46 @@ along with this software (see the LICENSE.md file). If not, see
 
 <services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
     <!-- Wrapper service to update task and manage assignee and collaborators -->
-    <service verb="get" noun="WikiSpaces">
+<!--    <service verb="get" noun="WikiSpaces">-->
+<!--        <out-parameters>-->
+<!--            <parameter name="spaceList" type="List"/>-->
+<!--        </out-parameters>-->
+<!--        <actions>-->
+<!--            <entity-find entity-name="moqui.resource.wiki.WikiSpace" list="spaceList">-->
+<!--                <search-form-inputs default-order-by="wikiSpaceId"/></entity-find>-->
+<!--        </actions>-->
+<!--    </service>-->
+    <service verb="post" noun="UpdateWikiSpace">
         <out-parameters>
             <parameter name="spaceList" type="List"/>
         </out-parameters>
         <actions>
             <entity-find entity-name="moqui.resource.wiki.WikiSpace" list="spaceList">
                 <search-form-inputs default-order-by="wikiSpaceId"/></entity-find>
+        </actions>
+    </service>
+    <service verb="update" noun="WikiSpace">
+        <in-parameters>
+            <auto-parameters include="nonpk"/>
+            <parameter name="wikiSpaceId" required="true">
+                <matches regexp="[A-Za-z]\w*" message="ID must start with a letter and contain only letters, digits, or underscore"/>
+                <text-length min="3" max="8"/>
+            </parameter>
+            <parameter name="rootPageDirectory" default-value="dbresource://WikiSpace"/>
+            <parameter name="wikiType" default-value="md"/>
+        </in-parameters>
+        <out-parameters><parameter name="wikiSpaceId" required="true"/></out-parameters>
+        <actions>
+            <if condition="!rootPageLocation">
+                <set field="rootPageLocation" value="${rootPageDirectory}/${wikiSpaceId}.${wikiType}"/></if>
+
+            <!-- update the record -->
+            <service-call name="update#moqui.resource.wiki.WikiSpace" in-map="context" out-map="context"/>
+
+            <!-- create a root page if no file exists at the given location -->
+            <set field="rootPageReference" from="ec.resource.getLocationReference(rootPageLocation)"/>
+            <if condition="!rootPageReference.exists">
+                <script>rootPageReference.putText("\nAutomatic root page for space ${description?:wikiSpaceId}\n\n")</script></if>
         </actions>
     </service>
 </services>

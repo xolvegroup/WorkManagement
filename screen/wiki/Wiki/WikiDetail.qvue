@@ -11,10 +11,40 @@ module.exports = {
         }
     },
     methods: {
-
+        getWikiSpaceTree() {
+            var self = this;
+            const params = new Proxy(new URLSearchParams(window.location.search), {
+              get: (searchParams, prop) => searchParams.get(prop),
+            });
+            if (params.wikiSpaceId) {
+                var allParams = $.extend({ wikiSpaceId:params.wikiSpaceId,
+                moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+                $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/getWikiSpaceTree", headers:{Accept:'application/json'}, data:allParams,
+                    error:moqui.handleAjaxError, success:function(resp) {
+                        self.wiki_space_list = resp.spaceList;
+                    }
+                });
+            }
+        },
+        getWikiSpaceDetail() {
+            var self = this;
+            const params = new Proxy(new URLSearchParams(window.location.search), {
+              get: (searchParams, prop) => searchParams.get(prop),
+            });
+            if (params.wikiSpaceId) {
+                var allParams = $.extend({ wikiPageId:'zzwrt_client',
+                moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+                $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/getWikiPageInfoById", headers:{Accept:'application/json'}, data:allParams,
+                    error:moqui.handleAjaxError, success:function(resp) {
+                        self.wiki_space_list = resp.spaceList;
+                    }
+                });
+            }
+        }
     },
     created: function () {
-
+        this.getWikiSpaceTree();
+        this.getWikiSpaceDetail();
     }
 }
 </script>
