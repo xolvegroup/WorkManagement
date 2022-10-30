@@ -1,13 +1,27 @@
 <template>
-    <div>
-        This is Wiki space detail page.
+    <div class="row">
+        <div class="col-md-3 col-lg-3 col-xs-12 xol-sm-12">
+        <q-card class="q-pa-md q-ma-md">
+            <q-card-section>
+                <div class="text-h6">Page Tree</div>
+            </q-card-section>
+            <q-card-section>
+                <q-tree
+                  no-connectors
+                  :nodes="space_tree_data"
+                  node-key="name"
+                  label-key="name"
+                />
+            </q-card-section>
+        </q-card>
+        </div>
     </div>
 </template>
 <script>
 module.exports = {
     data: function () {
         return {
-
+            space_tree_data: []
         }
     },
     methods: {
@@ -18,13 +32,16 @@ module.exports = {
             });
             if (params.wikiSpaceId) {
                 var allParams = $.extend({ wikiSpaceId:params.wikiSpaceId,
-                moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+                moquiSessionToken:self.$root.moquiSessionToken }, {});
                 $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/getWikiSpaceTree", headers:{Accept:'application/json'}, data:allParams,
                     error:moqui.handleAjaxError, success:function(resp) {
-                        self.wiki_space_list = resp.spaceList;
+                        self.space_tree_data = JSON.parse(JSON.stringify(resp.rootChildResourceList).replaceAll("childResourceList", "children"))
                     }
                 });
             }
+        },
+        refactorChildren() {
+
         },
         getWikiSpaceDetail() {
             var self = this;
@@ -32,11 +49,11 @@ module.exports = {
               get: (searchParams, prop) => searchParams.get(prop),
             });
             if (params.wikiSpaceId) {
-                var allParams = $.extend({ wikiPageId:'zzwrt_client',
-                moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+                var allParams = $.extend({ wikiPageId:'zzwr_templates',
+                moquiSessionToken:self.$root.moquiSessionToken }, {});
                 $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/getWikiPageInfoById", headers:{Accept:'application/json'}, data:allParams,
                     error:moqui.handleAjaxError, success:function(resp) {
-                        self.wiki_space_list = resp.spaceList;
+
                     }
                 });
             }
