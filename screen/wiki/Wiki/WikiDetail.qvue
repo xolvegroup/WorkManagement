@@ -1,19 +1,49 @@
 <template>
     <div class="row">
         <div class="col-md-3 col-lg-3 col-xs-12 xol-sm-12">
-        <q-card class="q-pa-md q-ma-md">
-            <q-card-section>
-                <div class="text-h6">Page Tree</div>
-            </q-card-section>
-            <q-card-section>
-                <q-tree
-                  no-connectors
-                  :nodes="space_tree_data"
-                  node-key="name"
-                  label-key="name"
-                />
-            </q-card-section>
-        </q-card>
+            <q-card class="q-px-md q-py-sm q-ma-md">
+                <q-card-section>
+                    <div class="text-h6">Page Tree</div>
+                    <div @click="page_path=null,tree_nodes_selected=null,getPublishedWikiPageText()" class="text-h6 q-mt-md text-blue cursor-pointer" v-if="wiki_page_info.wikiSpace">{{wiki_page_info.wikiSpace.description}}
+                    </div>
+                </q-card-section>
+                <q-card-section>
+                    <q-tree
+                      @update:selected="treeNodeSelected"
+                      no-connectors
+                      :nodes="space_tree_data"
+                      node-key="path"
+                      :selected.sync="tree_nodes_selected"
+                      label-key="name"
+                    />
+                </q-card-section>
+            </q-card>
+        </div>
+        <div class="col-md-7 col-lg-7 col-xs-12 xol-sm-12">
+            <div class="q-mt-md q-ml-md" v-if="wiki_page_info.wikiSpace">
+            <span class="text-blue cursor-pointer text-h6" @click="page_path=null,tree_nodes_selected=null,getPublishedWikiPageText()">{{wiki_page_info.wikiSpace.description}}</span>
+              <q-chip dense v-if="page_detail.pageLocation && page_detail.pageLocation.endsWith('.html')" color="grey" text-color="white">
+                HTML
+              </q-chip>
+              <q-chip dense v-if="page_detail.pageLocation && page_detail.pageLocation.endsWith('.md')" color="grey" text-color="white">
+                MD
+              </q-chip>
+              <q-chip dense v-if="version" color="primary" text-color="white">
+                Version: {{version}}
+              </q-chip>
+              <q-chip dense v-if="version" color="primary" text-color="white">
+                Published: {{published_version}}
+              </q-chip>
+            </div>
+            <q-card class="q-px-md q-py-sm q-ma-md">
+                <q-card-section v-if="wiki_page_info.wikiSpace && !is_page_present">
+                    Automatic root page for space {{wiki_page_info.wikiSpace.wikiSpaceId}}
+                </q-card-section>
+                <q-card-section v-if="page_detail.pageLocation && is_page_present">
+                    <div v-if="page_detail.pageLocation.endsWith('.html')" v-html="page_detail.pageText"></div>
+                    <div v-if="page_detail.pageLocation.endsWith('.md')" v-html="getHtmlForMD(page_detail.pageText)"></div>
+                </q-card-section>
+            </q-card>
         </div>
     </div>
 </template>
@@ -21,7 +51,14 @@
 module.exports = {
     data: function () {
         return {
-            space_tree_data: []
+            tree_nodes_selected: null,
+            space_tree_data: [],
+            wiki_page_info: {},
+            is_page_present: false,
+            page_detail: {},
+            version: null,
+            published_version: null,
+            page_path: null
         }
     },
     methods: {
@@ -40,17 +77,55 @@ module.exports = {
                 });
             }
         },
-        getWikiSpaceDetail() {
+        getWikiPageInfo() {
             var self = this;
             const params = new Proxy(new URLSearchParams(window.location.search), {
               get: (searchParams, prop) => searchParams.get(prop),
             });
             if (params.wikiSpaceId) {
-                var allParams = $.extend({ wikiPageId:'zzwr_templates',
-                moquiSessionToken:self.$root.moquiSessionToken }, {});
+                var allParams = $.extend({ wikiSpaceId: params.wikiSpaceId, moquiSessionToken:self.$root.moquiSessionToken }, {});
                 $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/getWikiPageInfoById", headers:{Accept:'application/json'}, data:allParams,
                     error:moqui.handleAjaxError, success:function(resp) {
-
+                        self.wiki_page_info = resp;
+                        if ('wikiPageId' in self.wiki_page_info) {
+                            self.is_page_present = true;
+                            self.version = self.wiki_page_info.currentVersionName;
+                            self.published_version = self.wiki_page_info.publishedVersionName;
+                            setTimeout( () => {
+                                self.getPublishedWikiPageText();
+                            }, 500 );
+                        }
+                    }
+                });
+            }
+        },
+        getHtmlForMD(content) {
+            if (content) {
+                return this.md_conv.makeHtml(content);
+            }
+        },
+        treeNodeSelected(path) {
+            this.page_path = path;
+            this.getPublishedWikiPageText();
+        },
+        getPublishedWikiPageText() {
+            var self = this;
+            const params = new Proxy(new URLSearchParams(window.location.search), {
+              get: (searchParams, prop) => searchParams.get(prop),
+            });
+            if (params.wikiSpaceId) {
+                self.md_conv = new showdown.Converter({metadata: true});
+                var allParams = $.extend({ wikiSpaceId: params.wikiSpaceId,
+                moquiSessionToken:self.$root.moquiSessionToken }, {});
+                if (self.version) {
+                    allParams["versionName"] = self.version;
+                }
+                if (self.page_path) {
+                    allParams["pagePath"] = self.page_path;
+                }
+                $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/getPublishedWikiPageText", headers:{Accept:'application/json'}, data:allParams,
+                    error:moqui.handleAjaxError, success:function(resp) {
+                        self.page_detail = resp;
                     }
                 });
             }
@@ -58,7 +133,7 @@ module.exports = {
     },
     created: function () {
         this.getWikiSpaceTree();
-        this.getWikiSpaceDetail();
+        this.getWikiPageInfo();
     }
 }
 </script>

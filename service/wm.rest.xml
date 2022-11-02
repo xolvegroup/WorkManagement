@@ -91,6 +91,9 @@ along with this software (see the LICENSE.md file). If not, see
         <method type="get"><service name="org.moqui.impl.WikiServices.get#WikiSpacePages"/></method>
     </resource>
     <resource name="getWikiPageInfoById">
-        <method type="get"><service name="org.moqui.impl.WikiServices.get#WikiPageInfoById"/></method>
+        <method type="get"><service name="org.moqui.impl.WikiServices.get#WikiPageInfo"/></method>
+    </resource>
+    <resource name="getPublishedWikiPageText">
+        <method type="get"><service name="org.moqui.impl.WikiServices.get#PublishedWikiPageText"/></method>
     </resource>
 </resource>
