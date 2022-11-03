@@ -4,7 +4,7 @@
             <q-card class="q-px-md q-py-sm q-ma-md">
                 <q-card-section>
                     <div class="text-h6">Page Tree</div>
-                    <div @click="page_path=null,tree_nodes_selected=null,getPublishedWikiPageText()" class="text-h6 q-mt-md text-blue cursor-pointer" v-if="wiki_page_info.wikiSpace">{{wiki_page_info.wikiSpace.description}}
+                    <div @click="page_path=null,tree_nodes_selected=null,getWikiPageInfo()" class="text-h6 q-mt-md text-blue cursor-pointer" v-if="wiki_page_info.wikiSpace">{{wiki_page_info.wikiSpace.description}}
                     </div>
                 </q-card-section>
                 <q-card-section>
@@ -21,7 +21,7 @@
         </div>
         <div class="col-md-7 col-lg-7 col-xs-12 xol-sm-12">
             <div class="q-mt-md q-ml-md" v-if="wiki_page_info.wikiSpace">
-            <span class="text-blue cursor-pointer text-h6" @click="page_path=null,tree_nodes_selected=null,getPublishedWikiPageText()">{{wiki_page_info.wikiSpace.description}}</span>
+            <span class="text-blue cursor-pointer text-h6" @click="page_path=null,tree_nodes_selected=null,getWikiPageInfo()">{{wiki_page_info.wikiSpace.description}}</span>
               <q-chip dense v-if="page_detail.pageLocation && page_detail.pageLocation.endsWith('.html')" color="grey" text-color="white">
                 HTML
               </q-chip>
@@ -84,6 +84,9 @@ module.exports = {
             });
             if (params.wikiSpaceId) {
                 var allParams = $.extend({ wikiSpaceId: params.wikiSpaceId, moquiSessionToken:self.$root.moquiSessionToken }, {});
+                if (self.page_path) {
+                    allParams["pagePath"] = self.page_path;
+                }
                 $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/getWikiPageInfoById", headers:{Accept:'application/json'}, data:allParams,
                     error:moqui.handleAjaxError, success:function(resp) {
                         self.wiki_page_info = resp;
@@ -106,7 +109,7 @@ module.exports = {
         },
         treeNodeSelected(path) {
             this.page_path = path;
-            this.getPublishedWikiPageText();
+            this.getWikiPageInfo();
         },
         getPublishedWikiPageText() {
             var self = this;
