@@ -96,4 +96,7 @@ along with this software (see the LICENSE.md file). If not, see
     <resource name="getPublishedWikiPageText">
         <method type="get"><service name="org.moqui.impl.WikiServices.get#PublishedWikiPageText"/></method>
     </resource>
+    <resource name="updateWikiPage">
+        <method type="post"><service name="org.moqui.impl.WikiServices.update#WikiPage"/></method>
+    </resource>
 </resource>
