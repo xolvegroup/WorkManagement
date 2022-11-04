@@ -239,10 +239,8 @@ module.exports = {
             allow_any_html_options_all:
             [{'label':'Y','value':'y'},{'label':'N','value':'n'}],
             allow_any_html_options: [{'label':'Y','value':'y'},{'label':'N','value':'n'}],
-            wiki_type_options_all:
-            [{'label':'md','value':'md'},{'label':'html','value':'html'},{'label':'html.ftl','value':'html.ftl'}],
-            wiki_type_options:
-            [{'label':'md','value':'md'},{'label':'html','value':'html'},{'label':'html.ftl','value':'html.ftl'}],
+            wiki_type_options_all: [{'label':'md','value':'md'},{'label':'html','value':'html'}],
+            wiki_type_options: [{'label':'md','value':'md'},{'label':'html','value':'html'}],
             root_page_directory_options_all:
             [{'label':'dbresource://WikiSpace','value':'dbresource://WikiSpace'},{'label':'runtime/WikiSpace','value':'runtime/WikiSpace'}],
             root_page_directory_options:

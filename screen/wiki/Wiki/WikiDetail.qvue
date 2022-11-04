@@ -38,7 +38,7 @@
                 <q-card-section v-if="wiki_page_info.wikiSpace && !is_page_present">
                     <div style="display:grid;">
                         <div>
-                           <q-btn color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Add" icon="add" @click="openAddModal({pageText: null})"></q-btn>
+                           <q-btn color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Add" icon="add" @click="show_add_model_partial=true"></q-btn>
                            <q-btn color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Edit" icon="edit" @click="openEditModal({pageText: 'Automatic root page for space ' + wiki_page_info.wikiSpace.wikiSpaceId})"></q-btn>
                         </div>
                     </div>
@@ -49,7 +49,7 @@
                 <q-card-section v-if="page_detail.pageLocation && is_page_present">
                     <div style="display:grid;">
                         <div>
-                            <q-btn color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Add" icon="add" @click="openAddModal({pageText: null})"></q-btn>
+                            <q-btn color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Add" icon="add" @click="show_add_model_partial=true"></q-btn>
                            <q-btn color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Edit" icon="edit" @click="openEditModal(page_detail)"></q-btn>
                         </div>
                     </div>
@@ -90,8 +90,11 @@
             <q-card-section>
               <div class="row q-px-md q-py-sm">
                 <div class="col-11 q-pt-sm text-h5 text-weight-bold">
-                    Add Page <q-input style="width: 300px;" class="inline-block" outlined dense
-        v-model="new_page_name" label="Page Name" />
+                    Add Page
+                    <q-input style="width: 200px;" class="inline-block" outlined dense disable readonly :value="page_path" label="Parent Path" ></q-input>
+                    <q-input style="width: 300px;" class="inline-block" outlined dense v-model="new_page_name" label="Page Name" ></q-input>
+                    <q-input style="width: 100px;" class="inline-block" outlined dense disable readonly :value="add_wiki_type.value" label="Wiki Type" ></q-input>
+
                 </div>
                 <div class="col-1">
                     <q-btn flat round dense icon="close" class="float-right" v-close-popup></q-btn>
@@ -107,6 +110,59 @@
             <q-separator></q-separator>
             <q-card-actions class="q-pa-md" align="left">
               <q-btn @click="addPage()" outline dense label="Add" class="text-capitalize q-mb-md" color="primary"></q-btn>
+              <q-btn v-close-popup outline dense label="Cancel" class="text-capitalize q-mb-md" color="black"></q-btn>
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
+
+        <q-dialog v-model="show_add_model_partial">
+          <q-card class="q-pa-none" style="width: 600px">
+            <q-card-section>
+              <div class="row q-px-md q-py-sm">
+                <div class="col-11 q-pt-sm text-h5 text-weight-bold">
+                    Add Page
+                </div>
+                <div class="col-1">
+                    <q-btn flat round dense icon="close" class="float-right" v-close-popup></q-btn>
+                </div>
+            </div>
+            </q-card-section>
+            <q-separator></q-separator>
+
+            <q-card-section class="q-ma-md edit_page">
+                <div class="row">
+                    <div class="col-12">
+                        <q-input outlined dense disable readonly :value="page_path" label="Parent Path" />
+                    </div>
+                    <div class="col-12 q-pt-md">
+                        <q-select
+                              label="Wiki Type"
+                              dense
+                              outlined
+                              v-model="add_wiki_type"
+                              :class="!$q.dark.isActive?'bg-white':''"
+                              use-input
+                              input-debounce="700"
+                              option-value="value"
+                              option-label="label"
+                              :options="wiki_type_options"
+                              @filter="filterFnWikiType"
+                            >
+                              <template v-slot:no-option>
+                                <q-item>
+                                  <q-item-section class="text-grey">
+                                    No results
+                                  </q-item-section>
+                                </q-item>
+                              </template>
+                            </q-select>
+                    </div>
+                </div>
+            </q-card-section>
+
+            <q-separator></q-separator>
+            <q-card-actions class="q-pa-md" align="left">
+              <q-btn @click="openAddPageMain()" outline dense label="Add Page" class="text-capitalize q-mb-md" color="primary"></q-btn>
               <q-btn v-close-popup outline dense label="Cancel" class="text-capitalize q-mb-md" color="black"></q-btn>
             </q-card-actions>
           </q-card>
@@ -129,7 +185,11 @@ module.exports = {
             page_path: null,
             show_edit_model: false,
             show_add_model: false,
-            obj_edit:{}
+            obj_edit:{},
+            show_add_model_partial:false,
+            add_wiki_type:"",
+            wiki_type_options_all: [{'label':'md','value':'md'},{'label':'html','value':'html'}],
+            wiki_type_options: [{'label':'md','value':'md'},{'label':'html','value':'html'}]
         }
     },
     methods: {
@@ -138,6 +198,11 @@ module.exports = {
             self.md_conv = new showdown.Converter({metadata: true});
             self.show_edit_model = true;
             self.obj_edit = item;
+        },
+        openAddPageMain() {
+            let self = this;
+            self.show_add_model_partial = false;
+            self.openAddModal({pageText: null});
         },
         openAddModal(item){
             let self = this;
@@ -177,9 +242,10 @@ module.exports = {
           var allParams = $.extend({wikiSpaceId: self.wiki_page_info.wikiSpaceId,
                                   parentPath: self.wiki_page_info.pagePath,
                                   pageName: self.new_page_name,
-                                  wikiType: self.wiki_page_info.wikiType,
+                                  wikiType: self.add_wiki_type.value,
                                   moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
-          if (self.wiki_page_info.wikiType == 'html') {
+                                  debugger
+          if (self.add_wiki_type.value == 'html') {
             allParams["pageText"] = self.getHtmlForMD(window.add_editor.getData());
           }
           else {
@@ -298,7 +364,20 @@ module.exports = {
                     }
                 });
             }
-        }
+        },
+        filterFnWikiType (val, update) {
+            let self = this;
+              if (val === '') {
+                update(() => {
+                  this.wiki_type_options = self.wiki_type_options_all
+                })
+                return
+              }
+              update(() => {
+                  const needle = val.toLowerCase()
+                  this.wiki_type_options = self.wiki_type_options.filter(v => v.label.toLowerCase().indexOf(needle) > -1)
+                })
+          },
     },
     created: function () {
         this.getWikiSpaceTree();
