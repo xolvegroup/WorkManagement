@@ -9,36 +9,47 @@
                 </q-card-section>
                 <q-card-section>
                     <q-tree
+                      ref="left_tree"
                       @update:selected="treeNodeSelected"
                       no-connectors
                       :nodes="space_tree_data"
                       node-key="path"
                       :selected.sync="tree_nodes_selected"
                       label-key="name"
+                      default-expand-all
                     />
                 </q-card-section>
             </q-card>
         </div>
         <div class="col-md-7 col-lg-7 col-xs-12 xol-sm-12">
             <div class="q-mt-md q-ml-md" v-if="wiki_page_info.wikiSpace">
-            <span class="text-blue cursor-pointer text-h6 text-uppercase" @click="page_path=null,tree_nodes_selected=null,getWikiPageInfo()">{{wiki_page_info.wikiSpace.description}}</span>
-              <q-chip dense color="grey" text-color="white">
+            <span class="text-blue cursor-pointer text-h6" @click="page_path=null,tree_nodes_selected=null,getWikiPageInfo()">{{wiki_page_info.wikiSpace.description}}</span>
+              <q-chip class="text-uppercase" dense color="grey" text-color="white">
                 {{ wiki_page_info.wikiType }}
               </q-chip>
               <q-chip dense v-if="version" color="primary" text-color="white">
                 Version: {{version}}
               </q-chip>
-              <q-chip dense v-if="version" color="primary" text-color="white">
+              <q-chip dense v-if="published_version" color="primary" text-color="white">
                 Published: {{published_version}}
               </q-chip>
             </div>
             <q-card class="q-px-md q-py-sm q-ma-md">
                 <q-card-section v-if="wiki_page_info.wikiSpace && !is_page_present">
-                    Automatic root page for space {{wiki_page_info.wikiSpace.wikiSpaceId}}
+                    <div style="display:grid;">
+                        <div>
+                           <q-btn color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Add" icon="add" @click="openAddModal({pageText: null})"></q-btn>
+                           <q-btn color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Edit" icon="edit" @click="openEditModal({pageText: 'Automatic root page for space ' + wiki_page_info.wikiSpace.wikiSpaceId})"></q-btn>
+                        </div>
+                    </div>
+                    <div>
+                        Automatic root page for space {{wiki_page_info.wikiSpace.wikiSpaceId}}
+                    </div>
                 </q-card-section>
                 <q-card-section v-if="page_detail.pageLocation && is_page_present">
                     <div style="display:grid;">
                         <div>
+                            <q-btn color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Add" icon="add" @click="openAddModal({pageText: null})"></q-btn>
                            <q-btn color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Edit" icon="edit" @click="openEditModal(page_detail)"></q-btn>
                         </div>
                     </div>
@@ -74,12 +85,40 @@
           </q-card>
         </q-dialog>
 
+        <q-dialog id="add_editor_id" maximized v-model="show_add_model" @show="initializeEditor('#addEditor')">
+          <q-card class="q-pa-none">
+            <q-card-section>
+              <div class="row q-px-md q-py-sm">
+                <div class="col-11 q-pt-sm text-h5 text-weight-bold">
+                    Add Page <q-input style="width: 300px;" class="inline-block" outlined dense
+        v-model="new_page_name" label="Page Name" />
+                </div>
+                <div class="col-1">
+                    <q-btn flat round dense icon="close" class="float-right" v-close-popup></q-btn>
+                </div>
+            </div>
+            </q-card-section>
+            <q-separator></q-separator>
+
+            <q-card-section class="q-ma-md edit_page">
+                <div style="border: 1px solid #c2c2c2;" id="addEditor"></div>
+            </q-card-section>
+
+            <q-separator></q-separator>
+            <q-card-actions class="q-pa-md" align="left">
+              <q-btn @click="addPage()" outline dense label="Add" class="text-capitalize q-mb-md" color="primary"></q-btn>
+              <q-btn v-close-popup outline dense label="Cancel" class="text-capitalize q-mb-md" color="black"></q-btn>
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
+
     </div>
 </template>
 <script>
 module.exports = {
     data: function () {
         return {
+            new_page_name: "",
             tree_nodes_selected: null,
             space_tree_data: [],
             wiki_page_info: {},
@@ -89,13 +128,21 @@ module.exports = {
             published_version: null,
             page_path: null,
             show_edit_model: false,
+            show_add_model: false,
             obj_edit:{}
         }
     },
     methods: {
         openEditModal(item){
             let self = this;
+            self.md_conv = new showdown.Converter({metadata: true});
             self.show_edit_model = true;
+            self.obj_edit = item;
+        },
+        openAddModal(item){
+            let self = this;
+            self.md_conv = new showdown.Converter({metadata: true});
+            self.show_add_model = true;
             self.obj_edit = item;
         },
         initializeEditor(elem) {
@@ -119,12 +166,39 @@ module.exports = {
                  }
                 $("#edit_editor_id").find('.q-dialog__inner').removeAttr('tabindex');
              }
+             else {
+                window.add_editor = editor;
+                $("#add_editor_id").find('.q-dialog__inner').removeAttr('tabindex');
+             }
          } )
+        },
+        addPage() {
+          let self = this;
+          var allParams = $.extend({wikiSpaceId: self.wiki_page_info.wikiSpaceId,
+                                  parentPath: self.wiki_page_info.pagePath,
+                                  pageName: self.new_page_name,
+                                  wikiType: self.wiki_page_info.wikiType,
+                                  moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+          if (self.wiki_page_info.wikiType == 'html') {
+            allParams["pageText"] = self.getHtmlForMD(window.add_editor.getData());
+          }
+          else {
+            allParams["pageText"] = window.add_editor.getData();
+          }
+          $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/updateWikiPage", headers:{Accept:'application/json'}, data:allParams,
+              error:moqui.handleAjaxError, success:function(resp) {
+                  self.show_add_model = false;
+                  self.getWikiSpaceTree();
+                  self.page_path = (self.wiki_page_info.pagePath ? (self.wiki_page_info.pagePath + "/"):'') + self.new_page_name;
+                  self.tree_nodes_selected = (self.wiki_page_info.pagePath ? (self.wiki_page_info.pagePath + "/"):'') + self.new_page_name;
+                  self.getWikiPageInfo();
+                  self.new_page_name = "";
+              }
+          });
         },
         editPage() {
           let self = this;
           var allParams = $.extend({wikiSpaceId: self.wiki_page_info.wikiSpaceId,
-                                  wikiPageId: self.wiki_page_info.wikiPageId,
                                   pagePath: self.wiki_page_info.pagePath,
                                   parentPath: self.wiki_page_info.parentPath,
                                   pageName: self.wiki_page_info.pageName,
@@ -161,6 +235,9 @@ module.exports = {
                 $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/getWikiSpaceTree", headers:{Accept:'application/json'}, data:allParams,
                     error:moqui.handleAjaxError, success:function(resp) {
                         self.space_tree_data = JSON.parse(JSON.stringify(resp.rootChildResourceList).replaceAll("childResourceList", "children"))
+                        self.$nextTick(function () {
+                            self.$refs.left_tree.expandAll();
+                          })
                     }
                 });
             }
@@ -252,5 +329,11 @@ module.exports = {
     }
     .ck-balloon-panel_visible {
         z-index: 10000 !important;
+    }
+    .q-field__label {
+        top: 10px !important;
+    }
+    .q-field--float .q-field__label {
+        top: 0px !important;
     }
 </style>
