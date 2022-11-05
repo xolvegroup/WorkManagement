@@ -221,7 +221,8 @@ module.exports = {
              if (elem === "#editEditor"){
                  window.edit_editor = editor;
                  if (self.wiki_page_info.wikiType == 'html' && self.obj_edit.pageText){
-                    editor.setData(self.obj_edit.pageText);
+                    let turndownService = window.TurndownService();
+                    editor.setData(turndownService.turndown(self.obj_edit.pageText));
                  }
                  else if (self.wiki_page_info.wikiType == 'md' && self.obj_edit.pageText){
                     editor.setData(self.getHtmlForMD(self.obj_edit.pageText));
