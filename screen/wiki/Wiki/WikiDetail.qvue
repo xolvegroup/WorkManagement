@@ -298,7 +298,6 @@ module.exports = {
                   self.show_edit_model = false;
                   self.getWikiSpaceTree();
                   self.getWikiPageInfo();
-                  debugger
                   self.tree_nodes_selected = self.wiki_page_info.parentPath ? (self.wiki_page_info.parentPath + '/' + self.wiki_page_info.pageName) : self.wiki_page_info.pageName;
               }
           });
