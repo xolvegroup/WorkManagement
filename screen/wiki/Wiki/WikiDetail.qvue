@@ -59,12 +59,14 @@
             </q-card>
         </div>
 
-        <q-dialog id="edit_editor_id" maximized v-model="show_edit_model" @show="initializeEditor('#editEditor')">
-          <q-card class="q-pa-none">
+        <q-dialog id="edit_editor_id" v-model="show_edit_model" @show="initializeEditor('#editEditor')">
+          <q-card class="q-pa-none" style="width: 80vw; max-width: 80vw;">
             <q-card-section>
               <div class="row q-px-md q-py-sm">
                 <div class="col-11 q-pt-sm text-h5 text-weight-bold">
                     Edit Page: {{ wiki_page_info.pageName }}
+                    <!-- <q-input style="width: 200px;" class="inline-block" outlined dense v-model="wiki_page_info.pageName" label="Page Name" ></q-input>-->
+                    <q-input style="width: 200px;" class="inline-block" outlined dense v-model="obj_edit.sequence" label="Sequence" ></q-input>
                 </div>
                 <div class="col-1">
                     <q-btn flat round dense icon="close" class="float-right" v-close-popup></q-btn>
@@ -85,8 +87,8 @@
           </q-card>
         </q-dialog>
 
-        <q-dialog id="add_editor_id" maximized v-model="show_add_model" @show="initializeEditor('#addEditor')">
-          <q-card class="q-pa-none">
+        <q-dialog id="add_editor_id" v-model="show_add_model" @show="initializeEditor('#addEditor')">
+          <q-card class="q-pa-none" style="width: 80vw; max-width: 80vw;">
             <q-card-section>
               <div class="row q-px-md q-py-sm">
                 <div class="col-11 q-pt-sm text-h5 text-weight-bold">
@@ -94,7 +96,7 @@
                     <q-input style="width: 200px;" class="inline-block" outlined dense disable readonly :value="page_path" label="Parent Path" ></q-input>
                     <q-input style="width: 300px;" class="inline-block" outlined dense v-model="new_page_name" label="Page Name" ></q-input>
                     <q-input style="width: 100px;" class="inline-block" outlined dense disable readonly :value="add_wiki_type.value" label="Wiki Type" ></q-input>
-
+                    <q-input style="width: 100px;" class="inline-block" outlined dense v-model="new_page_seq" label="Sequence" ></q-input>
                 </div>
                 <div class="col-1">
                     <q-btn flat round dense icon="close" class="float-right" v-close-popup></q-btn>
@@ -175,8 +177,10 @@ module.exports = {
     data: function () {
         return {
             new_page_name: "",
+            new_page_seq: "",
             tree_nodes_selected: null,
             space_tree_data: [],
+            tree_master_list: [],
             wiki_page_info: {},
             is_page_present: false,
             page_detail: {},
@@ -198,6 +202,16 @@ module.exports = {
             self.md_conv = new showdown.Converter({metadata: true});
             self.show_edit_model = true;
             self.obj_edit = item;
+            if (self.tree_nodes_selected) {
+                self.obj_edit["sequence"] = self.tree_master_list.find(function(item){
+                    return item.pagePath === self.tree_nodes_selected;
+                })["sequenceNum"];
+            }
+            else {
+                self.obj_edit["sequence"] = self.tree_master_list.find(function(item){
+                    return Object.keys(item).indexOf('pagePath') === -1;
+                })["sequenceNum"];
+            }
         },
         openAddPageMain() {
             let self = this;
@@ -243,6 +257,7 @@ module.exports = {
           var allParams = $.extend({wikiSpaceId: self.wiki_page_info.wikiSpaceId,
                                   parentPath: self.wiki_page_info.pagePath,
                                   pageName: self.new_page_name,
+                                  sequenceNum: self.new_page_seq,
                                   wikiType: self.add_wiki_type.value,
                                   moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
           if (self.add_wiki_type.value == 'html') {
@@ -259,6 +274,7 @@ module.exports = {
                   self.tree_nodes_selected = (self.wiki_page_info.pagePath ? (self.wiki_page_info.pagePath + "/"):'') + self.new_page_name;
                   self.getWikiPageInfo();
                   self.new_page_name = "";
+                  self.new_page_seq = "";
               }
           });
         },
@@ -269,6 +285,7 @@ module.exports = {
                                   parentPath: self.wiki_page_info.parentPath,
                                   pageName: self.wiki_page_info.pageName,
                                   wikiType: self.wiki_page_info.wikiType,
+                                  sequenceNum: self.obj_edit.sequence,
                                   moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
           if (self.wiki_page_info.wikiType == 'html') {
             allParams["pageText"] = self.getHtmlForMD(window.edit_editor.getData());
@@ -279,7 +296,9 @@ module.exports = {
           $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/updateWikiPage", headers:{Accept:'application/json'}, data:allParams,
               error:moqui.handleAjaxError, success:function(resp) {
                   self.show_edit_model = false;
+                  self.getWikiSpaceTree();
                   self.getWikiPageInfo();
+                  self.tree_nodes_selected = self.wiki_page_info.parentPath + '/' + self.wiki_page_info.pageName;
               }
           });
         },
@@ -289,6 +308,110 @@ module.exports = {
             return $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/users", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError
             });
+        },
+        findWhere(array, key, value) {
+            t = 0;
+            while (t < array.length && array[t][key] !== value) { t++; };
+
+            if (t < array.length) {
+                return array[t]
+            } else {
+                return false;
+            }
+        },
+        arrangeIntoTree(paths) {
+            let self = this;
+            var tree = [];
+
+            for (var i = 0; i < paths.length; i++) {
+                var path = paths[i];
+                var currentLevel = tree;
+                for (var j = 0; j < path.length; j++) {
+                    var part = path[j];
+
+                    var existingPath = self.findWhere(currentLevel, 'name', part);
+
+                    if (existingPath) {
+                        currentLevel = existingPath.children;
+                        currentLevel.map(function(itm){
+                            itm["sequence"] = self.tree_master_list.find(function(item){
+                                    return item.pagePath === itm.path;
+                                })["sequenceNum"];
+                            return itm;
+                        });
+                        currentLevel.sort(function(a, b){
+                            if(a['sequence'] > b['sequence']){
+                                return 1;
+                            }
+                            else if(a['sequence'] < b['sequence']) {
+                                return -1;
+                            }
+                            return 0;
+                        });
+                    } else {
+                        node_path = "";
+                        for (let i in path) {
+                            node_path = node_path + "/" + path[i];
+                            if (part === path[i]) {
+                                break
+                            }
+                        }
+                        var newPart = {
+                            name: part,
+                            path: node_path.substring(1),
+                            children: [],
+                        }
+                        currentLevel.push(newPart);
+                        currentLevel.map(function(itm){
+                            itm["sequence"] = self.tree_master_list.find(function(item){
+                                    return item.pagePath === itm.path;
+                                })["sequenceNum"];
+                            return itm;
+                        });
+                        currentLevel.sort(function(a, b){
+                            if(a['sequence'] > b['sequence']){
+                                return 1;
+                            }
+                            else if(a['sequence'] < b['sequence']) {
+                                return -1;
+                            }
+                            return 0;
+                        });
+                        currentLevel = newPart.children;
+                    }
+                }
+                currentLevel.map(function(itm){
+                    itm["sequence"] = self.tree_master_list.find(function(item){
+                            return item.pagePath === itm.path;
+                        })["sequenceNum"];
+                    return itm;
+                });
+                currentLevel.sort(function(a, b){
+                        if(a['sequence'] > b['sequence']){
+                            return 1;
+                        }
+                        else if(a['sequence'] < b['sequence']) {
+                            return -1;
+                        }
+                        return 0;
+                    });
+            }
+            tree.map(function(itm){
+                itm["sequence"] = self.tree_master_list.find(function(item){
+                        return item.pagePath === itm.path;
+                    })["sequenceNum"];
+                return itm;
+            });
+            tree.sort(function(a, b){
+                if(a['sequence'] > b['sequence']){
+                    return 1;
+                }
+                else if(a['sequence'] < b['sequence']) {
+                    return -1;
+                }
+                return 0;
+            });
+            return tree;
         },
         getWikiSpaceTree() {
             var self = this;
@@ -300,7 +423,25 @@ module.exports = {
                 moquiSessionToken:self.$root.moquiSessionToken }, {});
                 $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/getWikiSpaceTree", headers:{Accept:'application/json'}, data:allParams,
                     error:moqui.handleAjaxError, success:function(resp) {
-                        self.space_tree_data = JSON.parse(JSON.stringify(resp.rootChildResourceList).replaceAll("childResourceList", "children"))
+                        self.tree_master_list = JSON.parse(JSON.stringify(resp.wikiPageAndUserList));
+                        let result = JSON.parse(JSON.stringify(resp.wikiPageAndUserList)).sort(function(a, b){
+                            if(a['sequenceNum'] > b['sequenceNum']){
+                                return 1;
+                            }
+                            else if(a['sequenceNum'] < b['sequenceNum']) {
+                                return -1;
+                            }
+                            return 0;
+                        });
+                        let paths = [];
+                        result.forEach(function(item){
+                            if (item.pagePath) {
+                                paths.push(item.pagePath.split("/"));
+                            }
+                        });
+                        let final_result = self.arrangeIntoTree(paths);
+                        console.log(final_result);
+                        self.space_tree_data = final_result;
                         self.$nextTick(function () {
                             self.$refs.left_tree.expandAll();
                           })
@@ -396,8 +537,8 @@ module.exports = {
         top: 0px !important;
     }
     .ck-editor__editable_inline {
-        min-height: 70vh !important;
-        height: 70vh !important;
+        min-height: 57vh !important;
+        height: 57vh !important;
     }
     .ck-editor {
         width: 100% !important;
