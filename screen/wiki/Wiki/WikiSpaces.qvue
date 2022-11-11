@@ -69,11 +69,11 @@
                 <div class="row cls_space">
                     <div class="col-6 q-px-md q-py-md">
                         <q-input outlined dense
-        v-model="new_space.wiki_space_id" label="Wiki Space ID" />
+        v-model="new_space.wiki_space_id" label="Wiki Space ID*" />
                     </div>
                     <div class="col-6 q-px-md q-py-md">
                         <q-input outlined dense
-        v-model="new_space.description" label="Description" />
+        v-model="new_space.description" label="Description*" />
                     </div>
                     <div class="col-6 q-px-md q-py-md">
                         <q-select
@@ -205,7 +205,7 @@
             </q-card-section>
             <q-separator></q-separator>
             <q-card-actions class="q-pl-lg q-py-md" align="left">
-              <q-btn @click="createSpace" outline dense label="Create Space" class="text-capitalize
+              <q-btn :disabled="!(new_space.wiki_space_id && new_space.description)" @click="createSpace" outline dense label="Create Space" class="text-capitalize
         q-mb-md" color="primary" v-close-popup />
             </q-card-actions>
           </q-card>

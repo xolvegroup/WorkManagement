@@ -40,6 +40,7 @@
                         <div>
                            <q-btn color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Add" icon="add" @click="show_add_model_partial=true"></q-btn>
                            <q-btn color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Edit" icon="edit" @click="openEditModal({pageText: 'Automatic root page for space ' + wiki_page_info.wikiSpace.wikiSpaceId})"></q-btn>
+                           <q-btn v-if="version && version !== published_version" color="blue" class="text-capitalize cursor-pointer float-right" outline dense :label="'Publish Version ' + version" icon="edit" @click="setPublishedVersion"></q-btn>
                         </div>
                     </div>
                     <div>
@@ -49,8 +50,10 @@
                 <q-card-section v-if="page_detail.pageLocation && is_page_present">
                     <div style="display:grid;">
                         <div>
+                        <q-btn v-if="tree_nodes_selected && !is_children_present" color="red" class="text-capitalize cursor-pointer float-right" outline dense icon="delete" @click="delete_page = true"></q-btn>
                             <q-btn color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Add" icon="add" @click="show_add_model_partial=true"></q-btn>
                            <q-btn color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Edit" icon="edit" @click="openEditModal(page_detail)"></q-btn>
+                           <q-btn v-if="version && version !== published_version" color="blue" class="text-capitalize cursor-pointer float-right" outline dense :label="'Publish Version ' + version" icon="edit" @click="setPublishedVersion"></q-btn>
                         </div>
                     </div>
                     <div v-if="wiki_page_info.wikiType == 'html'" v-html="page_detail.pageText"></div>
@@ -86,7 +89,19 @@
             </q-card-actions>
           </q-card>
         </q-dialog>
+        <q-dialog v-model="delete_page" persistent>
+          <q-card style="max-width: 450px" class="q-pa-md">
+            <q-card-section class="row items-center">
+              <q-avatar icon="delete" color="red" text-color="white"></q-avatar>
+              <span class="q-ml-sm q-mt-md text-medium" style="font-size: 18px;">Are you sure you want to delete this wiki page and all attachments? This cannot be undone.</span>
+            </q-card-section>
 
+            <q-card-actions align="right">
+              <q-btn outlined label="Cancel" color="grey" v-close-popup></q-btn>
+              <q-btn v-if="" outlined label="Delete" color="red" @click="deletePage"></q-btn>
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
         <q-dialog id="add_editor_id" v-model="show_add_model" @show="initializeEditor('#addEditor')">
           <q-card class="q-pa-none" style="width: 80vw; max-width: 80vw;">
             <q-card-section>
@@ -192,6 +207,8 @@ module.exports = {
             obj_edit:{},
             show_add_model_partial:false,
             add_wiki_type:"",
+            delete_page: false,
+            is_children_present: false,
             wiki_type_options_all: [{'label':'md','value':'md'},{'label':'html','value':'html'}],
             wiki_type_options: [{'label':'md','value':'md'},{'label':'html','value':'html'}]
         }
@@ -440,7 +457,6 @@ module.exports = {
                             }
                         });
                         let final_result = self.arrangeIntoTree(paths);
-                        console.log(final_result);
                         self.space_tree_data = final_result;
                         self.$nextTick(function () {
                             self.$refs.left_tree.expandAll();
@@ -474,6 +490,45 @@ module.exports = {
                 });
             }
         },
+        setPublishedVersion() {
+            var self = this;
+            const params = new Proxy(new URLSearchParams(window.location.search), {
+              get: (searchParams, prop) => searchParams.get(prop),
+            });
+            if (params.wikiSpaceId) {
+                var allParams = $.extend({ wikiSpaceId: params.wikiSpaceId, publishedVersionName: self.version,
+                    wikiPageId: self.wiki_page_info.wikiPageId, moquiSessionToken:self.$root.moquiSessionToken }, {});
+                $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/setPublishedVersion", headers:{Accept:'application/json'}, data:allParams,
+                    error:moqui.handleAjaxError, success:function(resp) {
+                        self.published_version = JSON.parse(JSON.stringify(self.version));
+                        self.$q.notify({
+                            message: 'New version published successfully.',
+                            position: 'bottom-right',
+                          });
+                    }
+                });
+            }
+        },
+        deletePage() {
+            var self = this;
+            const params = new Proxy(new URLSearchParams(window.location.search), {
+              get: (searchParams, prop) => searchParams.get(prop),
+            });
+            if (params.wikiSpaceId) {
+                var allParams = $.extend({ wikiSpaceId: params.wikiSpaceId, pagePath: self.page_path, moquiSessionToken:self.$root.moquiSessionToken }, {});
+                $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/deleteWikiPage", headers:{Accept:'application/json'}, data:allParams,
+                    error:moqui.handleAjaxError, success:function(resp) {
+                        self.$q.notify({
+                            message: 'Page deleted successfully.',
+                            position: 'bottom-right',
+                          });
+                        self.delete_page = false;
+                        self.getWikiSpaceTree();
+                        self.getWikiPageInfo();
+                    }
+                });
+            }
+        },
         getHtmlForMD(content) {
             if (content) {
                 return this.md_conv.makeHtml(content);
@@ -482,6 +537,13 @@ module.exports = {
         treeNodeSelected(path) {
             this.page_path = path;
             this.page_detail = {};
+            let children = this.$refs.left_tree.getNodeByKey(path).children;
+            if (children.length == 0) {
+                this.is_children_present = false;
+            }
+            else {
+                this.is_children_present = true;
+            }
             this.getWikiPageInfo();
         },
         getPublishedWikiPageText() {
