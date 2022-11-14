@@ -57,6 +57,7 @@ along with this software (see the LICENSE.md file). If not, see
         <out-parameters>
             <parameter name="pageTextLhs" />
             <parameter name="pageTextRhs" />
+            <parameter name="wikiType" />
         </out-parameters>
         <actions>
             <!-- <set field="extraPathNameList" from="sri.screenUrlInfo.extraPathNameList"/> -->
