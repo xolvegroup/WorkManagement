@@ -21,8 +21,8 @@
                 </q-card-section>
             </q-card>
         </div>
-        <div class="col-md-7 col-lg-7 col-xs-12 xol-sm-12">
-            <div class="q-mt-md q-ml-md" v-if="wiki_page_info.wikiSpace">
+        <div class="col-md-6 col-lg-6 col-xs-12 xol-sm-12">
+            <div class="q-mt-md q-mx-none" v-if="wiki_page_info.wikiSpace">
             <span class="text-blue cursor-pointer text-h6" @click="page_path=null,tree_nodes_selected=null,getWikiPageInfo()">{{wiki_page_info.wikiSpace.description}}</span>
               <q-chip class="text-uppercase" dense color="grey" text-color="white">
                 {{ wiki_page_info.wikiType }}
@@ -33,8 +33,9 @@
               <q-chip dense v-if="published_version" color="primary" text-color="white">
                 Published: {{published_version}}
               </q-chip>
+              <span class="text-green" v-if="version === published_version">This version published</span>
             </div>
-            <q-card class="q-px-md q-py-sm q-ma-md">
+            <q-card class="q-px-md q-py-sm q-my-md q-mx-none">
                 <q-card-section v-if="wiki_page_info.wikiSpace && !is_page_present">
                     <div style="display:grid;">
                         <div>
@@ -61,7 +62,62 @@
                 </q-card-section>
             </q-card>
         </div>
+        <div class="col-md-3 col-lg-3 col-xs-12 xol-sm-12">
+            <q-card class="q-px-xs q-py-sm q-ma-md">
+                <q-card-section>
+                    <div class="text-h6">Page History</div>
+                </q-card-section>
+                <q-card-section>
+                    <q-list separator>
+                      <q-item class="q-px-none" :key="item.changeDateTime" v-for="item, index in wiki_page_history">
+                        <q-item-section class="q-pl-sm">
+                          <q-item-label @click="version=item.versionName,getPublishedWikiPageText()" class="cursor-pointer text-blue text-weight-medium">Version {{item.versionName}}
+                          <q-chip dense v-if="item.versionName === published_version" color="green" text-color="white">
+                            Published
+                          </q-chip>
+                          </q-item-label>
+                          <q-item-label caption class="q-pt-xs">
+                          <span @click="showDiffBetweenVersions(wiki_page_history[index+1].versionName, item.versionName)" class="cursor-pointer text-blue q-pr-xs" v-if="index !== (wiki_page_history.length-1)">Diff Prev</span>
+                          <span v-if="!(index === (wiki_page_history.length-1) || index === 0)">|</span>
+                          <span @click="showDiffBetweenVersions(item.versionName, version)" class="cursor-pointer text-blue" :class="index !== (wiki_page_history.length-1)? 'q-pl-xs' : ''" v-if="index !== 0">Diff Cur</span>
+                          </q-item-label>
+                        </q-item-section>
 
+                        <q-item-section side top>
+                          <q-item-label caption>By {{item.first_name}} {{item.last_name}}</q-item-label>
+                          <q-item-label caption>
+                            {{formatDate(item.changeDateTime)}}
+                          </q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </q-list>
+                </q-card-section>
+            </q-card>
+        </div>
+        <q-dialog v-model="compare_model">
+          <q-card class="q-pa-none" style="width: 80vw; max-width: 80vw;">
+            <q-card-section>
+              <div class="row q-px-md q-py-sm">
+                <div v-if="wiki_page_info && wiki_page_info.wikiSpace" class="col-11 q-pt-sm text-h5 text-weight-bold">
+                    Compare "{{wiki_page_info.wikiSpace.wikiSpaceId}}" - Versions {{versionNameLhs}} and {{versionNameRhs}}
+                </div>
+                <div class="col-1">
+                    <q-btn flat round dense icon="close" class="float-right" v-close-popup></q-btn>
+                </div>
+            </div>
+            </q-card-section>
+            <q-separator></q-separator>
+
+            <q-card-section class="q-ma-md">
+                <pre id="result" class="compare"></pre>
+            </q-card-section>
+
+            <q-separator></q-separator>
+            <q-card-actions class="q-pa-md" align="left">
+              <q-btn v-close-popup outline dense label="Close" class="text-capitalize q-mb-md" color="black"></q-btn>
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
         <q-dialog id="edit_editor_id" v-model="show_edit_model" @show="initializeEditor('#editEditor')">
           <q-card class="q-pa-none" style="width: 80vw; max-width: 80vw;">
             <q-card-section>
@@ -191,12 +247,16 @@
 module.exports = {
     data: function () {
         return {
+            compare_model: false,
+            versionNameLhs: "",
+            versionNameRhs: "",
             new_page_name: "",
             new_page_seq: "",
             tree_nodes_selected: null,
             space_tree_data: [],
             tree_master_list: [],
             wiki_page_info: {},
+            wiki_page_history: null,
             is_page_present: false,
             page_detail: {},
             version: null,
@@ -214,6 +274,53 @@ module.exports = {
         }
     },
     methods: {
+        showDiffBetweenVersions(versionNameLhs, versionNameRhs) {
+            let self = this;
+            self.versionNameLhs = versionNameLhs;
+            self.versionNameRhs = versionNameRhs;
+            self.compare_model = true;
+            const params = new Proxy(new URLSearchParams(window.location.search), {
+              get: (searchParams, prop) => searchParams.get(prop),
+            });
+            if (params.wikiSpaceId) {
+                var allParams = $.extend({ wikiSpaceId:params.wikiSpaceId,pagePath: self.page_path,
+                versionNameLhs: versionNameLhs, versionNameRhs: versionNameRhs,
+                moquiSessionToken:self.$root.moquiSessionToken }, {});
+                $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/getWikiCompare", headers:{Accept:'application/json'}, data:allParams,
+                    error:moqui.handleAjaxError, success:function(resp) {
+                        var a = resp.pageTextLhs;
+                        var b = resp.pageTextRhs;
+                        var result = document.getElementById('result');
+                        var diff = window.JsDiff.diffChars(a, b);
+                        var fragment = document.createDocumentFragment();
+                        for (var i=0; i < diff.length; i++) {
+                            if (diff[i].added && diff[i + 1] && diff[i + 1].removed) {
+                                var swap = diff[i];
+                                diff[i] = diff[i + 1];
+                                diff[i + 1] = swap;
+                            }
+                            var node;
+                            if (diff[i].removed) {
+                                node = document.createElement('del');
+                                node.appendChild(document.createTextNode(diff[i].value));
+                            } else if (diff[i].added) {
+                                node = document.createElement('ins');
+                                node.appendChild(document.createTextNode(diff[i].value));
+                            } else {
+                                node = document.createTextNode(diff[i].value);
+                            }
+                            fragment.appendChild(node);
+                        }
+
+                        result.textContent = '';
+                        result.appendChild(fragment);
+                    }
+                });
+            }
+            setTimeout( () => {
+
+            }, 1000 );
+        },
         openEditModal(item){
             let self = this;
             self.md_conv = new showdown.Converter({metadata: true});
@@ -465,6 +572,13 @@ module.exports = {
                 });
             }
         },
+        formatDate (dt) {
+            if (dt) {
+                dt = new Date(dt);
+                return dt.getFullYear() + "-" + String(dt.getMonth()+1).padStart(2, '0') + "-" + String(dt.getDate()).padStart(2, '0') +
+                        " " + String(dt.getHours()).padStart(2, '0') + ":" + String(dt.getMinutes()).padStart(2, '0');
+            }
+        },
         getWikiPageInfo() {
             var self = this;
             const params = new Proxy(new URLSearchParams(window.location.search), {
@@ -479,6 +593,7 @@ module.exports = {
                     error:moqui.handleAjaxError, success:function(resp) {
                         self.wiki_page_info = resp;
                         if ('wikiPageId' in self.wiki_page_info) {
+                            self.fetchPageHistory();
                             self.is_page_present = true;
                             self.version = self.wiki_page_info.currentVersionName;
                             self.published_version = self.wiki_page_info.publishedVersionName;
@@ -486,6 +601,20 @@ module.exports = {
                                 self.getPublishedWikiPageText();
                             }, 500 );
                         }
+                    }
+                });
+            }
+        },
+        fetchPageHistory() {
+            var self = this;
+            const params = new Proxy(new URLSearchParams(window.location.search), {
+              get: (searchParams, prop) => searchParams.get(prop),
+            });
+            if (params.wikiSpaceId) {
+                var allParams = $.extend({ wikiPageId :self.wiki_page_info.wikiPageId ,wikiSpaceId: params.wikiSpaceId, moquiSessionToken:self.$root.moquiSessionToken }, {});
+                $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/getWikiPageHistory", headers:{Accept:'application/json'}, data:allParams,
+                    error:moqui.handleAjaxError, success:function(resp) {
+                        self.wiki_page_history = resp.wphList;
                     }
                 });
             }

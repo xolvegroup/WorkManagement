@@ -105,4 +105,10 @@ along with this software (see the LICENSE.md file). If not, see
     <resource name="deleteWikiPage">
         <method type="post"><service name="org.moqui.impl.WikiServices.delete#WikiPage"/></method>
     </resource>
+    <resource name="getWikiPageHistory">
+        <method type="get"><service name="wm.TaskServices.get#WikiPageHistory"/></method>
+    </resource>
+    <resource name="getWikiCompare">
+        <method type="get"><service name="wm.TaskServices.get#WikiCompare"/></method>
+    </resource>
 </resource>

@@ -400,4 +400,56 @@ along with this software (see the LICENSE.md file). If not, see
                 <search-form-inputs default-order-by="wikiSpaceId"/></entity-find>
         </actions>
     </service>
+    <service verb="get" noun="WikiPageHistory">
+        <in-parameters>
+            <parameter name="wikiPageId" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="wphList" type="List"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="moqui.resource.wiki.WikiPageHistory" list="wphListTmp">
+            <econdition field-name="wikiPageId"/><order-by field-name="-changeDateTime"/></entity-find>
+
+            <set field="wphList" from="[]"/>
+            <if condition="wphListTmp">
+                <iterate list="wphListTmp" entry="wph">
+                    <set field="history" from="new HashMap()"/>
+                    <script>
+                        history.putAll(wph)
+                        wphList.add(history)
+                    </script>
+                    <entity-find-one entity-name="mantle.party.PersonAndUserAccount" value-field="paua">
+                        <field-map field-name="userId" from="wph.userId"/>
+                    </entity-find-one>
+                    <if condition="paua">
+                        <script>
+                            history.put("first_name",paua.firstName)
+                            history.put("last_name",paua.lastName)
+                            history.put("username",paua.username)
+                        </script>
+                    </if>
+                </iterate>
+            </if>
+        </actions>
+    </service>
+    <service verb="get" noun="WikiCompare">
+        <in-parameters>
+            <parameter name="wikiSpaceId" required="true"/>
+            <parameter name="pagePath"/>
+            <parameter name="versionNameLhs" required="true"/>
+            <parameter name="versionNameRhs" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="pageTextLhs" />
+            <parameter name="pageTextRhs" />
+        </out-parameters>
+        <actions>
+            <!-- <set field="extraPathNameList" from="sri.screenUrlInfo.extraPathNameList"/> -->
+            <service-call name="org.moqui.impl.WikiServices.get#WikiPageInfo" in-map="context" out-map="context"/>
+            <set field="pageTextLhs" from="pageReference?.getText(versionNameLhs) ?: ''"/>
+            <set field="pageTextRhs" from="pageReference?.getText(versionNameRhs) ?: ''"/>
+            <set field="wikiType" from="wikiType ?: 'md'"/>
+        </actions>
+    </service>
 </services>
