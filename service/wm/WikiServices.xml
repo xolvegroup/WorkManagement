@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
+    <service verb="get" noun="WikiPageHistory">
+        <in-parameters>
+            <parameter name="wikiPageId" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="wphList" type="List"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="moqui.resource.wiki.WikiPageHistory" list="wphListTmp">
+            <econdition field-name="wikiPageId"/><order-by field-name="-changeDateTime"/></entity-find>
+
+            <set field="wphList" from="[]"/>
+            <if condition="wphListTmp">
+                <iterate list="wphListTmp" entry="wph">
+                    <set field="history" from="new HashMap()"/>
+                    <script>
+                        history.putAll(wph)
+                        wphList.add(history)
+                    </script>
+                    <entity-find-one entity-name="mantle.party.PersonAndUserAccount" value-field="paua">
+                        <field-map field-name="userId" from="wph.userId"/>
+                    </entity-find-one>
+                    <if condition="paua">
+                        <script>
+                            history.put("first_name",paua.firstName)
+                            history.put("last_name",paua.lastName)
+                            history.put("username",paua.username)
+                        </script>
+                    </if>
+                </iterate>
+            </if>
+        </actions>
+    </service>
+    <service verb="get" noun="WikiCompare">
+        <in-parameters>
+            <parameter name="wikiSpaceId" required="true"/>
+            <parameter name="pagePath"/>
+            <parameter name="versionNameLhs" required="true"/>
+            <parameter name="versionNameRhs" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="pageTextLhs" />
+            <parameter name="pageTextRhs" />
+        </out-parameters>
+        <actions>
+            <!-- <set field="extraPathNameList" from="sri.screenUrlInfo.extraPathNameList"/> -->
+            <service-call name="org.moqui.impl.WikiServices.get#WikiPageInfo" in-map="context" out-map="context"/>
+            <set field="pageTextLhs" from="pageReference?.getText(versionNameLhs) ?: ''"/>
+            <set field="pageTextRhs" from="pageReference?.getText(versionNameRhs) ?: ''"/>
+            <set field="wikiType" from="wikiType ?: 'md'"/>
+        </actions>
+    </service>
+</services>
