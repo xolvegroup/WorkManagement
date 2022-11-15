@@ -61,6 +61,53 @@
                     <div v-if="wiki_page_info.wikiType == 'md'" v-html="getHtmlForMD(page_detail.pageText)"></div>
                 </q-card-section>
             </q-card>
+            <q-card class="q-px-none q-py-sm q-my-md q-mx-none">
+                <q-card-section>
+                    <div class="text-h6 q-pl-sm">Comments
+                    <q-btn @click="show_add_comment=true" outline dense label="Add Comment" class="text-capitalize float-right" color="primary"></q-btn>
+                    </div>
+                </q-card-section>
+                <div class="q-mt-md text-center q-py-md" v-if="wiki_page_comments.length === 0">
+                    No comments found.
+                </div>
+                <div class="q-mt-md" v-if="wiki_page_comments.length > 0">
+                    <q-list>
+                    <span :key="comment.communicationEventId" v-for="comment, index in wiki_page_comments">
+                          <q-item :style="'border-top: ' + (index !==0?'1px solid #e1dddd;':'1px solid #e1dddd;')" class="q-my-sm q-pt-md">
+                            <q-item-section avatar>
+                              <q-avatar color="primary" text-color="white">
+                                {{ getInitials(comment.userFullName) }}
+                              </q-avatar>
+                            </q-item-section>
+
+                            <q-item-section class="q-pl-md">
+                              <q-item-label class="text-subtitle1">{{comment.subject}}
+                              <span class="float-right text-right">{{ comment.userFullName }}<br>
+                              <span
+                                class="q-pl-sm text-caption text-grey-7">{{ timeSince(comment.entryDate) }}</span></span>
+                              </q-item-label>
+                              <q-item-label class="q-pt-none q-mt-none" caption><span class="text-weight-medium" v-html="getHtmlForMD(comment.body)"></span>
+                              </q-item-label>
+
+                            </q-item-section>
+
+                             <!--<q-item-section side top class="q-pt-none">
+                                 <div>
+                                    <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId != comment.communicationEventId" @click="editComment(comment)" class="text-blue q-px-sm q-ml-sm" flat dense icon="edit"></q-btn>
+                                    <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId" @click="updateComment();" class="text-blue q-px-sm q-ml-sm" outline flat dense icon="save"></q-btn>
+                                    <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId" @click="obj_edit_comment={};" class="text-red q-px-sm q-ml-sm" outline flat dense icon="close"></q-btn>
+                                    <q-btn style="padding: 0;" @click="obj_delete_comment=comment;is_delete_comment=true;" class="text-red q-px-sm q-ml-sm" flat dense icon="delete"></q-btn>
+                                </div>
+                             </q-item-section>-->
+
+                          </q-item>
+                          <!--<div class="comment_section edit_comment_section q-mt-sm q-px-lg" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId">
+                              <div style="border: 1px solid #c2c2c2;width: 80%" id="editCommentEditor"></div>
+                            </div>-->
+                      </span>
+                      </q-list>
+                </div>
+            </q-card>
         </div>
         <div class="col-md-3 col-lg-3 col-xs-12 xol-sm-12">
             <q-card class="q-px-xs q-py-sm q-ma-md">
@@ -235,18 +282,52 @@
 
             <q-separator></q-separator>
             <q-card-actions class="q-pa-md" align="left">
-              <q-btn @click="openAddPageMain()" outline dense label="Add Page" class="text-capitalize q-mb-md" color="primary"></q-btn>
+              <q-btn :disabled="!(add_wiki_type)" @click="openAddPageMain()" outline dense label="Add Page" class="text-capitalize q-mb-md" color="primary"></q-btn>
               <q-btn v-close-popup outline dense label="Cancel" class="text-capitalize q-mb-md" color="black"></q-btn>
             </q-card-actions>
           </q-card>
         </q-dialog>
 
+        <q-dialog id="add_page_comment_id" v-model="show_add_comment" @show="initializeEditor('#addPageCommentEditor')">
+          <q-card class="q-pa-none" style="width: 45vw; max-width: 45vw;">
+            <q-card-section>
+              <div class="row q-px-md q-py-sm">
+                <div class="col-11 q-pt-sm text-h5 text-weight-bold">
+                    Add Comment
+                </div>
+                <div class="col-1">
+                    <q-btn flat round dense icon="close" class="float-right" v-close-popup></q-btn>
+                </div>
+            </div>
+            </q-card-section>
+            <q-separator></q-separator>
+
+            <q-card-section class="q-ma-md edit_page">
+                <div class="row">
+                    <div class="col-12">
+                        <q-input outlined dense v-model="subject" label="Subject" />
+                    </div>
+                    <div class="col-12 q-pt-md add_comment_sec">
+                        <div style="border: 1px solid #c2c2c2;height: 100px;" id="addPageCommentEditor"></div>
+                    </div>
+                </div>
+            </q-card-section>
+
+            <q-separator></q-separator>
+            <q-card-actions class="q-pa-md" align="left">
+              <q-btn @click="addComment" outline dense label="Add" class="text-capitalize q-mb-md" color="primary"></q-btn>
+              <q-btn v-close-popup outline dense label="Cancel" class="text-capitalize q-mb-md" color="black"></q-btn>
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
     </div>
 </template>
 <script>
 module.exports = {
     data: function () {
         return {
+            subject: "",
+            show_add_comment: false,
             compare_model: false,
             versionNameLhs: "",
             versionNameRhs: "",
@@ -257,6 +338,7 @@ module.exports = {
             tree_master_list: [],
             wiki_page_info: {},
             wiki_page_history: null,
+            wiki_page_comments: [],
             is_page_present: false,
             page_detail: {},
             version: null,
@@ -274,6 +356,16 @@ module.exports = {
         }
     },
     methods: {
+        getInitials(name) {
+            if (name) {
+                let name_words = name.split(" ").slice(0, 2);
+                final_initials = "";
+                name_words.forEach(function(item){
+                    final_initials += item[0];
+                });
+                return final_initials.toUpperCase();
+            }
+        },
         showDiffBetweenVersions(versionNameLhs, versionNameRhs) {
             let self = this;
             self.versionNameLhs = versionNameLhs;
@@ -332,9 +424,15 @@ module.exports = {
                 })["sequenceNum"];
             }
             else {
-                self.obj_edit["sequence"] = self.tree_master_list.find(function(item){
+                let seq_match = self.tree_master_list.find(function(item){
                     return Object.keys(item).indexOf('pagePath') === -1;
-                })["sequenceNum"];
+                });
+                if (seq_match) {
+                    self.obj_edit["sequence"] = seq_match["sequenceNum"];
+                }
+                else {
+                    self.obj_edit["sequence"] = "";
+                }
             }
         },
         openAddPageMain() {
@@ -369,6 +467,10 @@ module.exports = {
                     editor.setData("");
                  }
                 $("#edit_editor_id").find('.q-dialog__inner').removeAttr('tabindex');
+             }
+             else if (elem === "#addPageCommentEditor"){
+                window.add_comment_editor = editor;
+                $("#add_page_comment_id").find('.q-dialog__inner').removeAttr('tabindex');
              }
              else {
                 window.add_editor = editor;
@@ -579,6 +681,32 @@ module.exports = {
                         " " + String(dt.getHours()).padStart(2, '0') + ":" + String(dt.getMinutes()).padStart(2, '0');
             }
         },
+        timeSince(date) {
+              var seconds = Math.floor((new Date() - date) / 1000);
+
+              var interval = seconds / 31536000;
+
+              if (interval > 1) {
+                return Math.floor(interval) + " year(s) ago";
+              }
+              interval = seconds / 2592000;
+              if (interval > 1) {
+                return Math.floor(interval) + " month(s) ago";
+              }
+              interval = seconds / 86400;
+              if (interval > 1) {
+                return Math.floor(interval) + " day(s) ago";
+              }
+              interval = seconds / 3600;
+              if (interval > 1) {
+                return Math.floor(interval) + " hour(s) ago";
+              }
+              interval = seconds / 60;
+              if (interval > 1) {
+                return Math.floor(interval) + " minute(s) ago";
+              }
+              return Math.floor(seconds) + " second(s) ago";
+        },
         getWikiPageInfo() {
             var self = this;
             const params = new Proxy(new URLSearchParams(window.location.search), {
@@ -594,6 +722,7 @@ module.exports = {
                         self.wiki_page_info = resp;
                         if ('wikiPageId' in self.wiki_page_info) {
                             self.fetchPageHistory();
+                            self.fetchPageComments();
                             self.is_page_present = true;
                             self.version = self.wiki_page_info.currentVersionName;
                             self.published_version = self.wiki_page_info.publishedVersionName;
@@ -618,6 +747,37 @@ module.exports = {
                     }
                 });
             }
+        },
+        fetchPageComments() {
+            var self = this;
+            const params = new Proxy(new URLSearchParams(window.location.search), {
+              get: (searchParams, prop) => searchParams.get(prop),
+            });
+            self.md_conv = new showdown.Converter({metadata: true});
+            if (params.wikiSpaceId) {
+                var allParams = $.extend({ wikiPageId :self.wiki_page_info.wikiPageId ,wikiSpaceId: params.wikiSpaceId, moquiSessionToken:self.$root.moquiSessionToken }, {});
+                $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/getWikiPageCommEventDetail", headers:{Accept:'application/json'}, data:allParams,
+                    error:moqui.handleAjaxError, success:function(resp) {
+                        self.wiki_page_comments = resp.commentList.map(function(item){
+                                                      item["userFullName"] = item["assignedUserFirstName"]+ " " + item["assignedUserLastName"];
+                                                      return item;
+                                                  }).reverse();
+                    }
+                });
+            }
+        },
+        addComment () {
+            var self = this;
+            var allParams = $.extend({ wikiPageId: self.wiki_page_info.wikiPageId, subject: self.subject,
+            body: window.add_comment_editor.getData(),moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/addWikiPageComment", headers:{Accept:'application/json'}, data:allParams,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    self.fetchPageComments();
+                    window.add_comment_editor.setData("");
+                    self.show_add_comment = false;
+                    self.subject = "";
+                }
+            });
         },
         setPublishedVersion() {
             var self = this;
@@ -730,6 +890,10 @@ module.exports = {
     .ck-editor__editable_inline {
         min-height: 57vh !important;
         height: 57vh !important;
+    }
+    .add_comment_sec .ck-editor__editable_inline {
+        min-height: 30vh !important;
+        height: 30vh !important;
     }
     .ck-editor {
         width: 100% !important;

@@ -111,4 +111,10 @@ along with this software (see the LICENSE.md file). If not, see
     <resource name="getWikiCompare">
         <method type="get"><service name="wm.WikiServices.get#WikiCompare"/></method>
     </resource>
+    <resource name="addWikiPageComment">
+        <method type="post"><service name="mantle.party.CommunicationServices.add#WikiPageComment"/></method>
+    </resource>
+    <resource name="getWikiPageCommEventDetail">
+        <method type="get"><service name="wm.WikiServices.get#WikiPageCommEventDetail"/></method>
+    </resource>
 </resource>
