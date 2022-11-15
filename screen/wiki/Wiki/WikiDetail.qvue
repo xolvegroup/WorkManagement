@@ -33,7 +33,7 @@
               <q-chip dense v-if="published_version" color="primary" text-color="white">
                 Published: {{published_version}}
               </q-chip>
-              <span class="text-green" v-if="version === published_version">This version published</span>
+              <span class="text-green" v-if="version && published_version && version === published_version">This version published</span>
             </div>
             <q-card class="q-px-md q-py-sm q-my-md q-mx-none">
                 <q-card-section v-if="wiki_page_info.wikiSpace && !is_page_present">
