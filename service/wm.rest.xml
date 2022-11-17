@@ -117,4 +117,10 @@ along with this software (see the LICENSE.md file). If not, see
     <resource name="getWikiPageCommEventDetail">
         <method type="get"><service name="wm.WikiServices.get#WikiPageCommEventDetail"/></method>
     </resource>
+    <resource name="updateWikiPageComment">
+        <method type="post"><service name="wm.WikiServices.update#WikiPageComment"/></method>
+    </resource>
+    <resource name="deleteWikiPageComment">
+        <method type="post"><service name="wm.WikiServices.delete#Comment"/></method>
+    </resource>
 </resource>

@@ -72,40 +72,37 @@
                 </div>
                 <div class="q-mt-md" v-if="wiki_page_comments.length > 0">
                     <q-list>
-                    <span :key="comment.communicationEventId" v-for="comment, index in wiki_page_comments">
-                          <q-item :style="'border-top: ' + (index !==0?'1px solid #e1dddd;':'1px solid #e1dddd;')" class="q-my-sm q-pt-md">
-                            <q-item-section avatar>
-                              <q-avatar color="primary" text-color="white">
-                                {{ getInitials(comment.userFullName) }}
-                              </q-avatar>
-                            </q-item-section>
+                        <span :key="comment.communicationEventId" v-for="comment in wiki_page_comments">
+                              <q-item style="border-top: 1px solid #e1dddd;" class="q-my-sm q-pt-md">
+                                <q-item-section avatar>
+                                  <q-avatar color="primary" text-color="white">
+                                    {{ getInitials(comment.userFullName) }}
+                                  </q-avatar>
+                                </q-item-section>
 
-                            <q-item-section class="q-pl-md">
-                              <q-item-label class="text-subtitle1">{{comment.subject}}
-                              <span class="float-right text-right">{{ comment.userFullName }}<br>
-                              <span
-                                class="q-pl-sm text-caption text-grey-7">{{ timeSince(comment.entryDate) }}</span></span>
-                              </q-item-label>
-                              <q-item-label class="q-pt-none q-mt-none" caption><span class="text-weight-medium" v-html="getHtmlForMD(comment.body)"></span>
-                              </q-item-label>
+                                <q-item-section class="q-pl-md">
+                                  <q-item-label class="text-subtitle1">{{ comment.userFullName }} <span
+                                    class="q-pl-sm text-caption text-grey-7">{{ timeSince(comment.entryDate) }}</span></q-item-label>
+                                  <q-item-label v-if="obj_edit_comment.communicationEventId != comment.communicationEventId" class="q-pt-sm" caption><span class="text-weight-medium" v-html="getHtmlForMD(comment.body)"></span>
+                                  </q-item-label>
 
-                            </q-item-section>
+                                </q-item-section>
 
-                             <!--<q-item-section side top class="q-pt-none">
-                                 <div>
-                                    <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId != comment.communicationEventId" @click="editComment(comment)" class="text-blue q-px-sm q-ml-sm" flat dense icon="edit"></q-btn>
-                                    <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId" @click="updateComment();" class="text-blue q-px-sm q-ml-sm" outline flat dense icon="save"></q-btn>
-                                    <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId" @click="obj_edit_comment={};" class="text-red q-px-sm q-ml-sm" outline flat dense icon="close"></q-btn>
-                                    <q-btn style="padding: 0;" @click="obj_delete_comment=comment;is_delete_comment=true;" class="text-red q-px-sm q-ml-sm" flat dense icon="delete"></q-btn>
+                                 <q-item-section side top class="q-pt-none">
+                                     <div>
+                                        <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId != comment.communicationEventId" @click="editComment(comment)" class="text-blue q-px-sm q-ml-sm" flat dense icon="edit"></q-btn>
+                                        <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId" @click="updateComment();" class="text-blue q-px-sm q-ml-sm" outline flat dense icon="save"></q-btn>
+                                        <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId" @click="obj_edit_comment={};" class="text-red q-px-sm q-ml-sm" outline flat dense icon="close"></q-btn>
+                                        <q-btn style="padding: 0;" @click="obj_delete_comment=comment;is_delete_comment=true;" class="text-red q-px-sm q-ml-sm" flat dense icon="delete"></q-btn>
+                                    </div>
+                                 </q-item-section>
+
+                              </q-item>
+                              <div id="edit_comment_id" class="comment_section edit_comment_section q-mt-sm q-px-lg" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId">
+                                  <div style="border: 1px solid #c2c2c2;" id="editCommentEditor"></div>
                                 </div>
-                             </q-item-section>-->
-
-                          </q-item>
-                          <!--<div class="comment_section edit_comment_section q-mt-sm q-px-lg" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId">
-                              <div style="border: 1px solid #c2c2c2;width: 80%" id="editCommentEditor"></div>
-                            </div>-->
-                      </span>
-                      </q-list>
+                          </span>
+                          </q-list>
                 </div>
             </q-card>
         </div>
@@ -223,7 +220,7 @@
             </q-card-section>
             <q-separator></q-separator>
 
-            <q-card-section class="q-ma-md edit_page">
+            <q-card-section class="add_page_cls q-ma-md">
                 <div style="border: 1px solid #c2c2c2;" id="addEditor"></div>
             </q-card-section>
 
@@ -287,7 +284,19 @@
             </q-card-actions>
           </q-card>
         </q-dialog>
+        <q-dialog v-model="is_delete_comment" persistent>
+          <q-card class="q-px-md q-pt-md">
+            <q-card-section class="row items-center">
+              <q-avatar size="md" icon="delete" color="primary" text-color="white"></q-avatar>
+              <span class="q-ml-sm text-h6">Are you sure you want to delete?</span>
+            </q-card-section>
 
+            <q-card-actions align="right">
+              <q-btn flat label="Cancel" @click="obj_delete_comment={};is_delete_comment=false;" color="primary"></q-btn>
+              <q-btn flat label="Delete" color="red" @click="deleteComment"></q-btn>
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
         <q-dialog id="add_page_comment_id" v-model="show_add_comment" @show="initializeEditor('#addPageCommentEditor')">
           <q-card class="q-pa-none" style="width: 45vw; max-width: 45vw;">
             <q-card-section>
@@ -304,11 +313,8 @@
 
             <q-card-section class="q-ma-md edit_page">
                 <div class="row">
-                    <div class="col-12">
-                        <q-input outlined dense v-model="subject" label="Subject" />
-                    </div>
-                    <div class="col-12 q-pt-md add_comment_sec">
-                        <div style="border: 1px solid #c2c2c2;height: 100px;" id="addPageCommentEditor"></div>
+                    <div class="col-12 add_comment_sec">
+                        <div style="border: 1px solid #c2c2c2;" id="addPageCommentEditor"></div>
                     </div>
                 </div>
             </q-card-section>
@@ -326,7 +332,6 @@
 module.exports = {
     data: function () {
         return {
-            subject: "",
             show_add_comment: false,
             compare_model: false,
             versionNameLhs: "",
@@ -339,6 +344,8 @@ module.exports = {
             wiki_page_info: {},
             wiki_page_history: null,
             wiki_page_comments: [],
+            is_delete_comment:false,
+            obj_delete_comment:{},
             is_page_present: false,
             page_detail: {},
             version: null,
@@ -352,7 +359,8 @@ module.exports = {
             delete_page: false,
             is_children_present: false,
             wiki_type_options_all: [{'label':'md','value':'md'},{'label':'html','value':'html'}],
-            wiki_type_options: [{'label':'md','value':'md'},{'label':'html','value':'html'}]
+            wiki_type_options: [{'label':'md','value':'md'},{'label':'html','value':'html'}],
+            obj_edit_comment:{}
         }
     },
     methods: {
@@ -364,6 +372,50 @@ module.exports = {
                     final_initials += item[0];
                 });
                 return final_initials.toUpperCase();
+            }
+        },
+        deleteComment() {
+            var self = this;
+            const params = new Proxy(new URLSearchParams(window.location.search), {
+              get: (searchParams, prop) => searchParams.get(prop),
+            });
+            if (params.wikiSpaceId) {
+                var allParams = $.extend({ wikiPageId: self.wiki_page_info.wikiPageId,
+                 communicationEventId:self.obj_delete_comment.communicationEventId,moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
+                $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/deleteWikiPageComment", headers:{Accept:'application/json'}, data:allParams,
+                    error:moqui.handleAjaxError, success:function(resp) {
+                        self.obj_delete_comment = {};
+                        self.is_delete_comment = false;
+                        self.fetchPageComments();
+                    }
+                });
+            }
+        },
+        editComment (comment) {
+            let self = this;
+            self.obj_edit_comment=comment;
+            if (document.querySelector('.edit_comment_section .ck-editor__editable')) {
+                document.querySelector('.edit_comment_section .ck-editor__editable').ckeditorInstance.destroy();
+            }
+            setTimeout( () => {
+                self.initializeEditor("#editCommentEditor");
+            }, 300 );
+        },
+        updateComment() {
+            var self = this;
+            const params = new Proxy(new URLSearchParams(window.location.search), {
+              get: (searchParams, prop) => searchParams.get(prop),
+            });
+            if (params.wikiSpaceId) {
+                var allParams = $.extend({ wikiPageId: self.wiki_page_info.wikiPageId,
+                 body: window.edit_comment_editor.getData(),communicationEventId:self.obj_edit_comment.communicationEventId,moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
+                $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/updateWikiPageComment", headers:{Accept:'application/json'}, data:allParams,
+                    error:moqui.handleAjaxError, success:function(resp) {
+                        self.obj_edit_comment = {};
+                        self.fetchPageComments();
+                        window.edit_comment_editor.setData("");
+                    }
+                });
             }
         },
         showDiffBetweenVersions(versionNameLhs, versionNameRhs) {
@@ -451,32 +503,54 @@ module.exports = {
             if (document.querySelector('.edit_page .ck-editor__editable')) {
                 document.querySelector('.edit_page .ck-editor__editable').ckeditorInstance.destroy();
             }
-            InlineEditor
-            .create( document.querySelector( elem ), {})
-            .then( editor => {
-             if (elem === "#editEditor"){
-                 window.edit_editor = editor;
-                 if (self.wiki_page_info.wikiType == 'html' && self.obj_edit.pageText){
-                    let turndownService = window.TurndownService();
-                    editor.setData(turndownService.turndown(self.obj_edit.pageText));
+            if (document.querySelector('.edit_comment_section .ck-editor__editable')) {
+                document.querySelector('.edit_comment_section .ck-editor__editable').ckeditorInstance.destroy();
+                self.obj_edit_comment={};
+            }
+            if (document.querySelector('.add_comment_sec .ck-editor__editable')) {
+                document.querySelector('.add_comment_sec .ck-editor__editable').ckeditorInstance.destroy();
+            }
+            if (document.querySelector('.add_page_cls .ck-editor__editable')) {
+                document.querySelector('.add_page_cls .ck-editor__editable').ckeditorInstance.destroy();
+            }
+            setTimeout( () => {
+                InlineEditor
+                .create( document.querySelector( elem ), {})
+                .then( editor => {
+                 if (elem === "#editEditor"){
+                     window.edit_editor = editor;
+                     if (self.wiki_page_info.wikiType == 'html' && self.obj_edit.pageText){
+                        let turndownService = window.TurndownService();
+                        editor.setData(turndownService.turndown(self.obj_edit.pageText));
+                     }
+                     else if (self.wiki_page_info.wikiType == 'md' && self.obj_edit.pageText){
+                        editor.setData(self.getHtmlForMD(self.obj_edit.pageText));
+                     }
+                     else {
+                        editor.setData("");
+                     }
+                    $("#edit_editor_id").find('.q-dialog__inner').removeAttr('tabindex');
                  }
-                 else if (self.wiki_page_info.wikiType == 'md' && self.obj_edit.pageText){
-                    editor.setData(self.getHtmlForMD(self.obj_edit.pageText));
+                 else if (elem === "#addPageCommentEditor"){
+                    window.add_comment_editor = editor;
+                    $("#add_page_comment_id").find('.q-dialog__inner').removeAttr('tabindex');
                  }
+                 else if (elem === "#editCommentEditor"){
+                      window.edit_comment_editor = editor;
+                      $("#edit_comment_id").find('.q-dialog__inner').removeAttr('tabindex');
+                      if (self.obj_edit_comment.body){
+                         editor.setData(self.obj_edit_comment.body);
+                      }
+                      else {
+                         editor.setData("");
+                      }
+                  }
                  else {
-                    editor.setData("");
+                    window.add_editor = editor;
+                    $("#add_editor_id").find('.q-dialog__inner').removeAttr('tabindex');
                  }
-                $("#edit_editor_id").find('.q-dialog__inner').removeAttr('tabindex');
-             }
-             else if (elem === "#addPageCommentEditor"){
-                window.add_comment_editor = editor;
-                $("#add_page_comment_id").find('.q-dialog__inner').removeAttr('tabindex');
-             }
-             else {
-                window.add_editor = editor;
-                $("#add_editor_id").find('.q-dialog__inner').removeAttr('tabindex');
-             }
-         } )
+             } )
+         }, 300 );
         },
         addPage() {
           let self = this;
@@ -722,7 +796,9 @@ module.exports = {
                         self.wiki_page_info = resp;
                         if ('wikiPageId' in self.wiki_page_info) {
                             self.fetchPageHistory();
-                            self.fetchPageComments();
+                            setTimeout( () => {
+                                self.fetchPageComments();
+                            }, 300 );
                             self.is_page_present = true;
                             self.version = self.wiki_page_info.currentVersionName;
                             self.published_version = self.wiki_page_info.publishedVersionName;
@@ -768,14 +844,13 @@ module.exports = {
         },
         addComment () {
             var self = this;
-            var allParams = $.extend({ wikiPageId: self.wiki_page_info.wikiPageId, subject: self.subject,
+            var allParams = $.extend({ wikiPageId: self.wiki_page_info.wikiPageId,
             body: window.add_comment_editor.getData(),moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/addWikiPageComment", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.fetchPageComments();
                     window.add_comment_editor.setData("");
                     self.show_add_comment = false;
-                    self.subject = "";
                 }
             });
         },
@@ -878,22 +953,21 @@ module.exports = {
 }
 </script>
 <style>
-    .custom_table_header {
-        height: 45px !important;
+    .add_page_cls .ck-editor__editable_inline {
+        min-height: 57vh !important;
+        height: 57vh !important;
     }
-    .cls_space .q-field__label {
-        top: 10px !important;
-    }
-    .cls_space .q-field--float .q-field__label {
-        top: 0px !important;
-    }
-    .ck-editor__editable_inline {
+    .edit_page .ck-editor__editable_inline {
         min-height: 57vh !important;
         height: 57vh !important;
     }
     .add_comment_sec .ck-editor__editable_inline {
-        min-height: 30vh !important;
-        height: 30vh !important;
+        min-height: 200px !important;
+        height: 200px !important;
+    }
+    .edit_comment_section .ck-editor__editable_inline {
+        min-height: 180px !important;
+        height: 180px !important;
     }
     .ck-editor {
         width: 100% !important;
