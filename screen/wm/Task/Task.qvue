@@ -17,6 +17,68 @@
     </q-dialog>
     <q-drawer
             side="right"
+            v-model="open_saved_finds_drawer"
+            bordered
+            overlay
+            :width="550"
+            :breakpoint="550"
+            :content-class="!$q.dark.isActive?'bg-grey-3':'bg-black'"
+          >
+          <div class="q-pa-sm q-px-md">
+                <div class="row">
+                    <div class="col-11 q-pt-sm text-h5 text-weight-bold">
+                        Saved Finds
+                    </div>
+                    <div class="col-1">
+                        <q-btn flat round dense icon="close" @click="open_saved_finds_drawer=false"></q-btn>
+                    </div>
+                </div>
+                <div class="row q-mt-md q-col-gutter-md cls_task_detail">
+                    <div class="col-12 q-pb-lg" v-if="Object.keys(filter_params).length > 1 || (filter_params['orderByField'] != '-workEffortId' && mdl_filter_order_by !== null)">
+                           <div class="row">
+                                <div class="col-6 q-pb-sm" v-if="mdl_filter_user">
+                                    <span class="text-subtitle2">User : </span><span class="text-subtitle2 text-green-8">{{ mdl_filter_user.userFullName }}</span>
+                                </div>
+                                <div class="col-6 q-pb-sm" v-if="mdl_filter_role">
+                                    <span class="text-subtitle2">Role : </span><span class="text-subtitle2 text-green-8">{{ mdl_filter_role.label }}</span>
+                                </div>
+                                <div class="col-6 q-pb-sm" v-if="mdl_filter_project">
+                                    <span class="text-subtitle2">Project : </span><span class="text-subtitle2 text-green-8">{{ mdl_filter_project.workEffortName }}</span>
+                                </div>
+                                <div class="col-6 q-pb-sm" v-if="mdl_filter_status">
+                                    <span class="text-subtitle2">Status : </span><span class="text-subtitle2 text-green-8">{{ getStatusLabel(mdl_filter_status) }}</span>
+                                </div>
+                                <div class="col-6 q-pb-sm" v-if="mdl_filter_order_by">
+                                    <span class="text-subtitle2">Order By : </span><span class="text-subtitle2 text-green-8">{{ mdl_filter_order_by.label }}</span>
+                                </div>
+                           </div>
+                           <div class="row q-mt-sm">
+                                <div class="col-8 q-pr-lg">
+                                    <q-input  v-model="save_new_find" autofocus square outlined label="Description" style="margin:0;padding:0;background-color:white;" dense>
+                                    </q-input>
+                                </div>
+                                <div class="col-4" style="padding-top:2px;">
+                                    <q-btn @click="findOptions()" class="text-blue q-px-sm q-ml-sm text-capitalize" outline dense icon="search" label="Save New Find"></q-btn>
+                                </div>
+                           </div>
+                    </div>
+                    <div class="col-12 q-pb-lg text-subtitle2" v-else>
+                        No find parameters (or default), choose some in Find Options to save a new find or update existing
+                    </div>
+                </div>
+                <div class="row q-py-sm q-my-lg" v-for="item in saved_find_list">
+                    <div class="col-8 q-pr-lg">
+                        <q-input  :value="item.description" autofocus square outlined label="Description" style="margin:0;padding:0;background-color:white;" dense>
+                        </q-input>
+                    </div>
+                    <div class="col-4" style="padding-top:2px;">
+                        <q-btn @click="" style="width: 70px" class="text-blue q-px-sm q-ml-sm text-capitalize" outline dense icon="search" label="Find"></q-btn>
+                    </div>
+                </div>
+          </div>
+    </q-drawer>
+    <q-drawer
+            side="right"
             v-model="open_find_options_drawer"
             bordered
             overlay
@@ -471,6 +533,7 @@
                 </q-btn>
               </q-item-section>
               <q-item-section style="display: block;" class="cls_task_detail">
+              <q-btn style="width: 130px" class="text-capitalize float-right" outline rounded dense label="Saved Finds" icon="save" @click="open_saved_finds_drawer=true"></q-btn>
               <q-btn style="width: 130px" class="text-capitalize float-right" outline rounded dense label="Find Options" icon="search" @click="open_find_options_drawer=true"></q-btn>
               <q-btn style="width: 130px" v-if="Object.keys(filter_params).length > 1 || (filter_params['orderByField'] != '-workEffortId' && mdl_filter_order_by !== null)" @click="resetFind()" class="text-capitalize float-right text-red" outline rounded dense icon="close" label="Clear"></q-btn>
               </q-item-section>
@@ -789,6 +852,9 @@ module.exports = {
                                      {"label":"Status (Desc)","value":"-status"},
                                      {"label":"Due Date (Asc)","value":"duedate"},
                                      {"label":"Due Date(Desc)","value":"-duedate"}],
+            open_saved_finds_drawer: false,
+            saved_find_list: [],
+            save_new_find: ''
         }
     },
     methods: {
@@ -1576,6 +1642,133 @@ module.exports = {
                 message: 'Copied task link.',
                 position: 'bottom-left',
               })
+        },
+        getSavedFinds () {
+            var self = this;
+            var allParms = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/saved_finds", headers:{Accept:'application/json'}, data:allParms,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    console.log(resp);
+                    resp = {
+                      "savedFindList" : [ {
+                        "orderByField" : "estimatedCompletionDate",
+                        "formListFindId" : "100006",
+                        "description" : "Complex Search",
+                        "formLocation" : "component://WorkManagement/screen/Work/Task.xml.form_list$MyTasks",
+                        "userId" : "EX_JOHN_DOE",
+                        "fieldList" : [ {
+                          "formListFindId" : "100006",
+                          "fieldName" : "partyId",
+                          "fieldNot" : "N",
+                          "fieldFrom" : null,
+                          "fieldThru" : null,
+                          "fieldIgnoreCase" : "N",
+                          "fieldValue" : "ORG_ACME_SA",
+                          "fieldOperator" : "equals",
+                          "lastUpdatedStamp" : 1669207178500,
+                          "fieldPeriod" : null,
+                          "fieldPerOffset" : null
+                        }, {
+                          "formListFindId" : "100006",
+                          "fieldNot" : "N",
+                          "fieldFrom" : null,
+                          "fieldThru" : null,
+                          "fieldIgnoreCase" : "N",
+                          "fieldOperator" : "equals",
+                          "fieldValue" : "Assignee",
+                          "lastUpdatedStamp" : 1669207178500,
+                          "fieldName" : "roleTypeId",
+                          "fieldPeriod" : null,
+                          "fieldPerOffset" : null
+                        }, {
+                          "fieldName" : "workEffortName",
+                          "formListFindId" : "100006",
+                          "fieldIgnoreCase" : "Y",
+                          "fieldNot" : "N",
+                          "fieldFrom" : null,
+                          "fieldOperator" : "contains",
+                          "fieldThru" : null,
+                          "fieldValue" : "She",
+                          "lastUpdatedStamp" : 1669207178500,
+                          "fieldPeriod" : null,
+                          "fieldPerOffset" : null
+                        } ]
+                      }, {
+                        "orderByField" : "estimatedCompletionDate",
+                        "formListFindId" : "100007",
+                        "description" : "Collaborator and Bob",
+                        "formLocation" : "component://WorkManagement/screen/Work/Task.xml.form_list$MyTasks",
+                        "userId" : "EX_JOHN_DOE",
+                        "fieldList" : [ {
+                          "formListFindId" : "100007",
+                          "fieldName" : "partyId",
+                          "fieldNot" : "N",
+                          "fieldFrom" : null,
+                          "fieldValue" : "ORG_ZIZI_BD",
+                          "fieldThru" : null,
+                          "fieldIgnoreCase" : "N",
+                          "lastUpdatedStamp" : 1669263852200,
+                          "fieldOperator" : "equals",
+                          "fieldPeriod" : null,
+                          "fieldPerOffset" : null
+                        }, {
+                          "fieldValue" : "Collaborator",
+                          "formListFindId" : "100007",
+                          "fieldNot" : "N",
+                          "fieldFrom" : null,
+                          "fieldThru" : null,
+                          "fieldIgnoreCase" : "N",
+                          "lastUpdatedStamp" : 1669263852200,
+                          "fieldOperator" : "equals",
+                          "fieldName" : "roleTypeId",
+                          "fieldPeriod" : null,
+                          "fieldPerOffset" : null
+                        } ]
+                      }, {
+                        "orderByField" : "workEffortName",
+                        "formListFindId" : "100008",
+                        "description" : "Order by Name",
+                        "formLocation" : "component://WorkManagement/screen/Work/Task.xml.form_list$MyTasks",
+                        "userId" : "EX_JOHN_DOE"
+                      }, {
+                        "orderByField" : "-workEffortName",
+                        "formListFindId" : "100009",
+                        "description" : "Order by Name desc",
+                        "formLocation" : "component://WorkManagement/screen/Work/Task.xml.form_list$MyTasks",
+                        "userId" : "EX_JOHN_DOE"
+                      }, {
+                        "orderByField" : "estimatedCompletionDate",
+                        "formListFindId" : "100010",
+                        "description" : "John Search",
+                        "formLocation" : "component://WorkManagement/screen/Work/Task.xml.form_list$MyTasks",
+                        "userId" : "EX_JOHN_DOE",
+                        "fieldList" : [ {
+                          "fieldValue" : "ORG_ZIZI_JD",
+                          "fieldName" : "partyId",
+                          "fieldNot" : "N",
+                          "fieldFrom" : null,
+                          "fieldThru" : null,
+                          "lastUpdatedStamp" : 1669284663932,
+                          "fieldIgnoreCase" : "N",
+                          "formListFindId" : "100010",
+                          "fieldOperator" : "equals",
+                          "fieldPeriod" : null,
+                          "fieldPerOffset" : null
+                        } ]
+                      } ]
+                    }
+
+                    self.saved_find_list = resp.savedFindList;
+                }
+            });
+        },
+        getStatusLabel(items) {
+
+            var label_str = items.reduce(function(p, c) {
+              return p ? p + ', ' + c.description : c.description
+            },'');
+
+            return label_str;
         }
     },
     created: function () {
@@ -1584,6 +1777,7 @@ module.exports = {
         this.onPageChange({
           pagination: this.pagination,
         });
+        this.getSavedFinds();
     }
 }
 </script>
