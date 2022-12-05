@@ -72,7 +72,7 @@
                         </q-input>
                     </div>
                     <div class="col-4" style="padding-top:2px;">
-                        <q-btn @click="" style="width: 70px" class="text-blue q-px-sm q-ml-sm text-capitalize" outline dense icon="search" label="Find"></q-btn>
+                        <q-btn @click="searchSavedFind(item)" style="width: 70px" class="text-blue q-px-sm q-ml-sm text-capitalize" outline dense icon="search" label="Find"></q-btn>
                     </div>
                 </div>
           </div>
@@ -1659,6 +1659,79 @@ module.exports = {
             },'');
 
             return label_str;
+        },
+        searchSavedFind(selected_item) {
+            let self = this;
+            self.mdl_filter_user = null;
+            self.mdl_filter_project = null;
+            self.mdl_filter_role = null;
+            self.mdl_filter_status = null;
+            self.mdl_filter_order_by = null;
+            self.filter_params = {};
+
+            if(selected_item.fieldList)
+            {
+                selected_item.fieldList.map(function(item){
+                    if(item.fieldOperator == 'equals')
+                    {
+                        if(item.fieldName=='partyId')
+                        {
+                            self.getAssigneeList(item.fieldValue).then(function(resp){
+                                    if(resp.userList.length > 0)
+                                    {
+                                        self.mdl_filter_user = resp.userList[0];;
+                                    }
+                              });
+                              self.filter_params[item.fieldName] = item.fieldValue;
+                        }
+                        else if(item.fieldName=='roleTypeId')
+                        {
+                            let filtered_roles = self.role_options_master.filter(function(item_role){ return item_role.value == item.fieldValue});
+                            if(filtered_roles.length > 0)
+                            {
+                                self.mdl_filter_role = filtered_roles[0];
+                            }
+                            self.filter_params[item.fieldName] = item.fieldValue;
+                        }
+                        else if(item.fieldName=='rootWorkEffortId')
+                        {
+                            let filtered_projects = self.project_options_master.filter(function(item_workeffortid){ return item_workeffortid.value == item.fieldValue});
+                            if(filtered_projects.length > 0)
+                            {
+                                self.mdl_filter_project = filtered_projects[0];
+                            }
+                            self.filter_params[item.fieldName] = item.fieldValue;
+                        }
+                        else if(item.fieldName=='statusId')
+                        {
+                            let filtered_status = self.status_options_master.filter(function(item_status){ return item_status.value == item.fieldValue});
+                            if(filtered_status.length > 0)
+                            {
+                                self.mdl_filter_project = filtered_projects;
+                            }
+                            self.filter_params[item.fieldName] = item.fieldValue;
+                        }
+
+                    }
+                    return item;
+                });
+            }
+
+            let order_by_field = selected_item.orderByField.split(",")[0];
+
+            if (order_by_field.startsWith("-")) {
+                self.pagination.sortBy = order_by_field.slice(1);
+                self.pagination.descending = true;
+            }
+            else {
+                self.pagination.sortBy = order_by_field;
+                self.pagination.descending = false;
+            }
+
+            self.pagination.page = 1;
+            self.onPageChange({
+              pagination: self.pagination,
+            });
         }
     },
     created: function () {
