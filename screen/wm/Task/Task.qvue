@@ -533,9 +533,32 @@
                 </q-btn>
               </q-item-section>
               <q-item-section style="display: block;" class="cls_task_detail">
-              <q-btn style="width: 130px" class="text-capitalize float-right" outline rounded dense label="Saved Finds" icon="save" @click="open_saved_finds_drawer=true"></q-btn>
-              <q-btn style="width: 130px" class="text-capitalize float-right" outline rounded dense label="Find Options" icon="search" @click="open_find_options_drawer=true"></q-btn>
-              <q-btn style="width: 130px" v-if="Object.keys(filter_params).length > 1 || (filter_params['orderByField'] != '-workEffortId' && mdl_filter_order_by !== null)" @click="resetFind()" class="text-capitalize float-right text-red" outline rounded dense icon="close" label="Clear"></q-btn>
+
+              <q-select
+                  label="Select Find"
+                  dense
+                  rounded
+                  outlined
+                  v-model="mdl_select_find"
+                  option-value="formListFindId"
+                  option-label="description"
+                  :options="select_find_options"
+                  style="margin:0;margin-left:3px;padding:0;width: 160px"
+                  class="text-capitalize float-right"
+                  @input="searchSelectFind"
+                >
+                  <template v-slot:no-option>
+                    <q-item>
+                      <q-item-section class="text-grey">
+                        No results
+                      </q-item-section>
+                    </q-item>
+                  </template>
+                </q-select>
+
+              <q-btn style="width: 130px;margin-top:6px;" class="text-capitalize float-right" outline rounded dense label="Saved Finds" icon="save" @click="open_saved_finds_drawer=true"></q-btn>
+              <q-btn style="width: 130px;margin-top:6px;" class="text-capitalize float-right" outline rounded dense label="Find Options" icon="search" @click="open_find_options_drawer=true"></q-btn>
+              <q-btn style="width: 130px;margin-top:6px;" v-if="Object.keys(filter_params).length > 1 || (filter_params['orderByField'] != '-workEffortId' && mdl_filter_order_by !== null)" @click="resetFind()" class="text-capitalize float-right text-red" outline rounded dense icon="close" label="Clear"></q-btn>
               </q-item-section>
             </q-item>
                     <q-card flat class="q-mt-sm">
@@ -854,7 +877,9 @@ module.exports = {
                                      {"label":"Due Date(Desc)","value":"-duedate"}],
             open_saved_finds_drawer: false,
             saved_find_list: [],
-            save_new_find: ''
+            save_new_find: '',
+            select_find_options:[],
+            mdl_select_find: null
         }
     },
     methods: {
@@ -1055,6 +1080,7 @@ module.exports = {
             self.mdl_filter_status = null;
             self.mdl_filter_order_by = null;
             self.filter_params = {};
+            self.mdl_select_find = null;
             self.pagination.sortBy = "workEffortId";
             self.pagination.descending = true;
             self.pagination.page = 1;
@@ -1649,6 +1675,7 @@ module.exports = {
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/saved_finds", headers:{Accept:'application/json'}, data:allParms,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.saved_find_list = resp.savedFindList;
+                    self.select_find_options = resp.savedFindList;
                 }
             });
         },
@@ -1668,6 +1695,8 @@ module.exports = {
             self.mdl_filter_status = null;
             self.mdl_filter_order_by = null;
             self.filter_params = {};
+
+            self.mdl_select_find = selected_item;
 
             if(selected_item.fieldList)
             {
@@ -1732,6 +1761,9 @@ module.exports = {
             self.onPageChange({
               pagination: self.pagination,
             });
+        },
+        searchSelectFind(obj) {
+            this.searchSavedFind(obj);
         }
     },
     created: function () {
