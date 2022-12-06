@@ -535,6 +535,7 @@
               <q-item-section style="display: block;" class="cls_task_detail">
 
               <q-select
+                  v-if="saved_find_list.length>0"
                   label="Select Find"
                   dense
                   rounded
