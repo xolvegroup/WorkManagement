@@ -482,4 +482,43 @@ along with this software (see the LICENSE.md file). If not, see
             </if>
         </actions>
     </service>
+    <service verb="post" noun="SavedFinds">
+        <in-parameters>
+            <parameter name="description" required="true"/>
+            <parameter name="formLocation" required="true"/>
+            <parameter name="orderByField" />
+            <parameter name="fieldName" />
+            <parameter name="fieldValue" />
+            <parameter name="fieldOperator" />
+            <parameter name="fieldFrom" />
+            <parameter name="fieldThru" />
+        </in-parameters>
+        <out-parameters>
+            <parameter name="formListFindId"/>
+        </out-parameters>
+        <actions>
+            <service-call name="create#moqui.screen.form.FormListFind"
+                         out-map="context" in-map="[description:description, formLocation:formLocation, orderByField:orderByField]"/>
+            <service-call name="create#moqui.screen.form.FormListFindUser"
+                          in-map="[formListFindId:context.formListFindId, userId:ec.user.userId]"/>
+        </actions>
+    </service>
+    <service verb="post" noun="SavedFindsFields">
+        <in-parameters>
+            <parameter name="formListFindId" required="true"/>
+            <parameter name="fieldName" />
+            <parameter name="fieldValue" />
+            <parameter name="fieldOperator" />
+            <parameter name="fieldFrom" />
+            <parameter name="fieldThru" />
+        </in-parameters>
+        <out-parameters>
+            <parameter name="formListFindId"/>
+        </out-parameters>
+        <actions>
+            <service-call name="create#moqui.screen.form.FormListFindField"
+                         out-map="context" in-map="[formListFindId:formListFindId, fieldName:fieldName, fieldValue:fieldValue,
+                         fieldOperator:fieldOperator, fieldFrom:fieldFrom, fieldThru:fieldThru]"/>
+        </actions>
+    </service>
 </services>

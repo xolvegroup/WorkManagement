@@ -54,11 +54,11 @@
                            </div>
                            <div class="row q-mt-sm">
                                 <div class="col-8 q-pr-lg">
-                                    <q-input  v-model="save_new_find" autofocus square outlined label="Description" style="margin:0;padding:0;background-color:white;" dense>
+                                    <q-input  v-model="save_new_find" square outlined label="Description" style="margin:0;padding:0;background-color:white;" dense>
                                     </q-input>
                                 </div>
                                 <div class="col-4" style="padding-top:2px;">
-                                    <q-btn @click="findOptions()" class="text-blue q-px-sm q-ml-sm text-capitalize" outline dense icon="search" label="Save New Find"></q-btn>
+                                    <q-btn @click="storeSavedFinds()" class="text-blue q-px-sm q-ml-sm text-capitalize" outline dense icon="search" label="Save New Find"></q-btn>
                                 </div>
                            </div>
                     </div>
@@ -68,7 +68,7 @@
                 </div>
                 <div class="row q-py-sm q-my-lg" v-for="item in saved_find_list">
                     <div class="col-8 q-pr-lg">
-                        <q-input  :value="item.description" autofocus square outlined label="Description" style="margin:0;padding:0;background-color:white;" dense>
+                        <q-input  :value="item.description" square outlined label="Description" style="margin:0;padding:0;background-color:white;" dense>
                         </q-input>
                     </div>
                     <div class="col-4" style="padding-top:2px;">
@@ -1668,7 +1668,7 @@ module.exports = {
             this.$q.notify({
                 message: 'Copied task link.',
                 position: 'bottom-left',
-              })
+              });
         },
         getSavedFinds () {
             var self = this;
@@ -1725,7 +1725,7 @@ module.exports = {
                         }
                         else if(item.fieldName=='rootWorkEffortId')
                         {
-                            let filtered_projects = self.project_options_master.filter(function(item_workeffortid){ return item_workeffortid.value == item.fieldValue});
+                            let filtered_projects = self.project_options_master.filter(function(item_workeffortid){ return item_workeffortid.workEffortId == item.fieldValue});
                             if(filtered_projects.length > 0)
                             {
                                 self.mdl_filter_project = filtered_projects[0];
@@ -1734,10 +1734,15 @@ module.exports = {
                         }
                         else if(item.fieldName=='statusId')
                         {
-                            let filtered_status = self.status_options_master.filter(function(item_status){ return item_status.value == item.fieldValue});
-                            if(filtered_status.length > 0)
+                            let filter_statuses = item.fieldValue.split(",");
+                            let final_status_list = [];
+                            filter_statuses.forEach(function(item){
+                                let matched = self.status_options_master.find(function(item_status){ return item_status.statusId == item});
+                                final_status_list.push(matched);
+                            })
+                            if(final_status_list.length > 0)
                             {
-                                self.mdl_filter_project = filtered_projects;
+                                self.mdl_filter_status = final_status_list;
                             }
                             self.filter_params[item.fieldName] = item.fieldValue;
                         }
@@ -1748,7 +1753,6 @@ module.exports = {
             }
 
             let order_by_field = selected_item.orderByField.split(",")[0];
-
             if (order_by_field.startsWith("-")) {
                 self.pagination.sortBy = order_by_field.slice(1);
                 self.pagination.descending = true;
@@ -1757,7 +1761,21 @@ module.exports = {
                 self.pagination.sortBy = order_by_field;
                 self.pagination.descending = false;
             }
-
+            Object.keys(self.column_to_field_mapping).forEach(function(item){
+                if (self.pagination.sortBy == self.column_to_field_mapping[item]){
+                    self.pagination.sortBy = item;
+                }
+            })
+            if (self.pagination.descending) {
+                self.mdl_filter_order_by = self.orderby_options.find(function(item){
+                    return item.value === "-" + self.pagination.sortBy;
+                });
+            }
+            else {
+                self.mdl_filter_order_by = self.orderby_options.find(function(item){
+                    return item.value === self.pagination.sortBy;
+                });
+            }
             self.pagination.page = 1;
             self.onPageChange({
               pagination: self.pagination,
@@ -1765,6 +1783,58 @@ module.exports = {
         },
         searchSelectFind(obj) {
             this.searchSavedFind(obj);
+        },
+        storeSavedFinds () {
+            var vm = this;
+            let order_by_name = "";
+            if (vm.pagination.descending) {
+                order_by_name = "-" + (vm.column_to_field_mapping[vm.pagination.sortBy] || vm.pagination.sortBy);
+            }
+            else {
+                order_by_name = (vm.column_to_field_mapping[vm.pagination.sortBy] || vm.pagination.sortBy);
+            }
+
+            var allParms = $.extend({ description: vm.save_new_find, orderByField: order_by_name,
+             formLocation: 'component://WorkManagement/screen/Work/Task.xml.form_list$MyTasks' ,moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/add_saved_finds", headers:{Accept:'application/json'}, data:allParms,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    if (vm.mdl_filter_user) {
+                        vm.storeSavedFindsFields(resp.formListFindId, "partyId", vm.mdl_filter_user.partyId);
+                    }
+                    if (vm.mdl_filter_project) {
+                        vm.storeSavedFindsFields(resp.formListFindId, "rootWorkEffortId", vm.mdl_filter_project.workEffortId);
+                    }
+                    if (vm.mdl_filter_role) {
+                        vm.storeSavedFindsFields(resp.formListFindId, "roleTypeId", vm.mdl_filter_role.value);
+                    }
+                    if (vm.mdl_filter_status && vm.mdl_filter_status.length > 0) {
+                        let status_filters = "";
+                        vm.mdl_filter_status.forEach(function(item){
+                            status_filters = status_filters + "," + item.statusId;
+                        });
+                        vm.storeSavedFindsFields(resp.formListFindId, "statusId", status_filters.replace(",", ""));
+                    }
+                    setTimeout( () => {
+                        vm.getSavedFinds();
+                    }, 900 );
+                    vm.save_new_find = '';
+                    vm.$q.notify({
+                        message: 'Saved successfully.',
+                        position: 'bottom-left',
+                      });
+                }
+            });
+        },
+        storeSavedFindsFields (formListFindId, fieldName, fieldValue) {
+            var vm = this;
+
+            var allParms = $.extend({ formListFindId: formListFindId, fieldName: fieldName, fieldValue: fieldValue,
+             fieldOperator: "equals" ,moquiSessionToken:$("#confMoquiSessionToken").val(), treeNodeId:'#' }, {});
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/add_saved_finds_fields", headers:{Accept:'application/json'}, data:allParms,
+                error:moqui.handleAjaxError, success:function(resp) {
+
+                }
+            });
         }
     },
     created: function () {
@@ -1774,6 +1844,7 @@ module.exports = {
           pagination: this.pagination,
         });
         this.getSavedFinds();
+        //this.storeSavedFinds();
     }
 }
 </script>

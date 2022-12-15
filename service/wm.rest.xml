@@ -126,4 +126,10 @@ along with this software (see the LICENSE.md file). If not, see
     <resource name="saved_finds" require-authentication="anonymous-view">
         <method type="get"><service name="wm.TaskServices.get#SavedFinds"/></method>
     </resource>
+    <resource name="add_saved_finds" require-authentication="anonymous-view">
+        <method type="post"><service name="wm.TaskServices.post#SavedFinds"/></method>
+    </resource>
+    <resource name="add_saved_finds_fields" require-authentication="anonymous-view">
+        <method type="post"><service name="wm.TaskServices.post#SavedFindsFields"/></method>
+    </resource>
 </resource>
