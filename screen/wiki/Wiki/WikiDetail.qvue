@@ -471,9 +471,15 @@ module.exports = {
             self.show_edit_model = true;
             self.obj_edit = item;
             if (self.tree_nodes_selected) {
-                self.obj_edit["sequence"] = self.tree_master_list.find(function(item){
+                let matched_seq = self.tree_master_list.find(function(item){
                     return item.pagePath === self.tree_nodes_selected;
-                })["sequenceNum"];
+                });
+                if (matched_seq) {
+                    self.obj_edit["sequence"] = matched_seq["sequenceNum"];
+                }
+                else {
+                    self.obj_edit["sequence"] = "";
+                }
             }
             else {
                 let seq_match = self.tree_master_list.find(function(item){
@@ -634,9 +640,15 @@ module.exports = {
                     if (existingPath) {
                         currentLevel = existingPath.children;
                         currentLevel.map(function(itm){
-                            itm["sequence"] = self.tree_master_list.find(function(item){
+                            let matched_seq_one = self.tree_master_list.find(function(item){
                                     return item.pagePath === itm.path;
-                                })["sequenceNum"];
+                                });
+                            if (matched_seq_one) {
+                                itm["sequence"] = matched_seq_one["sequenceNum"];
+                            }
+                            else {
+                                itm["sequence"] = "";
+                            }
                             return itm;
                         });
                         currentLevel.sort(function(a, b){
@@ -663,9 +675,15 @@ module.exports = {
                         }
                         currentLevel.push(newPart);
                         currentLevel.map(function(itm){
-                            itm["sequence"] = self.tree_master_list.find(function(item){
+                            let matched_seq_two = self.tree_master_list.find(function(item){
                                     return item.pagePath === itm.path;
-                                })["sequenceNum"];
+                                });
+                            if (matched_seq_two) {
+                                itm["sequence"] = matched_seq_two["sequenceNum"];
+                            }
+                            else {
+                                itm["sequence"] = "";
+                            }
                             return itm;
                         });
                         currentLevel.sort(function(a, b){
@@ -681,9 +699,15 @@ module.exports = {
                     }
                 }
                 currentLevel.map(function(itm){
-                    itm["sequence"] = self.tree_master_list.find(function(item){
+                    let matched_seq_three = self.tree_master_list.find(function(item){
                             return item.pagePath === itm.path;
-                        })["sequenceNum"];
+                        });
+                    if (matched_seq_three) {
+                        itm["sequence"] = matched_seq_three["sequenceNum"];
+                    }
+                    else {
+                        itm["sequence"] = "";
+                    }
                     return itm;
                 });
                 currentLevel.sort(function(a, b){
@@ -697,9 +721,15 @@ module.exports = {
                     });
             }
             tree.map(function(itm){
-                itm["sequence"] = self.tree_master_list.find(function(item){
+                let matched_seq_four = self.tree_master_list.find(function(item){
                         return item.pagePath === itm.path;
-                    })["sequenceNum"];
+                    });
+                if (matched_seq_four) {
+                    itm["sequence"] = matched_seq_four["sequenceNum"];
+                }
+                else {
+                    itm["sequence"] = "";
+                }
                 return itm;
             });
             tree.sort(function(a, b){
