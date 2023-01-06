@@ -13,10 +13,10 @@
                       @update:selected="treeNodeSelected"
                       no-connectors
                       :nodes="space_tree_data"
-                      node-key="path"
+                      node-key="pagePath"
                       :selected.sync="tree_nodes_selected"
-                      label-key="name"
-                      default-expand-all
+                      label-key="pageName"
+                      @lazy-load="onLazyLoad"
                     />
                 </q-card-section>
             </q-card>
@@ -169,7 +169,7 @@
                 <div class="col-11 q-pt-sm text-h5 text-weight-bold">
                     Edit Page: {{ wiki_page_info.pageName }}
                     <!-- <q-input style="width: 200px;" class="inline-block" outlined dense v-model="wiki_page_info.pageName" label="Page Name" ></q-input>-->
-                    <q-input style="width: 200px;" class="inline-block" outlined dense v-model="obj_edit.sequence" label="Sequence" ></q-input>
+                    <q-input style="width: 200px;" class="inline-block" outlined dense v-model="sequence_in_edit" label="Sequence" ></q-input>
                 </div>
                 <div class="col-1">
                     <q-btn flat round dense icon="close" class="float-right" v-close-popup></q-btn>
@@ -360,10 +360,34 @@ module.exports = {
             is_children_present: false,
             wiki_type_options_all: [{'label':'md','value':'md'},{'label':'html','value':'html'}],
             wiki_type_options: [{'label':'md','value':'md'},{'label':'html','value':'html'}],
-            obj_edit_comment:{}
+            obj_edit_comment:{},
+            sequence_in_edit: ""
         }
     },
     methods: {
+        onLazyLoad ({ node, key, done, fail }) {
+
+          // simulate loading and setting an empty node
+          if (key.indexOf('Lazy load empty') > -1) {
+            done([])
+            return
+          }
+
+          const label = node.label
+          var self = this;
+            const params = new Proxy(new URLSearchParams(window.location.search), {
+              get: (searchParams, prop) => searchParams.get(prop),
+            });
+            if (params.wikiSpaceId) {
+                var allParams = $.extend({ wikiSpaceId:params.wikiSpaceId,pagePath: node.pagePath,
+                moquiSessionToken:self.$root.moquiSessionToken }, {});
+                $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/getWikiSpaceTree", headers:{Accept:'application/json'}, data:allParams,
+                    error:moqui.handleAjaxError, success:function(resp) {
+                        done(JSON.parse(JSON.stringify(resp.childPageInfoList)))
+                    }
+                });
+            }
+          },
         getInitials(name) {
             if (name) {
                 let name_words = name.split(" ").slice(0, 2);
@@ -470,28 +494,7 @@ module.exports = {
             self.md_conv = new showdown.Converter({metadata: true});
             self.show_edit_model = true;
             self.obj_edit = item;
-            if (self.tree_nodes_selected) {
-                let matched_seq = self.tree_master_list.find(function(item){
-                    return item.pagePath === self.tree_nodes_selected;
-                });
-                if (matched_seq) {
-                    self.obj_edit["sequence"] = matched_seq["sequenceNum"];
-                }
-                else {
-                    self.obj_edit["sequence"] = "";
-                }
-            }
-            else {
-                let seq_match = self.tree_master_list.find(function(item){
-                    return Object.keys(item).indexOf('pagePath') === -1;
-                });
-                if (seq_match) {
-                    self.obj_edit["sequence"] = seq_match["sequenceNum"];
-                }
-                else {
-                    self.obj_edit["sequence"] = "";
-                }
-            }
+            self.sequence_in_edit = JSON.parse(JSON.stringify(self.$refs.left_tree.getNodeByKey(self.wiki_page_info.pagePath).sequenceNum));
         },
         openAddPageMain() {
             let self = this;
@@ -575,9 +578,31 @@ module.exports = {
           $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/updateWikiPage", headers:{Accept:'application/json'}, data:allParams,
               error:moqui.handleAjaxError, success:function(resp) {
                   self.show_add_model = false;
-                  self.getWikiSpaceTree();
-                  self.page_path = (self.wiki_page_info.pagePath ? (self.wiki_page_info.pagePath + "/"):'') + self.new_page_name;
-                  self.tree_nodes_selected = (self.wiki_page_info.pagePath ? (self.wiki_page_info.pagePath + "/"):'') + self.new_page_name;
+                  let parent_path = JSON.parse(JSON.stringify(self.wiki_page_info.pagePath));
+                  self.page_path = (parent_path ? (parent_path + "/"):'') + self.new_page_name;
+                  self.tree_nodes_selected = (parent_path ? (parent_path + "/"):'') + self.new_page_name;
+                  if (parent_path) {
+                    let item_to_push = {"filename":JSON.parse(JSON.stringify(self.new_page_name))+"."+JSON.parse(JSON.stringify(self.add_wiki_type.value)),"pageName": JSON.parse(JSON.stringify(self.new_page_name)),"pagePath": JSON.parse(JSON.stringify(self.page_path)),"sequenceNum": JSON.parse(JSON.stringify(self.new_page_seq))};
+                    if ("children" in self.$refs.left_tree.getNodeByKey(parent_path)) {
+                        self.$refs.left_tree.getNodeByKey(parent_path).children.push(item_to_push);
+                        self.$refs.left_tree.getNodeByKey(parent_path).children = self.$refs.left_tree.getNodeByKey(parent_path).children.sort(function(a, b){
+                            if(a['sequenceNum'] > b['sequenceNum']){
+                                return 1;
+                            }
+                            else if(a['sequenceNum'] < b['sequenceNum']) {
+                                return -1;
+                            }
+                            return 0;
+                        });
+                    }
+                    else {
+                        self.$refs.left_tree.getNodeByKey(parent_path)["children"] = [item_to_push];
+                    }
+                    self.is_children_present = false;
+                    setTimeout( () => {
+                        self.$refs.left_tree.setExpanded(parent_path, true);
+                    }, 300);
+                  }
                   self.getWikiPageInfo();
                   self.new_page_name = "";
                   self.new_page_seq = "";
@@ -591,7 +616,7 @@ module.exports = {
                                   parentPath: self.wiki_page_info.parentPath,
                                   pageName: self.wiki_page_info.pageName,
                                   wikiType: self.wiki_page_info.wikiType,
-                                  sequenceNum: self.obj_edit.sequence,
+                                  sequenceNum: self.sequence_in_edit,
                                   moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
           if (self.wiki_page_info.wikiType == 'html') {
             allParams["pageText"] = self.getHtmlForMD(window.edit_editor.getData());
@@ -601,8 +626,28 @@ module.exports = {
           }
           $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/updateWikiPage", headers:{Accept:'application/json'}, data:allParams,
               error:moqui.handleAjaxError, success:function(resp) {
+                  let parent_node = JSON.parse(JSON.stringify(self.wiki_page_info.parentPath));
                   self.show_edit_model = false;
-                  self.getWikiSpaceTree();
+                  if (parent_node) {
+                      self.$refs.left_tree.getNodeByKey(parent_node).children.map(function(item){
+                        if (item.pagePath === self.wiki_page_info.pagePath) {
+                            item.sequenceNum = JSON.parse(JSON.stringify(self.sequence_in_edit));
+                        }
+                        return item;
+                      });
+                      self.$refs.left_tree.getNodeByKey(parent_node).children = self.$refs.left_tree.getNodeByKey(parent_node).children.sort(function(a, b){
+                            if(a['sequenceNum'] > b['sequenceNum']){
+                                return 1;
+                            }
+                            else if(a['sequenceNum'] < b['sequenceNum']) {
+                                return -1;
+                            }
+                            return 0;
+                        });
+                    }
+                    else {
+                        self.getWikiSpaceTree();
+                    }
                   self.getWikiPageInfo();
                   self.tree_nodes_selected = self.wiki_page_info.parentPath ? (self.wiki_page_info.parentPath + '/' + self.wiki_page_info.pageName) : self.wiki_page_info.pageName;
               }
@@ -625,124 +670,6 @@ module.exports = {
                 return false;
             }
         },
-        arrangeIntoTree(paths) {
-            let self = this;
-            var tree = [];
-
-            for (var i = 0; i < paths.length; i++) {
-                var path = paths[i];
-                var currentLevel = tree;
-                for (var j = 0; j < path.length; j++) {
-                    var part = path[j];
-
-                    var existingPath = self.findWhere(currentLevel, 'name', part);
-
-                    if (existingPath) {
-                        currentLevel = existingPath.children;
-                        currentLevel.map(function(itm){
-                            let matched_seq_one = self.tree_master_list.find(function(item){
-                                    return item.pagePath === itm.path;
-                                });
-                            if (matched_seq_one) {
-                                itm["sequence"] = matched_seq_one["sequenceNum"];
-                            }
-                            else {
-                                itm["sequence"] = "";
-                            }
-                            return itm;
-                        });
-                        currentLevel.sort(function(a, b){
-                            if(a['sequence'] > b['sequence']){
-                                return 1;
-                            }
-                            else if(a['sequence'] < b['sequence']) {
-                                return -1;
-                            }
-                            return 0;
-                        });
-                    } else {
-                        node_path = "";
-                        for (let i in path) {
-                            node_path = node_path + "/" + path[i];
-                            if (part === path[i]) {
-                                break
-                            }
-                        }
-                        var newPart = {
-                            name: part,
-                            path: node_path.substring(1),
-                            children: [],
-                        }
-                        currentLevel.push(newPart);
-                        currentLevel.map(function(itm){
-                            let matched_seq_two = self.tree_master_list.find(function(item){
-                                    return item.pagePath === itm.path;
-                                });
-                            if (matched_seq_two) {
-                                itm["sequence"] = matched_seq_two["sequenceNum"];
-                            }
-                            else {
-                                itm["sequence"] = "";
-                            }
-                            return itm;
-                        });
-                        currentLevel.sort(function(a, b){
-                            if(a['sequence'] > b['sequence']){
-                                return 1;
-                            }
-                            else if(a['sequence'] < b['sequence']) {
-                                return -1;
-                            }
-                            return 0;
-                        });
-                        currentLevel = newPart.children;
-                    }
-                }
-                currentLevel.map(function(itm){
-                    let matched_seq_three = self.tree_master_list.find(function(item){
-                            return item.pagePath === itm.path;
-                        });
-                    if (matched_seq_three) {
-                        itm["sequence"] = matched_seq_three["sequenceNum"];
-                    }
-                    else {
-                        itm["sequence"] = "";
-                    }
-                    return itm;
-                });
-                currentLevel.sort(function(a, b){
-                        if(a['sequence'] > b['sequence']){
-                            return 1;
-                        }
-                        else if(a['sequence'] < b['sequence']) {
-                            return -1;
-                        }
-                        return 0;
-                    });
-            }
-            tree.map(function(itm){
-                let matched_seq_four = self.tree_master_list.find(function(item){
-                        return item.pagePath === itm.path;
-                    });
-                if (matched_seq_four) {
-                    itm["sequence"] = matched_seq_four["sequenceNum"];
-                }
-                else {
-                    itm["sequence"] = "";
-                }
-                return itm;
-            });
-            tree.sort(function(a, b){
-                if(a['sequence'] > b['sequence']){
-                    return 1;
-                }
-                else if(a['sequence'] < b['sequence']) {
-                    return -1;
-                }
-                return 0;
-            });
-            return tree;
-        },
         getWikiSpaceTree() {
             var self = this;
             const params = new Proxy(new URLSearchParams(window.location.search), {
@@ -753,27 +680,8 @@ module.exports = {
                 moquiSessionToken:self.$root.moquiSessionToken }, {});
                 $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/getWikiSpaceTree", headers:{Accept:'application/json'}, data:allParams,
                     error:moqui.handleAjaxError, success:function(resp) {
-                        self.tree_master_list = JSON.parse(JSON.stringify(resp.wikiPageAndUserList));
-                        let result = JSON.parse(JSON.stringify(resp.wikiPageAndUserList)).sort(function(a, b){
-                            if(a['sequenceNum'] > b['sequenceNum']){
-                                return 1;
-                            }
-                            else if(a['sequenceNum'] < b['sequenceNum']) {
-                                return -1;
-                            }
-                            return 0;
-                        });
-                        let paths = [];
-                        result.forEach(function(item){
-                            if (item.pagePath) {
-                                paths.push(item.pagePath.split("/"));
-                            }
-                        });
-                        let final_result = self.arrangeIntoTree(paths);
-                        self.space_tree_data = final_result;
-                        self.$nextTick(function () {
-                            self.$refs.left_tree.expandAll();
-                          })
+                        self.tree_master_list = JSON.parse(JSON.stringify(resp.childPageInfoList));
+                        self.space_tree_data = JSON.parse(JSON.stringify(resp.childPageInfoList));
                     }
                 });
             }
@@ -917,8 +825,19 @@ module.exports = {
                             position: 'bottom-right',
                           });
                         self.delete_page = false;
-                        self.getWikiSpaceTree();
-                        self.getWikiPageInfo();
+                        let parent_node = JSON.parse(JSON.stringify(self.wiki_page_info.parentPath));
+                        let item_deleted = JSON.parse(JSON.stringify(self.page_path));
+                        self.treeNodeSelected(parent_node);
+                        self.$refs.left_tree.getNodeByKey(parent_node).children = self.$refs.left_tree.getNodeByKey(parent_node).children.filter(function(item){
+                            return item.pagePath !== item_deleted;
+                        });
+                        if (self.$refs.left_tree.getNodeByKey(parent_node).children.length == 0){
+                            self.is_children_present = false;
+                        }
+                        else {
+                            self.is_children_present = true;
+                        }
+                        self.tree_nodes_selected = parent_node;
                     }
                 });
             }
@@ -929,16 +848,19 @@ module.exports = {
             }
         },
         treeNodeSelected(path) {
-            this.page_path = path;
-            this.page_detail = {};
-            let children = this.$refs.left_tree.getNodeByKey(path).children;
-            if (children.length == 0) {
-                this.is_children_present = false;
+            if (path) {
+                this.page_path = path;
+                this.page_detail = {};
+                this.$refs.left_tree.setExpanded(path, true);
+                let children = this.$refs.left_tree.getNodeByKey(path).lazy;
+                if (children) {
+                    this.is_children_present = true;
+                }
+                else {
+                    this.is_children_present = false;
+                }
+                this.getWikiPageInfo();
             }
-            else {
-                this.is_children_present = true;
-            }
-            this.getWikiPageInfo();
         },
         getPublishedWikiPageText() {
             var self = this;
@@ -979,7 +901,7 @@ module.exports = {
     created: function () {
         this.getWikiSpaceTree();
         this.getWikiPageInfo();
-    }
+    },
 }
 </script>
 <style>
