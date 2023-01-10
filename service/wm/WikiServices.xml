@@ -138,6 +138,20 @@ along with this software (see the LICENSE.md file). If not, see
                 <econdition field-name="wikiSpaceId"/></entity-find>
         </actions>
     </service>
+    <service verb="get" noun="getAllBlogsForWikiSpace">
+        <in-parameters>
+            <parameter name="wikiSpaceId" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="blogsList"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="moqui.resource.wiki.WikiBlogFindView" list="blogsList">
+                <search-form-inputs default-order-by="-publishDate"/>
+                <select-field field-name="wikiSpaceId,wikiBlogId,wikiPageId,pagePath,title,author,publishDate"/>
+            </entity-find>
+        </actions>
+    </service>
     <service verb="get" noun="WikiPageChildren">
         <implements service="org.moqui.impl.WikiServices.get#WikiPageReference"/>
         <out-parameters>
@@ -176,4 +190,5 @@ along with this software (see the LICENSE.md file). If not, see
             <order-map-list list="childPageInfoList"><order-by field-name="sequenceNum"/><order-by field-name="childPageName"/></order-map-list>
         </actions>
     </service>
+
 </services>

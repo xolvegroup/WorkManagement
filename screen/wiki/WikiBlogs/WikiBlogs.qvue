@@ -1,0 +1,117 @@
+<template>
+    <div class="row">
+        <div class="col-12">
+                <q-btn
+                style="width: 205px;"
+            class="custom_btn_dropdown"
+            dense
+                  split
+                  color="primary"
+                  no-caps
+                  icon="add"
+                  label="Add Blog Post from Page"
+                >
+                </q-btn>
+                <q-btn
+                style="width: 205px;margin-left: 6px;"
+            class="custom_btn_dropdown"
+            dense
+                  split
+                  color="primary"
+                  no-caps
+                  icon="add"
+                  label="Add Blog Post with Text"
+                >
+                </q-btn>
+            <q-card flat class="q-mt-sm">
+              <q-card-section style="padding: 0px;">
+                <q-table
+                bordered
+                flat
+                :wrap-cells="true"
+                      :data="blog_list"
+                      table-header-class="custom_table_header"
+                      :columns="table_columns"
+                      row-key="wikiBlogId"
+                      separator="cell"
+                      dense
+                      :pagination.sync="pagination"
+                    >
+                        <template v-slot:body-cell-publishdate="props">
+                          <q-td :props="props">
+                            {{formatDate(props.row.publishDate)}}
+                          </q-td>
+                        </template>
+                        <template v-slot:body-cell-action="props">
+                          <q-td :props="props">
+                            Wiki Page
+                          </q-td>
+                        </template>
+                    </q-table>
+              </q-card-section>
+            </q-card>
+        </div>
+    </div>
+</template>
+<script>
+module.exports = {
+    data: function () {
+        return {
+            blog_list: [],
+            pagination: {
+                page: 1,
+                rowsPerPage: 10,
+                rowsNumber: 0,
+                sortBy: 'workEffortId',
+                descending: true,
+              },
+              table_columns: [
+               {
+                 name: 'title',
+                 field: 'title',
+                 required: true,
+                 label: 'Title',
+                 align: 'left',
+                 sortable: true,
+                 style: 'width: 20%'
+               },
+               { name: 'publishdate', align: 'left', label: 'Publish Date',style: 'width: 20%', field: 'publishDate', sortable: true },
+               { name: 'author', align: 'left', label: 'Author',style: 'width: 20%', field: 'author', sortable: true },
+               { name: 'wikispace', align: 'left', label: 'Wiki Space',style: 'width: 20%', field: 'wikiSpaceId', sortable: true },
+               { name: 'action', align: 'left', label: '',style: 'width: 20%', field: '', sortable: false },
+            ]
+        }
+    },
+    methods: {
+        formatDate (dt) {
+            if (dt) {
+                dt = new Date(dt);
+                return dt.getFullYear() + "-" + String(dt.getMonth()+1).padStart(2, '0') + "-" + String(dt.getDate()).padStart(2, '0');
+            }
+        },
+        getAllBlogs() {
+            var self = this;
+            const params = new Proxy(new URLSearchParams(window.location.search), {
+              get: (searchParams, prop) => searchParams.get(prop),
+            });
+            if (params.wikiSpaceId) {
+                var allParams = $.extend({ wikiSpaceId:params.wikiSpaceId,
+                moquiSessionToken:self.$root.moquiSessionToken }, {});
+                $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/get_all_blogs_for_wiki_space", headers:{Accept:'application/json'}, data:allParams,
+                    error:moqui.handleAjaxError, success:function(resp) {
+                        self.blog_list = resp.blogsList;
+                    }
+                });
+            }
+        },
+    },
+    created: function () {
+        this.getAllBlogs();
+    },
+}
+</script>
+<style>
+    .custom_table_header {
+        height: 38px !important;
+    }
+</style>

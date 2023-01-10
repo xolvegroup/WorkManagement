@@ -34,6 +34,11 @@
                           <a class="text-weight-medium" :href="'WikiDetail?wikiSpaceId=' + props.row.wikiSpaceId">{{props.row.wikiSpaceId}}</a>
                         </q-td>
                     </template>
+                    <template v-slot:body-cell-blogs="props">
+                        <q-td :props="props">
+                          <a class="text-weight-medium" :href="'WikiBlogs?wikiSpaceId=' + props.row.wikiSpaceId">Blog Posts</a>
+                        </q-td>
+                    </template>
                     <template v-slot:body-cell-publicpageurl="props">
                         <q-td :props="props">
                           <div>{{props.row.publicPageUrl}}</div>
@@ -219,6 +224,7 @@ module.exports = {
             wiki_space_list: [],
             table_columns: [
                { name: 'spaceid', align: 'left', label: 'Space ID',style: 'width: 120px', field: 'wikiSpaceId', sortable: true },
+               { name: 'blogs', align: 'left', label: 'Blogs',style: 'width: 120px', field: '', sortable: true },
                { name: 'description', align: 'left', label: 'Description',style: 'width: 200px', field: 'description', sortable: true },
                { name: 'restrictview', align: 'left', label: 'Restrict View',style: 'width: 100px', field: 'restrictView', sortable: true },
                { name: 'anyhtml', align: 'left', label: 'Any HTML',style: 'width: 100px', field: 'allowAnyHtml', sortable: true },
