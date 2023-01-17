@@ -135,4 +135,13 @@ along with this software (see the LICENSE.md file). If not, see
     <resource name="get_all_blogs_for_wiki_space" require-authentication="anonymous-view">
         <method type="get"><service name="wm.WikiServices.get#getAllBlogsForWikiSpace"/></method>
     </resource>
+    <resource name="get_all_wiki_spaces" require-authentication="anonymous-view">
+        <method type="get"><service name="wm.WikiServices.get#getAllWikiSpaces"/></method>
+    </resource>
+    <resource name="get_all_wiki_space_pages" require-authentication="anonymous-view">
+        <method type="get"><service name="org.moqui.impl.WikiServices.get#UserSpaceWikiPageSimpleList"/></method>
+    </resource>
+    <resource name="create_blog" require-authentication="anonymous-view">
+        <method type="post"><service name="org.moqui.impl.WikiServices.create#WikiBlog"/></method>
+    </resource>
 </resource>
