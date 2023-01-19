@@ -3,7 +3,7 @@
         <div class="col-12">
                 <q-btn
                 style="width: 205px;"
-                @click="blog_from_page=true"
+                @click="addBlogDialog(false, true)"
             class="custom_btn_dropdown"
             dense
                   split
@@ -15,6 +15,7 @@
                 </q-btn>
                 <q-btn
                 style="width: 205px;margin-left: 6px;"
+                @click="addBlogDialog(true, true)"
             class="custom_btn_dropdown"
             dense
                   split
@@ -38,6 +39,11 @@
                       dense
                       :pagination.sync="pagination"
                     >
+                        <template v-slot:body-cell-title="props">
+                          <q-td :props="props">
+                            <span @click="openEditDialog(props.row)" class="text-blue-8 text-weight-medium cursor-pointer">{{ props.row.title}}</span>
+                          </q-td>
+                        </template>
                         <template v-slot:body-cell-publishdate="props">
                           <q-td :props="props">
                             {{formatDate(props.row.publishDate)}}
@@ -119,6 +125,121 @@
                               option-label="label"
                               :options="wiki_space_options"
                               @input="getAllWikiSpacePages"
+                              @filter="filterFnSpace"
+                            >
+                              <template v-slot:no-option>
+                                <q-item>
+                                  <q-item-section class="text-grey">
+                                    No results
+                                  </q-item-section>
+                                </q-item>
+                              </template>
+                            </q-select>
+                    </div>
+                    <div v-if="!blog_from_text" class="col-12 q-px-md q-py-md">
+                        <q-select
+                              label="Wiki Page"
+                              dense
+                              outlined
+                              v-model="new_blog_from_page.wikiPageId"
+                              :class="!$q.dark.isActive?'bg-white':''"
+                              use-input
+                              input-debounce="700"
+                              option-value="value"
+                              option-label="label"
+                              :options="wiki_space_pages_options"
+                              @filter="filterFnPage"
+                            >
+                              <template v-slot:no-option>
+                                <q-item>
+                                  <q-item-section class="text-grey">
+                                    No results
+                                  </q-item-section>
+                                </q-item>
+                              </template>
+                            </q-select>
+                    </div>
+                    <div v-if="blog_from_text" class="col-12 q-px-md q-py-md">
+                        <span class="text-grey-8">Blog content</span>
+                        <div id="idAddBlog" style="border: 1px solid #c2c2c2;min-height: 150px !important;"></div>
+                    </div>
+                </div>
+            </q-card-section>
+            <q-separator></q-separator>
+            <q-card-actions class="q-pl-lg q-py-md" align="left">
+              <q-btn @click="createBlog" :disabled="!(new_blog_from_page.title && new_blog_from_page.publishDate && new_blog_from_page.wikiSpaceId && (blog_from_text? true:new_blog_from_page.wikiPageId))" outline dense label="Create Post" class="text-capitalize
+        q-mb-md" color="primary" />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
+        <q-dialog v-model="edit_blog_from_page">
+          <q-card class="" style="width: 750px;max-width:750px;">
+            <q-card-section>
+              <div class="text-h5 q-pa-sm q-pl-md">Edit blog post
+                <q-btn class="absolute-top-right" style="margin: 12px" flat round dense icon="close" v-close-popup></q-btn>
+              </div>
+            </q-card-section>
+             <q-separator></q-separator>
+            <q-card-section style="font-size: 16px" class="q-pt-none">
+                <div class="row cls_space">
+                    <div class="col-12 q-px-md q-py-md">
+                        <q-input outlined dense
+        v-model="selected_blog_edit.title" label="Title*" />
+                    </div>
+                    <div class="col-6 q-px-md q-py-md">
+                        <!--<q-input outlined dense
+        v-model="selected_blog_edit.publishDate" label="Publish Date*" />-->
+                <q-input label="Publish Date*" outlined dense v-model="selected_blog_edit.publishDate" class="tw-ml-3 tw-w-56">
+                      <template v-slot:prepend>
+                        <q-icon name="event" class="cursor-pointer">
+                          <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                            <q-date v-model="selected_blog_edit.publishDate" mask="YYYY-MM-DD HH:mm">
+                              <div class="row items-center justify-end">
+                                <q-btn v-close-popup label="Close" color="primary" flat/>
+                              </div>
+                            </q-date>
+                          </q-popup-proxy>
+                        </q-icon>
+                      </template>
+
+                      <template v-slot:append>
+                        <q-icon name="access_time" class="cursor-pointer">
+                          <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                            <q-time v-model="selected_blog_edit.publishDate" mask="YYYY-MM-DD HH:mm" format24h>
+                              <div class="row items-center justify-end">
+                                <q-btn v-close-popup label="Close" color="primary" flat/>
+                              </div>
+                            </q-time>
+                          </q-popup-proxy>
+                        </q-icon>
+                      </template>
+                    </q-input>
+                    </div>
+                    <div class="col-6 q-px-md q-py-md">
+                        <q-input outlined dense
+        v-model="selected_blog_edit.author" label="Author" />
+                    </div>
+                    <div class="col-12 q-px-md q-py-md">
+                        <q-input type="textarea" outlined dense
+        v-model="selected_blog_edit.summary" label="Summary" />
+                    </div>
+                    <div class="col-12 q-px-md q-py-md">
+        <q-file outlined dense v-model="selected_blog_edit.smallImage" label="Small Image" />
+                    </div>
+                    <div class="col-12 q-px-md q-py-md">
+                        <q-select
+                              label="Wiki Space"
+                              dense
+                              outlined
+                              v-model="selected_blog_edit.wikiSpaceId"
+                              :class="!$q.dark.isActive?'bg-white':''"
+                              use-input
+                              input-debounce="700"
+                              option-value="value"
+                              option-label="label"
+                              :options="wiki_space_options"
+                              @input="getAllWikiSpacePages"
+                              @filter="filterFnSpace"
                             >
                               <template v-slot:no-option>
                                 <q-item>
@@ -131,16 +252,19 @@
                     </div>
                     <div class="col-12 q-px-md q-py-md">
                         <q-select
+                        disabled
+                        style="pointer-events:none"
                               label="Wiki Page"
                               dense
                               outlined
-                              v-model="new_blog_from_page.wikiPageId"
+                              v-model="selected_blog_edit.wikiPageId"
                               :class="!$q.dark.isActive?'bg-white':''"
                               use-input
                               input-debounce="700"
                               option-value="value"
                               option-label="label"
                               :options="wiki_space_pages_options"
+                              @filter="filterFnPage"
                             >
                               <template v-slot:no-option>
                                 <q-item>
@@ -155,8 +279,8 @@
             </q-card-section>
             <q-separator></q-separator>
             <q-card-actions class="q-pl-lg q-py-md" align="left">
-              <q-btn @click="createBlog" :disabled="!(new_blog_from_page.title && new_blog_from_page.publishDate && new_blog_from_page.wikiSpaceId && new_blog_from_page.wikiPageId)" outline dense label="Create Post" class="text-capitalize
-        q-mb-md" color="primary" v-close-popup />
+              <q-btn @click="updateBlog" :disabled="!(selected_blog_edit.title && selected_blog_edit.publishDate && selected_blog_edit.wikiSpaceId)" outline dense label="Update" class="text-capitalize
+        q-mb-md" color="primary" />
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -168,11 +292,11 @@ module.exports = {
         return {
             blog_list: [],
             wiki_spaces: [],
+            edit_blog_from_page: false,
             pagination: {
                 page: 1,
-                rowsPerPage: 10,
-                rowsNumber: 0,
-                sortBy: 'workEffortId',
+                rowsPerPage: 15,
+                sortBy: 'publishDate',
                 descending: true,
               },
               table_columns: [
@@ -191,12 +315,69 @@ module.exports = {
                { name: 'action', align: 'left', label: '',style: 'width: 20%', field: '', sortable: false },
             ],
             blog_from_page: false,
+            blog_from_text: false,
             new_blog_from_page: {publishDate: new Date().getFullYear() + "-" + String(new Date().getMonth()+1).padStart(2, '0') + "-" + String(new Date().getDate()).padStart(2, '0') + " " + String(new Date().getHours()).padStart(2, '0') + ":" + String(new Date().getMinutes()).padStart(2, '0')},
+            wiki_space_options_master: [],
             wiki_space_options: [],
             wiki_space_pages_options: [],
+            wiki_space_pages_options_master: [],
+            selected_blog_edit: {}
         }
     },
     methods: {
+        openEditDialog(row) {
+            this.selected_blog_edit = JSON.parse(JSON.stringify(row));
+            if (this.selected_blog_edit.publishDate) {
+                this.selected_blog_edit.publishDate = new Date(this.selected_blog_edit.publishDate).getFullYear() + "-" + String(new Date(this.selected_blog_edit.publishDate).getMonth()+1).padStart(2, '0') + "-" + String(new Date(this.selected_blog_edit.publishDate).getDate()).padStart(2, '0') + " " + String(new Date(this.selected_blog_edit.publishDate).getHours()).padStart(2, '0') + ":" + String(new Date(this.selected_blog_edit.publishDate).getMinutes()).padStart(2, '0')
+            }
+            this.edit_blog_from_page = true;
+        },
+        filterFnSpace(val, update, abort) {
+            let self = this;
+              if (val === '') {
+                update(() => {
+                  this.wiki_space_options = self.wiki_space_options_master
+                })
+                return
+              }
+              update(() => {
+              const needle = val.toLowerCase()
+              this.wiki_space_options = self.wiki_space_options.filter(v => v.label.toLowerCase().indexOf(needle) > -1)
+            })
+          },
+          filterFnPage(val, update, abort) {
+            let self = this;
+              if (val === '') {
+                update(() => {
+                  this.wiki_space_pages_options = self.wiki_space_pages_options_master
+                })
+                return
+              }
+              update(() => {
+              const needle = val.toLowerCase()
+              this.wiki_space_pages_options = self.wiki_space_pages_options_master.filter(v => v.label.toLowerCase().indexOf(needle) > -1)
+            })
+          },
+        initializeEditor(elem) {
+            let self = this;
+            InlineEditor
+            .create( document.querySelector( elem ),
+            {})
+            .then( editor => {
+                window.editor = editor;
+            })
+        },
+        addBlogDialog(text, page) {
+            let self = this;
+            self.new_blog_from_page = {publishDate: new Date().getFullYear() + "-" + String(new Date().getMonth()+1).padStart(2, '0') + "-" + String(new Date().getDate()).padStart(2, '0') + " " + String(new Date().getHours()).padStart(2, '0') + ":" + String(new Date().getMinutes()).padStart(2, '0')};
+            self.blog_from_text = text;
+            self.blog_from_page = page;
+            if (self.blog_from_text) {
+                setTimeout( () => {
+                    self.initializeEditor("#idAddBlog");
+                }, 500 );
+            }
+        },
         formatDate (dt) {
             if (dt) {
                 dt = new Date(dt);
@@ -224,7 +405,8 @@ module.exports = {
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/get_all_wiki_spaces", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     resp.spaceList.forEach(function(item){
-                        self.wiki_space_options.push({'label':item.wikiSpaceId + ": " + item.description,'value':item.wikiSpaceId})
+                        self.wiki_space_options_master.push({'label':item.wikiSpaceId + ": " + item.description,'value':item.wikiSpaceId});
+                        self.wiki_space_options.push({'label':item.wikiSpaceId + ": " + item.description,'value':item.wikiSpaceId});
                         return item;
                     });
                 }
@@ -254,6 +436,7 @@ module.exports = {
                       }
                       return 0;
                     });
+                    self.wiki_space_pages_options_master = JSON.parse(JSON.stringify(self.wiki_space_pages_options));
                 }
             });
         },
@@ -261,15 +444,52 @@ module.exports = {
             var self = this;
             self.new_blog_from_page["moquiSessionToken"] = self.$root.moquiSessionToken;
             self.new_blog_from_page["wikiSpaceId"] = self.new_blog_from_page.wikiSpaceId.value;
-            self.new_blog_from_page["wikiPageId"] = self.new_blog_from_page.wikiPageId.value;
+            if (!self.blog_from_text) {
+                self.new_blog_from_page["wikiPageId"] = self.new_blog_from_page.wikiPageId.value;
+            }
             var form_data = new FormData();
             for ( var key in self.new_blog_from_page ) {
-                form_data.append(key, self.new_blog_from_page[key]);
+                if (self.blog_from_text) {
+                    if (key != 'wikiPageId') {
+                        form_data.append(key, self.new_blog_from_page[key]);
+                    }
+                }
+                else {
+                    form_data.append(key, self.new_blog_from_page[key]);
+                }
+            }
+            if (self.blog_from_text) {
+                form_data.append("blogText", window.editor.getData());
             }
             $.ajax({ type:'POST', processData : false, contentType : false, url: "/rest/s1/wm/create_blog", headers:{Accept:'application/json'}, data:form_data,
                error:moqui.handleAjaxError, success:function(resp) {
                    self.blog_from_page = false;
                    self.getAllBlogs();
+               }
+            });
+        },
+        updateBlog() {
+            var self = this;
+            self.selected_blog_edit["moquiSessionToken"] = self.$root.moquiSessionToken;
+            self.selected_blog_edit["wikiSpaceId"] = self.selected_blog_edit.wikiSpaceId;
+            self.selected_blog_edit["wikiPageId"] = self.selected_blog_edit.wikiPageId;
+            var form_data = new FormData();
+            for ( var key in self.selected_blog_edit ) {
+                form_data.append(key, self.selected_blog_edit[key]);
+            }
+            $.ajax({ type:'POST', processData : false, contentType : false, url: "/rest/s1/wm/update_blog", headers:{Accept:'application/json'}, data:form_data,
+               error:moqui.handleAjaxError, success:function(resp) {
+                   self.edit_blog_from_page = false;
+                   self.getAllBlogs();
+               }
+            });
+        },
+        getImage() {
+            var self = this;
+            var allParams = $.extend({ wikiBlogId:'100021', moquiSessionToken:self.$root.moquiSessionToken }, {});
+            $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/get_image", headers:{Accept:'application/json'}, data:allParams,
+                error:moqui.handleAjaxError, success:function(resp) {
+                   alert(9);
                }
             });
         }
@@ -289,5 +509,13 @@ module.exports = {
     }
     .cls_space .q-field--float .q-field__label {
         top: 0px !important;
+    }
+    .add_blog_section .ck-editor__editable_inline {
+        min-height: 90px !important;
+        height: 90px !important;
+        border: 1px solid #c2c2c2;
+    }
+    .ck-balloon-panel_visible {
+        z-index: 10000 !important;
     }
 </style>

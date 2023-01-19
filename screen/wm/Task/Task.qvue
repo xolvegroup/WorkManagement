@@ -984,7 +984,7 @@ module.exports = {
               }
               update(() => {
               const needle = val.toLowerCase()
-              this.role_options = self.role_options.filter(v => v.label.toLowerCase().indexOf(needle) > -1)
+              this.role_options = self.role_options_master.filter(v => v.label.toLowerCase().indexOf(needle) > -1)
             })
           },
           filterFnOrderBy (val, update) {
@@ -997,7 +997,7 @@ module.exports = {
               }
               update(() => {
               const needle = val.toLowerCase()
-              this.orderby_options = self.orderby_options.filter(v => v.label.toLowerCase().indexOf(needle) > -1)
+              this.orderby_options = self.orderby_options_master.filter(v => v.label.toLowerCase().indexOf(needle) > -1)
             })
           },
         filterFnStatus (val, update) {

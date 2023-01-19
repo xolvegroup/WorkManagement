@@ -186,7 +186,7 @@ along with this software (see the LICENSE.md file). If not, see
         <actions>
             <entity-find entity-name="moqui.resource.wiki.WikiBlogFindView" list="blogsList">
                 <search-form-inputs default-order-by="-publishDate"/>
-                <select-field field-name="wikiSpaceId,wikiBlogId,wikiPageId,pagePath,title,author,publishDate"/>
+                <select-field field-name="wikiSpaceId,wikiBlogId,wikiPageId,pagePath,summary,title,author,publishDate,smallImageLocation"/>
             </entity-find>
         </actions>
     </service>
@@ -198,6 +198,17 @@ along with this software (see the LICENSE.md file). If not, see
             <entity-find entity-name="moqui.resource.wiki.WikiSpace" list="spaceList">
                 <order-by field-name="wikiSpaceId"/>
             </entity-find>
+        </actions>
+    </service>
+    <service verb="get" noun="getImage">
+        <in-parameters>
+            <parameter name="wikiBlogId" required="true"/>
+        </in-parameters>
+        <actions>
+            <entity-find-one entity-name="moqui.resource.wiki.WikiBlog" value-field="wikiBlog">
+                <econdition field-name="wikiBlogId"/>
+            </entity-find-one>
+            <script>ec.web.sendResourceResponse(wikiBlog?.smallImageLocation)</script>
         </actions>
     </service>
 </services>
