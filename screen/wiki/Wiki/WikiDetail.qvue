@@ -338,6 +338,7 @@ module.exports = {
             versionNameLhs: "",
             versionNameRhs: "",
             new_page_name: "",
+            url_params: null,
             new_page_seq: "",
             tree_nodes_selected: null,
             space_tree_data: [],
@@ -699,8 +700,45 @@ module.exports = {
                     error:moqui.handleAjaxError, success:function(resp) {
                         self.tree_master_list = JSON.parse(JSON.stringify(resp.childPageInfoList));
                         self.space_tree_data = JSON.parse(JSON.stringify(resp.childPageInfoList));
+                        console.log(params.wikiPageId);
+                        console.log(params.pagePath);
+                        if (params.pagePath) {
+                            setTimeout( () => {
+                                self.tree_nodes_selected = params.pagePath;
+                                if (params.pagePath.indexOf("/") > -1) {
+                                    let path_list = params.pagePath.split("/");
+                                    let act_path = ""
+                                    for (var i in path_list) {
+                                        act_path = act_path + "/" + path_list[i];
+                                        if (parseInt(i) === (path_list.length-1)) {
+                                            self.tryAgainIfTreeExpandFails(act_path.substr(1), true);
+                                        }
+                                        else {
+                                            self.tryAgainIfTreeExpandFails(act_path.substr(1), false);
+                                        }
+                                    }
+                                }
+                                else {
+                                    self.treeNodeSelected(params.pagePath);
+                                }
+                            }, 500 );
+                        }
                     }
                 });
+            }
+        },
+        tryAgainIfTreeExpandFails(path, is_last) {
+            let self = this;
+            try {
+              self.treeNodeSelected(path, 'do_not_load');
+              if (is_last) {
+                self.getWikiPageInfo();
+              }
+            }
+            catch(err) {
+                setTimeout( () => {
+                    self.tryAgainIfTreeExpandFails(path, is_last);
+                }, 1000 );
             }
         },
         formatDate (dt) {
@@ -871,7 +909,7 @@ module.exports = {
                 return this.md_conv.makeHtml(content);
             }
         },
-        treeNodeSelected(path) {
+        treeNodeSelected(path, load_page) {
             if (path) {
                 this.page_path = path;
                 this.page_detail = {};
@@ -883,7 +921,10 @@ module.exports = {
                 else {
                     this.is_children_present = false;
                 }
-                this.getWikiPageInfo();
+                debugger
+                if (load_page !== 'do_not_load') {
+                    this.getWikiPageInfo();
+                }
             }
         },
         getPublishedWikiPageText() {
@@ -924,7 +965,12 @@ module.exports = {
     },
     created: function () {
         this.getWikiSpaceTree();
-        this.getWikiPageInfo();
+        const params = new Proxy(new URLSearchParams(window.location.search), {
+          get: (searchParams, prop) => searchParams.get(prop),
+        });
+        if (params.wikiSpaceId && !params.pagePath) {
+            this.getWikiPageInfo();
+        }
     },
 }
 </script>

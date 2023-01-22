@@ -51,7 +51,7 @@
                         </template>
                         <template v-slot:body-cell-action="props">
                           <q-td :props="props">
-                            Wiki Page
+                            <a class="text-weight-medium" :href="'WikiDetail?wikiSpaceId=' + props.row.wikiSpaceId + '&wikiPageId=' + props.row.wikiPageId + '&pagePath=' + props.row.pagePath">Wiki Page</a>
                           </q-td>
                         </template>
                     </q-table>
