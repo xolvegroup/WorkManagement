@@ -150,4 +150,10 @@ along with this software (see the LICENSE.md file). If not, see
     <resource name="get_image" require-authentication="anonymous-view">
         <method type="post"><service name="wm.WikiServices.get#getImage"/></method>
     </resource>
+    <resource name="get_all_categories" require-authentication="anonymous-view">
+        <method type="get"><service name="wm.WikiServices.get#getAllCategories"/></method>
+    </resource>
+    <resource name="get_all_authors" require-authentication="anonymous-view">
+        <method type="get"><service name="wm.WikiServices.get#getAllAuthors"/></method>
+    </resource>
 </resource>

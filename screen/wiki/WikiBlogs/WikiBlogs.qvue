@@ -25,6 +25,8 @@
                   label="Add Blog Post with Text"
                 >
                 </q-btn>
+                <q-btn style="width: 130px;margin-top:6px;" class="text-capitalize float-right" outline rounded dense label="Find Options" icon="search" @click="open_find_options_drawer=true"></q-btn>
+                <q-btn style="width: 130px;margin-top:6px;" v-if="Object.keys(filter_params).length > 0 || (filter_params['orderByField'] != '-workEffortId' && mdl_filter_order_by !== null)" @click="resetFind()" class="text-capitalize float-right text-red" outline rounded dense icon="close" label="Clear"></q-btn>
             <q-card flat class="q-mt-sm">
               <q-card-section style="padding: 0px;">
                 <q-table
@@ -39,6 +41,14 @@
                       dense
                       :pagination.sync="pagination"
                     >
+                        <template v-slot:body-cell-category="props">
+                          <q-td :props="props">
+                            <span v-for="item,idx in props.row.category_list">
+                            {{item.categoryName}} <span v-if="idx != props.row.category_list.length-1">,</span>
+                            </span>
+                          </q-td>
+                        </template>
+
                         <template v-slot:body-cell-title="props">
                           <q-td :props="props">
                             <span @click="openEditDialog(props.row)" class="text-blue-8 text-weight-medium cursor-pointer">{{ props.row.title}}</span>
@@ -284,6 +294,166 @@
             </q-card-actions>
           </q-card>
         </q-dialog>
+        <q-drawer
+            side="right"
+            v-model="open_find_options_drawer"
+            bordered
+            overlay
+            :width="600"
+            :breakpoint="600"
+            :content-class="!$q.dark.isActive?'bg-grey-3':'bg-black'"
+          >
+          <div class="q-pa-sm q-px-md">
+                <div class="row">
+                    <div class="col-11 q-pt-sm text-h5 text-weight-bold">
+                        Find Options
+                    </div>
+                    <div class="col-1">
+                        <q-btn flat round dense icon="close" @click="open_find_options_drawer=false"></q-btn>
+                    </div>
+                </div>
+                <div class="row q-mt-md q-col-gutter-md cls_blog_detail">
+                    <div class="col-6">
+                        <q-select
+                              label="Category"
+                              dense
+                              outlined
+                              v-model="mdl_filter_category"
+                              :class="!$q.dark.isActive?'bg-white':''"
+                              use-input
+                              input-debounce="700"
+                              option-value="wikiPageCategoryId"
+                              option-label="categoryName"
+                              :options="category_options"
+                              @filter="filterFnCategory"
+                            >
+                              <template v-slot:no-option>
+                                <q-item>
+                                  <q-item-section class="text-grey">
+                                    No results
+                                  </q-item-section>
+                                </q-item>
+                              </template>
+                            </q-select>
+                    </div>
+                    <div class="col-6">
+                        <q-input
+                            label="Title"
+                            dense
+                            outlined
+                            v-model="mdl_filter_title"
+                            :class="!$q.dark.isActive?'bg-white':''"
+                          />
+                    </div>
+                    <div class="col-4">
+                        <q-select
+                            label="Author"
+                            dense
+                            :class="!$q.dark.isActive?'bg-white':''"
+                            outlined
+                            v-model="mdl_filter_author"
+                            use-input
+                            input-debounce="0"
+                            option-value="author"
+                            option-label="author"
+                            :options="author_options"
+                            @filter="filterFnAuthor"
+                          >
+                            <template v-slot:no-option>
+                              <q-item>
+                                <q-item-section class="text-grey">
+                                  No results
+                                </q-item-section>
+                              </q-item>
+                            </template>
+                          </q-select>
+                    </div>
+                    <div class="col-4">
+                    <q-input :class="!$q.dark.isActive?'bg-white':''" label="Publish Date From" style="margin:0;padding:0;" outlined dense v-model="mdl_filter_publishstartdate">
+                        <template v-slot:append>
+                          <q-icon size="18px" name="event" class="cursor-pointer">
+                            <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                              <q-date mask="YYYY-MM-DD" v-model="mdl_filter_publishstartdate">
+                                <div class="row items-center justify-end">
+                                  <q-btn v-close-popup label="Close" color="primary" flat />
+                                </div>
+                              </q-date>
+                            </q-popup-proxy>
+                          </q-icon>
+                        </template>
+                      </q-input>
+                    </div>
+                    <div class="col-4">
+                    <q-input :class="!$q.dark.isActive?'bg-white':''" label="Publish Date Thru" style="margin:0;padding:0;" outlined dense v-model="mdl_filter_publishenddate">
+                        <template v-slot:append>
+                          <q-icon size="18px" name="event" class="cursor-pointer">
+                            <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                              <q-date mask="YYYY-MM-DD" v-model="mdl_filter_publishenddate">
+                                <div class="row items-center justify-end">
+                                  <q-btn v-close-popup label="Close" color="primary" flat />
+                                </div>
+                              </q-date>
+                            </q-popup-proxy>
+                          </q-icon>
+                        </template>
+                      </q-input>
+                    </div>
+                    <div class="col-6">
+                    <q-select
+                            label="Wiki Space"
+                            dense
+                            outlined
+                            v-model="mdl_filter_wikispace"
+                            :class="!$q.dark.isActive?'bg-white':''"
+                            use-input
+                            input-debounce="0"
+                            option-value="value"
+                          option-label="label"
+                          :options="wiki_space_options"
+                          @filter="filterFnSpace"
+                          >
+                            <template v-slot:no-option>
+                              <q-item>
+                                <q-item-section class="text-grey">
+                                  No results
+                                </q-item-section>
+                              </q-item>
+                            </template>
+                          </q-select>
+                    </div>
+                    <div class="col-6">
+                        <q-select
+                            label="Order By"
+                            dense
+                            :class="!$q.dark.isActive?'bg-white':''"
+                            outlined
+                            v-model="mdl_filter_order_by"
+                            use-input
+                            input-debounce="0"
+                            option-value="value"
+                            option-label="label"
+                            :options="orderby_options"
+                            @filter="filterFnOrderBy"
+                          >
+                            <template v-slot:no-option>
+                              <q-item>
+                                <q-item-section class="text-grey">
+                                  No results
+                                </q-item-section>
+                              </q-item>
+                            </template>
+                          </q-select>
+                    </div>
+                    <div class="col-12">
+                        <q-btn @click="findOptions()" style="width: 140px" class="text-blue q-px-sm q-ml-sm" outline dense icon="search" label="Find"></q-btn>
+                        <q-btn @click="resetFind()" style="width: 140px" class="q-px-sm q-ml-sm" outline dense icon="search" label="Clear"></q-btn>
+                    </div>
+                </div>
+                <div class="q-mt-md">
+
+                </div>
+          </div>
+    </q-drawer>
     </div>
 </template>
 <script>
@@ -293,26 +463,44 @@ module.exports = {
             blog_list: [],
             wiki_spaces: [],
             edit_blog_from_page: false,
+            open_find_options_drawer: false,
+            mdl_filter_category: null,
+            mdl_filter_title: null,
+            mdl_filter_author: null,
+            mdl_filter_publishstartdate: null,
+            mdl_filter_publishenddate: null,
+            mdl_filter_wikispace: null,
+            mdl_filter_order_by: null,
+            category_options_master: [],
+            category_options: [],
+            author_options_master: [],
+            author_options: [],
+            filter_params: {},
+            orderby_options_master: [{"label":"Publish Date (Asc)","value":"publishDate"},
+                                     {"label":"Publish Date (Desc)","value":"-publishDate"},
+                                     {"label":"Title (Asc)","value":"title"},
+                                     {"label":"Title (Desc)","value":"-title"},
+                                     {"label":"Author (Asc)","value":"author"},
+                                     {"label":"Author (Desc)","value":"-author"}],
+            orderby_options: [{"label":"Publish Date (Asc)","value":"publishDate"},
+                                     {"label":"Publish Date (Desc)","value":"-publishDate"},
+                                     {"label":"Title (Asc)","value":"title"},
+                                     {"label":"Title (Desc)","value":"-title"},
+                                     {"label":"Author (Asc)","value":"author"},
+                                     {"label":"Author (Desc)","value":"-author"}],
             pagination: {
                 page: 1,
                 rowsPerPage: 15,
-                sortBy: 'publishDate',
+                sortBy: 'publishdate',
                 descending: true,
               },
               table_columns: [
-               {
-                 name: 'title',
-                 field: 'title',
-                 required: true,
-                 label: 'Title',
-                 align: 'left',
-                 sortable: true,
-                 style: 'width: 20%'
-               },
-               { name: 'publishdate', align: 'left', label: 'Publish Date',style: 'width: 20%', field: 'publishDate', sortable: true },
-               { name: 'author', align: 'left', label: 'Author',style: 'width: 20%', field: 'author', sortable: true },
-               { name: 'wikispace', align: 'left', label: 'Wiki Space',style: 'width: 20%', field: 'wikiSpaceId', sortable: true },
-               { name: 'action', align: 'left', label: '',style: 'width: 20%', field: '', sortable: false },
+              { name: 'publishdate', align: 'left', label: 'Publish Date',style: 'width: 12%', field: 'publishDate', sortable: true },
+              { name: 'category', align: 'left', label: 'Category',style: 'width: 12%', field: 'category', sortable: false },
+               { name: 'title',field: 'title',required: true,label: 'Title',align: 'left',sortable: true,style: 'width: 26%'},
+               { name: 'author', align: 'left', label: 'Author',style: 'width: 15%', field: 'author', sortable: true },
+               { name: 'wikispace', align: 'left', label: 'Wiki Space',style: 'width: 15%', field: 'wikiSpaceId', sortable: true },
+               { name: 'action', align: 'left', label: '',style: 'width: 14%', field: '', sortable: false },
             ],
             blog_from_page: false,
             blog_from_text: false,
@@ -325,6 +513,53 @@ module.exports = {
         }
     },
     methods: {
+        findOptions() {
+            let self = this;
+            self.filter_params = {};
+            if (self.mdl_filter_category) {
+                self.filter_params["wikiPageCategoryId"] = self.mdl_filter_category.wikiPageCategoryId;
+            }
+            if (self.mdl_filter_title) {
+                self.filter_params["title"] = self.mdl_filter_title;
+            }
+            if (self.mdl_filter_author) {
+                self.filter_params["author"] = self.mdl_filter_author.author;
+            }
+            if (self.mdl_filter_wikispace) {
+                self.filter_params["wikiSpaceId"] = self.mdl_filter_wikispace.value;
+            }
+            if (self.mdl_filter_publishstartdate) {
+                self.filter_params["publishStartDate"] = new Date(self.mdl_filter_publishstartdate);
+            }
+            if (self.mdl_filter_publishenddate) {
+                self.filter_params["publishEndDate"] = new Date(self.mdl_filter_publishenddate);
+            }
+            if (self.mdl_filter_order_by) {
+                if (self.mdl_filter_order_by.value.startsWith("-")) {
+                    self.pagination.sortBy = self.mdl_filter_order_by.value.slice(1).toLowerCase();
+                    self.pagination.descending = true;
+                }
+                else {
+                    self.pagination.sortBy = self.mdl_filter_order_by.value.toLowerCase();
+                    self.pagination.descending = false;
+                }
+                self.filter_params["orderByField"] = self.mdl_filter_order_by.value;
+            }
+            self.pagination.page = 1;
+            self.getAllBlogs();
+        },
+        resetFind() {
+            let self = this;
+            self.filter_params = {};
+            self.mdl_filter_category= null;
+            self.mdl_filter_title= null;
+            self.mdl_filter_author= null;
+            self.mdl_filter_publishstartdate= null;
+            self.mdl_filter_publishenddate= null;
+            self.mdl_filter_wikispace= null;
+            self.mdl_filter_order_by= null;
+            self.getAllBlogs();
+        },
         openEditDialog(row) {
             this.selected_blog_edit = JSON.parse(JSON.stringify(row));
             if (this.selected_blog_edit.publishDate) {
@@ -332,6 +567,45 @@ module.exports = {
             }
             this.edit_blog_from_page = true;
         },
+        filterFnOrderBy (val, update) {
+            let self = this;
+              if (val === '') {
+                update(() => {
+                  this.orderby_options = self.orderby_options_master
+                })
+                return
+              }
+              update(() => {
+              const needle = val.toLowerCase()
+              this.orderby_options = self.orderby_options_master.filter(v => v.label.toLowerCase().indexOf(needle) > -1)
+            })
+          },
+        filterFnCategory(val, update, abort) {
+            let self = this;
+              if (val === '') {
+                update(() => {
+                  this.category_options = self.category_options_master
+                })
+                return
+              }
+              update(() => {
+              const needle = val.toLowerCase()
+              this.category_options = self.category_options_master.filter(v => v.categoryName.toLowerCase().indexOf(needle) > -1)
+            })
+          },
+        filterFnAuthor(val, update, abort) {
+            let self = this;
+              if (val === '') {
+                update(() => {
+                  this.author_options = self.author_options_master
+                })
+                return
+              }
+              update(() => {
+              const needle = val.toLowerCase()
+              this.author_options = self.author_options_master.filter(v => v.author.toLowerCase().indexOf(needle) > -1)
+            })
+          },
         filterFnSpace(val, update, abort) {
             let self = this;
               if (val === '') {
@@ -342,7 +616,7 @@ module.exports = {
               }
               update(() => {
               const needle = val.toLowerCase()
-              this.wiki_space_options = self.wiki_space_options.filter(v => v.label.toLowerCase().indexOf(needle) > -1)
+              this.wiki_space_options = self.wiki_space_options_master.filter(v => v.label.toLowerCase().indexOf(needle) > -1)
             })
           },
           filterFnPage(val, update, abort) {
@@ -390,8 +664,16 @@ module.exports = {
               get: (searchParams, prop) => searchParams.get(prop),
             });
             if (params.wikiSpaceId) {
-                var allParams = $.extend({ wikiSpaceId:params.wikiSpaceId,
-                moquiSessionToken:self.$root.moquiSessionToken }, {});
+                if (self.filter_params) {
+                    var allParams = JSON.parse(JSON.stringify(self.filter_params));
+                    allParams["moquiSessionToken"] = $("#confMoquiSessionToken").val();
+                    if (Object.keys(self.filter_params).indexOf("wikiSpaceId") === -1) {
+                        allParams["wikiSpaceId"] = params.wikiSpaceId;
+                    }
+                }
+                else {
+                    var allParams = $.extend({ wikiSpaceId:params.wikiSpaceId, moquiSessionToken:self.$root.moquiSessionToken }, {});
+                }
                 $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/get_all_blogs_for_wiki_space", headers:{Accept:'application/json'}, data:allParams,
                     error:moqui.handleAjaxError, success:function(resp) {
                         self.blog_list = resp.blogsList;
@@ -492,11 +774,36 @@ module.exports = {
                    alert(9);
                }
             });
+        },
+        getAllCategories() {
+            var self = this;
+            var allParams = $.extend({ wikiBlogId:'100021', moquiSessionToken:self.$root.moquiSessionToken }, {});
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/get_all_categories", headers:{Accept:'application/json'}, data:allParams,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    self.category_options_master = resp.categoryList;
+                    self.category_options = resp.categoryList;
+                }
+            });
+        },
+        getAllAuthors() {
+            var self = this;
+            var allParams = $.extend({ wikiBlogId:'100021', moquiSessionToken:self.$root.moquiSessionToken }, {});
+            $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/get_all_authors", headers:{Accept:'application/json'}, data:allParams,
+                error:moqui.handleAjaxError, success:function(resp) {
+                    self.author_options_master = resp.authorList.filter(function(item){
+                        return Object.keys(item).indexOf('author') > -1;
+                    });
+
+                    self.author_options = JSON.parse(JSON.stringify(self.author_options_master));
+                }
+            });
         }
     },
     created: function () {
         this.getAllWikiSpaces();
         this.getAllBlogs();
+        this.getAllCategories();
+        this.getAllAuthors();
     },
 }
 </script>
@@ -517,5 +824,11 @@ module.exports = {
     }
     .ck-balloon-panel_visible {
         z-index: 10000 !important;
+    }
+    .cls_blog_detail .q-field__label {
+        top: 10px !important;
+    }
+    .cls_blog_detail .q-field--float .q-field__label {
+        top: 0px !important;
     }
 </style>
