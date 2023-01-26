@@ -261,4 +261,22 @@ along with this software (see the LICENSE.md file). If not, see
                             <select-field field-name="author"/></entity-find>
         </actions>
     </service>
+    <service verb="update" noun="wikiSpace">
+        <in-parameters>
+            <parameter name="wikiSpaceId" required="true"/>
+            <parameter name="description"/>
+            <parameter name="rootPageLocation"/>
+            <parameter name="publicPageUrl"/>
+            <parameter name="publicAttachmentUrl"/>
+            <parameter name="restrictView"/>
+            <parameter name="restrictUpdate"/>
+            <parameter name="allowAnyHtml"/>
+        </in-parameters>
+        <actions>
+            <service-call name="update#moqui.resource.wiki.WikiSpace" out-map="context"
+                          in-map="[wikiSpaceId:wikiSpaceId, description:description,
+                        rootPageLocation:rootPageLocation, publicPageUrl:publicPageUrl, publicAttachmentUrl:publicAttachmentUrl,
+                        restrictView:restrictView, restrictUpdate:restrictUpdate, allowAnyHtml:allowAnyHtml]"/>
+        </actions>
+    </service>
 </services>

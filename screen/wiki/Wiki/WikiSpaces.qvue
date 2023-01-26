@@ -53,7 +53,7 @@
                     </template>-->
                     <template v-slot:body-cell-action="props">
                         <q-td :props="props">
-                          <q-btn class="text-primary text-capitalize" dense icon="edit" outline>
+                          <q-btn @click="openEditModal(props.row)" class="text-primary text-capitalize" dense icon="edit" outline>
                             <q-tooltip content-style="font-size: 12px">Edit</q-tooltip>
                           </q-btn>
                         </q-td>
@@ -211,7 +211,115 @@
             <q-separator></q-separator>
             <q-card-actions class="q-pl-lg q-py-md" align="left">
               <q-btn :disabled="!(new_space.wiki_space_id && new_space.description)" @click="createSpace" outline dense label="Create Space" class="text-capitalize
-        q-mb-md" color="primary" v-close-popup />
+        q-mb-md" color="primary" />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
+        <q-dialog v-model="mdl_edit_space">
+          <q-card class="" style="width: 750px;max-width:750px;">
+            <q-card-section>
+              <div class="text-h5 q-pa-sm q-pl-md">Edit Space
+                <q-btn class="absolute-top-right" style="margin: 12px" flat round dense icon="close" v-close-popup></q-btn>
+              </div>
+            </q-card-section>
+             <q-separator></q-separator>
+            <q-card-section style="font-size: 16px" class="q-pt-none">
+                <div class="row cls_space">
+                    <div class="col-6 q-px-md q-py-md">
+                        <q-input :disable="true" outlined dense
+        v-model="edit_space.wikiSpaceId" label="Wiki Space ID" />
+                    </div>
+                    <div class="col-6 q-px-md q-py-md">
+                        <q-input outlined dense
+        v-model="edit_space.description" label="Description*" />
+                    </div>
+                    <div class="col-6 q-px-md q-py-md">
+                        <q-input :disable="true" outlined dense
+        v-model="edit_space.rootPageLocation" label="Root Page Location" />
+                    </div>
+                    <div class="col-6 q-px-md q-py-md">
+                        <q-input disabled outlined dense
+        v-model="edit_space.publicPageUrl" label="Public Page URL" />
+                    </div>
+                    <div class="col-6 q-px-md q-py-md">
+                        <q-input disabled outlined dense
+        v-model="edit_space.publicAttachmentUrl" label="Public Attachment URL" />
+                    </div>
+                    <div class="col-6 q-px-md q-py-md">
+                        <q-select
+                              label="Restrict View"
+                              dense
+                              outlined
+                              v-model="edit_space.restrictView"
+                              :class="!$q.dark.isActive?'bg-white':''"
+                              use-input
+                              input-debounce="700"
+                              option-value="value"
+                              option-label="label"
+                              :options="restrict_view_options"
+                              @filter="filterFnRestrictView"
+                            >
+                              <template v-slot:no-option>
+                                <q-item>
+                                  <q-item-section class="text-grey">
+                                    No results
+                                  </q-item-section>
+                                </q-item>
+                              </template>
+                            </q-select>
+                    </div>
+                    <div class="col-6 q-px-md q-py-md">
+                        <q-select
+                              label="Restrict Update"
+                              dense
+                              outlined
+                              v-model="edit_space.restrictUpdate"
+                              :class="!$q.dark.isActive?'bg-white':''"
+                              use-input
+                              input-debounce="700"
+                              option-value="value"
+                              option-label="label"
+                              :options="restrict_update_options"
+                              @filter="filterFnRestrictUpdate"
+                            >
+                              <template v-slot:no-option>
+                                <q-item>
+                                  <q-item-section class="text-grey">
+                                    No results
+                                  </q-item-section>
+                                </q-item>
+                              </template>
+                            </q-select>
+                    </div>
+                    <div class="col-6 q-px-md q-py-md">
+                        <q-select
+                              label="Allow Any HTML"
+                              dense
+                              outlined
+                              v-model="edit_space.allowAnyHtml"
+                              :class="!$q.dark.isActive?'bg-white':''"
+                              use-input
+                              input-debounce="700"
+                              option-value="value"
+                              option-label="label"
+                              :options="allow_any_html_options"
+                              @filter="filterFnAllowAnyHtml"
+                            >
+                              <template v-slot:no-option>
+                                <q-item>
+                                  <q-item-section class="text-grey">
+                                    No results
+                                  </q-item-section>
+                                </q-item>
+                              </template>
+                            </q-select>
+                    </div>
+                </div>
+            </q-card-section>
+            <q-separator></q-separator>
+            <q-card-actions class="q-pl-lg q-py-md" align="left">
+              <q-btn @click="updateSpace" outline dense label="Update Space" class="text-capitalize
+        q-mb-md" color="primary" />
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -235,16 +343,18 @@ module.exports = {
                 rowsPerPage: 0
               },
             new_space:{},
-            mdl_new_space:false,
+            edit_space:{},
+            mdl_new_space: false,
+            mdl_edit_space: false,
             restrict_view_options_all:
-            [{'label':'Y','value':'y'},{'label':'N','value':'n'}],
-            restrict_view_options: [{'label':'Y','value':'y'},{'label':'N','value':'n'}],
+            [{'label':'Y','value':'Y'},{'label':'N','value':'N'}],
+            restrict_view_options: [{'label':'Y','value':'Y'},{'label':'N','value':'N'}],
             restrict_update_options_all:
-            [{'label':'Y','value':'y'},{'label':'N','value':'n'}],
-            restrict_update_options: [{'label':'Y','value':'y'},{'label':'N','value':'n'}],
+            [{'label':'Y','value':'Y'},{'label':'N','value':'N'}],
+            restrict_update_options: [{'label':'Y','value':'Y'},{'label':'N','value':'N'}],
             allow_any_html_options_all:
-            [{'label':'Y','value':'y'},{'label':'N','value':'n'}],
-            allow_any_html_options: [{'label':'Y','value':'y'},{'label':'N','value':'n'}],
+            [{'label':'Y','value':'Y'},{'label':'N','value':'N'}],
+            allow_any_html_options: [{'label':'Y','value':'Y'},{'label':'N','value':'N'}],
             wiki_type_options_all: [{'label':'md','value':'md'},{'label':'html','value':'html'}],
             wiki_type_options: [{'label':'md','value':'md'},{'label':'html','value':'html'}],
             root_page_directory_options_all:
@@ -254,6 +364,26 @@ module.exports = {
         }
     },
     methods: {
+        openEditModal(item) {
+            let self = this;
+            self.edit_space=JSON.parse(JSON.stringify(item));
+            if (self.edit_space.restrictUpdate) {
+                self.edit_space.restrictUpdate = self.restrict_update_options_all.find(function(item){
+                    return item.value === self.edit_space.restrictUpdate;
+                });
+            }
+            if (self.edit_space.restrictView) {
+                self.edit_space.restrictView = self.restrict_view_options_all.find(function(item){
+                    return item.value === self.edit_space.restrictView;
+                });
+            }
+            if (self.edit_space.allowAnyHtml) {
+                self.edit_space.allowAnyHtml = self.allow_any_html_options_all.find(function(item){
+                    return item.value === self.edit_space.allowAnyHtml;
+                });
+            }
+            self.mdl_edit_space=true;
+        },
         fetchWikiSpaces() {
             var self = this;
             var allParams = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
@@ -343,6 +473,30 @@ module.exports = {
                   error:moqui.handleAjaxError, success:function(resp) {
                       self.new_space = {};
                       self.fetchWikiSpaces();
+                      self.mdl_new_space = false;
+                      self.$q.notify({
+                        message: 'New space created successfully.',
+                        position: 'bottom-left',
+                      });
+                  }
+              });
+            },
+          updateSpace() {
+              let self = this;
+              var allParams = self.edit_space;
+              allParams["moquiSessionToken"] = $("#confMoquiSessionToken").val();
+              allParams["restrictUpdate"] = self.edit_space.restrictUpdate?self.edit_space.restrictUpdate.value:null;
+              allParams["restrictView"] = self.edit_space.restrictView?self.edit_space.restrictView.value:null;
+              allParams["allowAnyHtml"] = self.edit_space.allowAnyHtml?self.edit_space.allowAnyHtml.value:null;
+              $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/update_space", headers:{Accept:'application/json'}, data:allParams,
+                  error:moqui.handleAjaxError, success:function(resp) {
+                      self.fetchWikiSpaces();
+                      self.mdl_edit_space = false;
+                      self.$q.notify({
+                        message: 'Wiki space updated successfully.',
+                        position: 'bottom-left',
+                      });
+                      self.edit_space = {};
                   }
               });
             }

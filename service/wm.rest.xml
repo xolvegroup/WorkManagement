@@ -156,4 +156,7 @@ along with this software (see the LICENSE.md file). If not, see
     <resource name="get_all_authors" require-authentication="anonymous-view">
         <method type="get"><service name="wm.WikiServices.get#getAllAuthors"/></method>
     </resource>
+    <resource name="update_space" require-authentication="anonymous-view">
+        <method type="post"><service name="wm.WikiServices.update#wikiSpace"/></method>
+    </resource>
 </resource>
