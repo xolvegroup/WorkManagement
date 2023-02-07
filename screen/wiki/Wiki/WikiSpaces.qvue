@@ -386,7 +386,7 @@ module.exports = {
         },
         fetchWikiSpaces() {
             var self = this;
-            var allParams = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            var allParams = $.extend({ moquiSessionToken:self.$root.moquiSessionToken }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/wikiSpaces", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.wiki_space_list = resp.wikiSpaceAndUserList;
@@ -468,7 +468,7 @@ module.exports = {
                                       wikiType: self.new_space.wiki_type?self.new_space.wiki_type.value:null,
                                       rootPageDirectory: self.new_space.root_page_direction?self.new_space.root_page_direction.value:null,
                                       rootPageLocation: self.new_space.root_page_override,
-                                      moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+                                      moquiSessionToken:self.$root.moquiSessionToken }, {});
               $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/createWikiSpace", headers:{Accept:'application/json'}, data:allParams,
                   error:moqui.handleAjaxError, success:function(resp) {
                       self.new_space = {};
@@ -484,7 +484,7 @@ module.exports = {
           updateSpace() {
               let self = this;
               var allParams = self.edit_space;
-              allParams["moquiSessionToken"] = $("#confMoquiSessionToken").val();
+              allParams["moquiSessionToken"] = self.$root.moquiSessionToken;
               allParams["restrictUpdate"] = self.edit_space.restrictUpdate?self.edit_space.restrictUpdate.value:null;
               allParams["restrictView"] = self.edit_space.restrictView?self.edit_space.restrictView.value:null;
               allParams["allowAnyHtml"] = self.edit_space.allowAnyHtml?self.edit_space.allowAnyHtml.value:null;

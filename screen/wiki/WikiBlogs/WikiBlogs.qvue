@@ -666,7 +666,7 @@ module.exports = {
             if (params.wikiSpaceId) {
                 if (self.filter_params) {
                     var allParams = JSON.parse(JSON.stringify(self.filter_params));
-                    allParams["moquiSessionToken"] = $("#confMoquiSessionToken").val();
+                    allParams["moquiSessionToken"] = self.$root.moquiSessionToken;
                     if (Object.keys(self.filter_params).indexOf("wikiSpaceId") === -1) {
                         allParams["wikiSpaceId"] = params.wikiSpaceId;
                     }

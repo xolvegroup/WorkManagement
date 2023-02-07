@@ -569,10 +569,10 @@ module.exports = {
                 var allParams = JSON.parse(JSON.stringify(self.filter_params));
                 allParams["pageOffset"] = startRow;
                 allParams["pageLimit"] = fetchCount;
-                allParams["moquiSessionToken"] = $("#confMoquiSessionToken").val();
+                allParams["moquiSessionToken"] = self.$root.moquiSessionToken;
             }
             else {
-                var allParams = $.extend({pageOffset: startRow, pageLimit: fetchCount ,moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+                var allParams = $.extend({pageOffset: startRow, pageLimit: fetchCount ,moquiSessionToken:self.$root.moquiSessionToken }, {});
             }
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/projects", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
@@ -732,7 +732,7 @@ module.exports = {
             self.is_edit_title = false;
             self.selected_project = {};
             self.open_project_detail=true;
-            var allParams = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            var allParams = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:self.$root.moquiSessionToken }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/projects/project", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.selected_project = resp.project;
@@ -846,7 +846,7 @@ module.exports = {
             var allParams = $.extend({ workEffortName: self.new_project.title,
              assignToPartyId: (self.new_project.assignee ? self.new_project.assignee.partyId:null), description: "",
              estimatedCompletionDate: self.new_project.due_date,
-              moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
+              moquiSessionToken:self.$root.moquiSessionToken}, {});
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/projects/addProject", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.is_add_project=false;
@@ -863,7 +863,7 @@ module.exports = {
         updateProject(status) {
             let self = this;
             let params = self.selected_project;
-            params["moquiSessionToken"] = $("#confMoquiSessionToken").val();
+            params["moquiSessionToken"] = self.$root.moquiSessionToken;
             params["managerPartyId"] = (self.assignee ? self.assignee.partyId:null);
             params["statusId"] = self.status.statusId;
             if (status) {
@@ -905,7 +905,7 @@ module.exports = {
         addEditAssignee(workEffortId) {
             let self = this;
             let params = {};
-            params["moquiSessionToken"] = $("#confMoquiSessionToken").val();
+            params["moquiSessionToken"] = self.$root.moquiSessionToken;
             params["workEffortId"] = workEffortId;
             params["managerPartyId"] = (self.add_edit_assignee ? self.add_edit_assignee.partyId:null);
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/projects/updateProject", headers:{Accept:'application/json'}, data:params,
@@ -919,7 +919,7 @@ module.exports = {
         },
         getStatuses () {
             var self = this;
-            var allParams = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            var allParams = $.extend({ moquiSessionToken:self.$root.moquiSessionToken }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/statuses", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.status_options_master = resp.statusList;
@@ -929,7 +929,7 @@ module.exports = {
         },
         getAssignees(row) {
             var self = this;
-            var allParams = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            var allParams = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:self.$root.moquiSessionToken }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/projects/assignees", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.assignee_list = resp.assigneeList.map(function(item){
@@ -941,7 +941,7 @@ module.exports = {
         },
         addAssignee() {
             var self = this;
-            var allParams = $.extend({ workEffortId:self.selected_project.workEffortId, partyId: self.new_assignee.partyId, roleTypeId: "Assignee", moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            var allParams = $.extend({ workEffortId:self.selected_project.workEffortId, partyId: self.new_assignee.partyId, roleTypeId: "Assignee", moquiSessionToken:self.$root.moquiSessionToken }, {});
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/collaborators/addCollaborator", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.getAssignees(self.selected_project);
@@ -953,7 +953,7 @@ module.exports = {
         },
         removeAssignees(item) {
             var self = this;
-            var allParams = $.extend({ workEffortId:item.workEffortId, partyId: item.partyId, roleTypeId: item.roleTypeId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            var allParams = $.extend({ workEffortId:item.workEffortId, partyId: item.partyId, roleTypeId: item.roleTypeId, moquiSessionToken:self.$root.moquiSessionToken }, {});
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/collaborators/removeCollaborator", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.getAssignees(self.selected_project);
@@ -989,7 +989,7 @@ module.exports = {
         },
         fetchLoggedInUser() {
             let self = this;
-            var allParams = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            var allParams = $.extend({ moquiSessionToken:self.$root.moquiSessionToken }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/loggedInUser", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.logged_in_user = resp.loggedInUser;
@@ -1008,7 +1008,7 @@ module.exports = {
         },
         getAssigneeList (search_keyword) {
             var self = this;
-            var allParams = $.extend({ term: search_keyword,moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            var allParams = $.extend({ term: search_keyword,moquiSessionToken:self.$root.moquiSessionToken }, {});
             return $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/users", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError
             });

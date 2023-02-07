@@ -408,7 +408,7 @@ module.exports = {
             });
             if (params.wikiSpaceId) {
                 var allParams = $.extend({ wikiPageId: self.wiki_page_info.wikiPageId,
-                 communicationEventId:self.obj_delete_comment.communicationEventId,moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
+                 communicationEventId:self.obj_delete_comment.communicationEventId,moquiSessionToken:self.$root.moquiSessionToken}, {});
                 $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/deleteWikiPageComment", headers:{Accept:'application/json'}, data:allParams,
                     error:moqui.handleAjaxError, success:function(resp) {
                         self.obj_delete_comment = {};
@@ -435,7 +435,7 @@ module.exports = {
             });
             if (params.wikiSpaceId) {
                 var allParams = $.extend({ wikiPageId: self.wiki_page_info.wikiPageId,
-                 body: window.edit_comment_editor.getData(),communicationEventId:self.obj_edit_comment.communicationEventId,moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
+                 body: window.edit_comment_editor.getData(),communicationEventId:self.obj_edit_comment.communicationEventId,moquiSessionToken:self.$root.moquiSessionToken}, {});
                 $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/updateWikiPageComment", headers:{Accept:'application/json'}, data:allParams,
                     error:moqui.handleAjaxError, success:function(resp) {
                         self.obj_edit_comment = {};
@@ -579,7 +579,7 @@ module.exports = {
                                   pageName: self.new_page_name,
                                   sequenceNum: self.new_page_seq,
                                   wikiType: self.add_wiki_type.value,
-                                  moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+                                  moquiSessionToken:self.$root.moquiSessionToken }, {});
           if (self.add_wiki_type.value == 'html') {
             allParams["pageText"] = self.getHtmlForMD(window.add_editor.getData());
           }
@@ -631,7 +631,7 @@ module.exports = {
                                   pageName: self.page_name_in_edit,
                                   wikiType: self.wiki_page_info.wikiType,
                                   sequenceNum: self.sequence_in_edit,
-                                  moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+                                  moquiSessionToken:self.$root.moquiSessionToken }, {});
           if (self.wiki_page_info.wikiType == 'html') {
             allParams["pageText"] = self.getHtmlForMD(window.edit_editor.getData());
           }
@@ -673,7 +673,7 @@ module.exports = {
         },
         getAssigneeList (search_keyword) {
             var self = this;
-            var allParams = $.extend({ term: search_keyword,moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            var allParams = $.extend({ term: search_keyword,moquiSessionToken:self.$root.moquiSessionToken }, {});
             return $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/users", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError
             });
@@ -838,7 +838,7 @@ module.exports = {
         addComment () {
             var self = this;
             var allParams = $.extend({ wikiPageId: self.wiki_page_info.wikiPageId,
-            body: window.add_comment_editor.getData(),moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
+            body: window.add_comment_editor.getData(),moquiSessionToken:self.$root.moquiSessionToken}, {});
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/addWikiPageComment", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.fetchPageComments();
