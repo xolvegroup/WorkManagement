@@ -1597,8 +1597,8 @@ module.exports = {
                 self.$q.dialog({
                     title: 'Confirm',
                     message: 'You have unsaved changed. Do you really want to leave?',
-                    cancel: {label: "Discard Changes", noCaps: true, outline: true, color: "Black"},
-                    ok: {label: "Return to Editing", noCaps: true, outline: true},
+                    cancel: {label: "Discard Changes", noCaps: true, outline: true, color: "Black", rounded: true},
+                    ok: {label: "Return to Editing", noCaps: true, outline: true, rounded: true},
                     cancelText: 'Sai',
                     persistent: true
                   }).onCancel(() => {
