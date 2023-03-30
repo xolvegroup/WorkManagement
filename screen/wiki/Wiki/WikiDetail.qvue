@@ -1,7 +1,7 @@
 <template>
     <div class="row">
         <div class="col-md-3 col-lg-3 col-xs-12 xol-sm-12">
-            <q-card class="q-px-md q-py-sm q-ma-md">
+            <q-card flat bordered :class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'" class="q-px-md q-py-sm q-ma-md">
                 <q-card-section>
                     <div class="text-h6">Page Tree</div>
                     <div @click="page_path=null,tree_nodes_selected=null,getWikiPageInfo()" class="text-h6 q-mt-md text-blue cursor-pointer" v-if="wiki_page_info.wikiSpace">{{wiki_page_info.wikiSpace.description}}
@@ -35,13 +35,13 @@
               </q-chip>
               <span class="text-green" v-if="version && published_version && version === published_version">This version published</span>
             </div>
-            <q-card class="q-px-md q-py-sm q-my-md q-mx-none">
+            <q-card flat bordered :class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'" class="q-px-md q-py-sm q-my-md q-mx-none">
                 <q-card-section v-if="wiki_page_info.wikiSpace && !is_page_present">
                     <div style="display:grid;">
                         <div>
-                           <q-btn color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Add" icon="add" @click="show_add_model_partial=true"></q-btn>
-                           <q-btn color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Edit" icon="edit" @click="openEditModal({pageText: 'Automatic root page for space ' + wiki_page_info.wikiSpace.wikiSpaceId})"></q-btn>
-                           <q-btn v-if="version && version !== published_version" color="blue" class="text-capitalize cursor-pointer float-right" outline dense :label="'Publish Version ' + version" icon="edit" @click="setPublishedVersion"></q-btn>
+                           <q-btn rounded color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Add" icon="add" @click="show_add_model_partial=true"></q-btn>
+                           <q-btn rounded color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Edit" icon="edit" @click="openEditModal({pageText: 'Automatic root page for space ' + wiki_page_info.wikiSpace.wikiSpaceId})"></q-btn>
+                           <q-btn rounded v-if="version && version !== published_version" color="blue" class="text-capitalize cursor-pointer float-right" outline dense :label="'Publish Version ' + version" icon="edit" @click="setPublishedVersion"></q-btn>
                         </div>
                     </div>
                     <div>
@@ -51,20 +51,20 @@
                 <q-card-section v-if="page_detail.pageLocation && is_page_present">
                     <div style="display:grid;">
                         <div>
-                        <q-btn v-if="tree_nodes_selected && !is_children_present" color="red" class="text-capitalize cursor-pointer float-right" outline dense icon="delete" @click="delete_page = true"></q-btn>
-                            <q-btn color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Add" icon="add" @click="show_add_model_partial=true"></q-btn>
-                           <q-btn color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Edit" icon="edit" @click="openEditModal(page_detail)"></q-btn>
-                           <q-btn v-if="version && version !== published_version" color="blue" class="text-capitalize cursor-pointer float-right" outline dense :label="'Publish Version ' + version" icon="edit" @click="setPublishedVersion"></q-btn>
+                        <q-btn rounded v-if="tree_nodes_selected && !is_children_present" color="red" class="text-capitalize cursor-pointer float-right" outline dense icon="delete" @click="delete_page = true"></q-btn>
+                            <q-btn rounded color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Add" icon="add" @click="show_add_model_partial=true"></q-btn>
+                           <q-btn rounded color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Edit" icon="edit" @click="openEditModal(page_detail)"></q-btn>
+                           <q-btn rounded v-if="version && version !== published_version" color="blue" class="text-capitalize cursor-pointer float-right" outline dense :label="'Publish Version ' + version" icon="edit" @click="setPublishedVersion"></q-btn>
                         </div>
                     </div>
                     <div v-if="wiki_page_info.wikiType == 'html'" v-html="page_detail.pageText"></div>
                     <div v-if="wiki_page_info.wikiType == 'md'" v-html="getHtmlForMD(page_detail.pageText)"></div>
                 </q-card-section>
             </q-card>
-            <q-card class="q-px-none q-py-sm q-my-md q-mx-none">
+            <q-card flat bordered :class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'" class="q-px-none q-py-sm q-my-md q-mx-none">
                 <q-card-section>
                     <div class="text-h6 q-pl-sm">Comments
-                    <q-btn @click="show_add_comment=true" outline dense label="Add Comment" class="text-capitalize float-right" color="primary"></q-btn>
+                    <q-btn rounded @click="show_add_comment=true" outline dense label="Add Comment" class="text-capitalize float-right" color="primary"></q-btn>
                     </div>
                 </q-card-section>
                 <div class="q-mt-md text-center q-py-md" v-if="wiki_page_comments.length === 0">
@@ -90,16 +90,16 @@
 
                                  <q-item-section side top class="q-pt-none">
                                      <div>
-                                        <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId != comment.communicationEventId" @click="editComment(comment)" class="text-blue q-px-sm q-ml-sm" flat dense icon="edit"></q-btn>
-                                        <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId" @click="updateComment();" class="text-blue q-px-sm q-ml-sm" outline flat dense icon="save"></q-btn>
-                                        <q-btn style="padding: 0;" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId" @click="obj_edit_comment={};" class="text-red q-px-sm q-ml-sm" outline flat dense icon="close"></q-btn>
-                                        <q-btn style="padding: 0;" @click="obj_delete_comment=comment;is_delete_comment=true;" class="text-red q-px-sm q-ml-sm" flat dense icon="delete"></q-btn>
+                                        <q-btn rounded style="padding: 0;" v-if="obj_edit_comment.communicationEventId != comment.communicationEventId" @click="editComment(comment)" class="text-blue q-px-sm q-ml-sm" flat dense icon="edit"></q-btn>
+                                        <q-btn rounded style="padding: 0;" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId" @click="updateComment();" class="text-blue q-px-sm q-ml-sm" outline flat dense icon="save"></q-btn>
+                                        <q-btn rounded style="padding: 0;" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId" @click="obj_edit_comment={};" class="text-red q-px-sm q-ml-sm" outline flat dense icon="close"></q-btn>
+                                        <q-btn rounded style="padding: 0;" @click="obj_delete_comment=comment;is_delete_comment=true;" class="text-red q-px-sm q-ml-sm" flat dense icon="delete"></q-btn>
                                     </div>
                                  </q-item-section>
 
                               </q-item>
                               <div id="edit_comment_id" class="comment_section edit_comment_section q-mt-sm q-px-lg" v-if="obj_edit_comment.communicationEventId == comment.communicationEventId">
-                                  <div style="border: 1px solid #c2c2c2;" id="editCommentEditor"></div>
+                                  <div :class="$q.dark.isActive?'text-white':'text-black'" style="border-radius: 12px !important;border: 1px solid #c2c2c2;" id="editCommentEditor"></div>
                                 </div>
                           </span>
                           </q-list>
@@ -107,7 +107,7 @@
             </q-card>
         </div>
         <div class="col-md-3 col-lg-3 col-xs-12 xol-sm-12">
-            <q-card class="q-px-xs q-py-sm q-ma-md">
+            <q-card flat bordered :class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'" class="q-px-xs q-py-sm q-ma-md">
                 <q-card-section>
                     <div class="text-h6">Page History</div>
                 </q-card-section>
@@ -146,7 +146,7 @@
                     Compare "{{wiki_page_info.wikiSpace.wikiSpaceId}}" - Versions {{versionNameLhs}} and {{versionNameRhs}}
                 </div>
                 <div class="col-1">
-                    <q-btn flat round dense icon="close" class="float-right" v-close-popup></q-btn>
+                    <q-btn rounded flat round dense icon="close" class="float-right" v-close-popup></q-btn>
                 </div>
             </div>
             </q-card-section>
@@ -158,7 +158,7 @@
 
             <q-separator></q-separator>
             <q-card-actions class="q-pa-md" align="left">
-              <q-btn v-close-popup outline dense label="Close" class="text-capitalize q-mb-md" color="black"></q-btn>
+              <q-btn rounded v-close-popup outline dense label="Close" class="text-capitalize q-mb-md" color="black"></q-btn>
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -168,25 +168,25 @@
               <div class="row q-px-md q-py-sm">
                 <div class="col-11 q-pt-sm text-h5 text-weight-bold">
                     Edit Page
-                    <!-- <q-input style="width: 200px;" class="inline-block" outlined dense v-model="wiki_page_info.pageName" label="Page Name" ></q-input>-->
-                    <q-input v-if="tree_nodes_selected" style="width: 200px;" class="inline-block" outlined dense v-model="page_name_in_edit" label="Page Name" ></q-input>
-                    <q-input style="width: 200px;" class="inline-block" outlined dense v-model="sequence_in_edit" label="Sequence" ></q-input>
+                    <!-- <q-input rounded style="width: 200px;" class="inline-block" outlined dense v-model="wiki_page_info.pageName" label="Page Name" ></q-input>-->
+                    <q-input rounded v-if="tree_nodes_selected" style="width: 200px;" class="inline-block" outlined dense v-model="page_name_in_edit" label="Page Name" ></q-input>
+                    <q-input rounded style="width: 200px;" class="inline-block" outlined dense v-model="sequence_in_edit" label="Sequence" ></q-input>
                 </div>
                 <div class="col-1">
-                    <q-btn flat round dense icon="close" class="float-right" v-close-popup></q-btn>
+                    <q-btn rounded flat round dense icon="close" class="float-right" v-close-popup></q-btn>
                 </div>
             </div>
             </q-card-section>
             <q-separator></q-separator>
 
             <q-card-section class="q-ma-md edit_page">
-                <div style="border: 1px solid #c2c2c2;" id="editEditor"></div>
+                <div :class="$q.dark.isActive?'text-white':'text-black'" style="border-radius: 12px !important;border: 1px solid #c2c2c2;" id="editEditor"></div>
             </q-card-section>
 
             <q-separator></q-separator>
             <q-card-actions class="q-pa-md" align="left">
-              <q-btn @click="editPage()" outline dense label="Update" class="text-capitalize q-mb-md" color="primary"></q-btn>
-              <q-btn v-close-popup outline dense label="Cancel" class="text-capitalize q-mb-md" color="black"></q-btn>
+              <q-btn rounded @click="editPage()" outline dense label="Update" class="text-capitalize q-mb-md" color="primary"></q-btn>
+              <q-btn rounded v-close-popup outline dense label="Cancel" class="text-capitalize q-mb-md" color="black"></q-btn>
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -198,8 +198,8 @@
             </q-card-section>
 
             <q-card-actions align="right">
-              <q-btn outlined label="Cancel" color="grey" v-close-popup></q-btn>
-              <q-btn v-if="" outlined label="Delete" color="red" @click="deletePage"></q-btn>
+              <q-btn rounded outlined label="Cancel" color="grey" v-close-popup></q-btn>
+              <q-btn rounded v-if="" outlined label="Delete" color="red" @click="deletePage"></q-btn>
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -209,26 +209,26 @@
               <div class="row q-px-md q-py-sm">
                 <div class="col-11 q-pt-sm text-h5 text-weight-bold">
                     Add Page
-                    <q-input style="width: 200px;" class="inline-block" outlined dense disable readonly :value="page_path" label="Parent Path" ></q-input>
-                    <q-input style="width: 300px;" class="inline-block" outlined dense v-model="new_page_name" label="Page Name" ></q-input>
-                    <q-input style="width: 100px;" class="inline-block" outlined dense disable readonly :value="add_wiki_type.value" label="Wiki Type" ></q-input>
-                    <q-input style="width: 100px;" class="inline-block" outlined dense v-model="new_page_seq" label="Sequence" ></q-input>
+                    <q-input rounded style="width: 200px;" class="inline-block" outlined dense disable readonly :value="page_path" label="Parent Path" ></q-input>
+                    <q-input rounded style="width: 300px;" class="inline-block" outlined dense v-model="new_page_name" label="Page Name" ></q-input>
+                    <q-input rounded style="width: 100px;" class="inline-block" outlined dense disable readonly :value="add_wiki_type.value" label="Wiki Type" ></q-input>
+                    <q-input rounded style="width: 100px;" class="inline-block" outlined dense v-model="new_page_seq" label="Sequence" ></q-input>
                 </div>
                 <div class="col-1">
-                    <q-btn flat round dense icon="close" class="float-right" v-close-popup></q-btn>
+                    <q-btn rounded flat round dense icon="close" class="float-right" v-close-popup></q-btn>
                 </div>
             </div>
             </q-card-section>
             <q-separator></q-separator>
 
             <q-card-section class="add_page_cls q-ma-md">
-                <div style="border: 1px solid #c2c2c2;" id="addEditor"></div>
+                <div :class="$q.dark.isActive?'text-white':'text-black'"  style="border-radius: 12px !important;border: 1px solid #c2c2c2;" id="addEditor"></div>
             </q-card-section>
 
             <q-separator></q-separator>
             <q-card-actions class="q-pa-md" align="left">
-              <q-btn @click="addPage()" outline dense label="Add" class="text-capitalize q-mb-md" color="primary"></q-btn>
-              <q-btn v-close-popup outline dense label="Cancel" class="text-capitalize q-mb-md" color="black"></q-btn>
+              <q-btn rounded @click="addPage()" outline dense label="Add" class="text-capitalize q-mb-md" color="primary"></q-btn>
+              <q-btn rounded v-close-popup outline dense label="Cancel" class="text-capitalize q-mb-md" color="black"></q-btn>
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -241,7 +241,7 @@
                     Add Page
                 </div>
                 <div class="col-1">
-                    <q-btn flat round dense icon="close" class="float-right" v-close-popup></q-btn>
+                    <q-btn rounded flat round dense icon="close" class="float-right" v-close-popup></q-btn>
                 </div>
             </div>
             </q-card-section>
@@ -250,10 +250,10 @@
             <q-card-section class="q-ma-md edit_page">
                 <div class="row">
                     <div class="col-12">
-                        <q-input outlined dense disable readonly :value="page_path" label="Parent Path" />
+                        <q-input rounded outlined dense disable readonly :value="page_path" label="Parent Path" />
                     </div>
                     <div class="col-12 q-pt-md">
-                        <q-select
+                        <q-select rounded
                               label="Wiki Type"
                               dense
                               outlined
@@ -280,8 +280,8 @@
 
             <q-separator></q-separator>
             <q-card-actions class="q-pa-md" align="left">
-              <q-btn :disabled="!(add_wiki_type)" @click="openAddPageMain()" outline dense label="Add Page" class="text-capitalize q-mb-md" color="primary"></q-btn>
-              <q-btn v-close-popup outline dense label="Cancel" class="text-capitalize q-mb-md" color="black"></q-btn>
+              <q-btn rounded :disabled="!(add_wiki_type)" @click="openAddPageMain()" outline dense label="Add Page" class="text-capitalize q-mb-md" color="primary"></q-btn>
+              <q-btn rounded v-close-popup outline dense label="Cancel" class="text-capitalize q-mb-md" color="black"></q-btn>
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -293,8 +293,8 @@
             </q-card-section>
 
             <q-card-actions align="right">
-              <q-btn flat label="Cancel" @click="obj_delete_comment={};is_delete_comment=false;" color="primary"></q-btn>
-              <q-btn flat label="Delete" color="red" @click="deleteComment"></q-btn>
+              <q-btn rounded flat label="Cancel" @click="obj_delete_comment={};is_delete_comment=false;" color="primary"></q-btn>
+              <q-btn rounded flat label="Delete" color="red" @click="deleteComment"></q-btn>
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -306,7 +306,7 @@
                     Add Comment
                 </div>
                 <div class="col-1">
-                    <q-btn flat round dense icon="close" class="float-right" v-close-popup></q-btn>
+                    <q-btn rounded flat round dense icon="close" class="float-right" v-close-popup></q-btn>
                 </div>
             </div>
             </q-card-section>
@@ -315,15 +315,15 @@
             <q-card-section class="q-ma-md edit_page">
                 <div class="row">
                     <div class="col-12 add_comment_sec">
-                        <div style="border: 1px solid #c2c2c2;" id="addPageCommentEditor"></div>
+                        <div :class="$q.dark.isActive?'text-white':'text-black'" style="border-radius: 12px !important;border: 1px solid #c2c2c2;" id="addPageCommentEditor"></div>
                     </div>
                 </div>
             </q-card-section>
 
             <q-separator></q-separator>
             <q-card-actions class="q-pa-md" align="left">
-              <q-btn @click="addComment" outline dense label="Add" class="text-capitalize q-mb-md" color="primary"></q-btn>
-              <q-btn v-close-popup outline dense label="Cancel" class="text-capitalize q-mb-md" color="black"></q-btn>
+              <q-btn rounded @click="addComment" outline dense label="Add" class="text-capitalize q-mb-md" color="primary"></q-btn>
+              <q-btn rounded v-close-popup outline dense label="Cancel" class="text-capitalize q-mb-md" color="black"></q-btn>
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -921,7 +921,7 @@ module.exports = {
                 else {
                     this.is_children_present = false;
                 }
-                debugger
+
                 if (load_page !== 'do_not_load') {
                     this.getWikiPageInfo();
                 }
@@ -1006,5 +1006,11 @@ module.exports = {
     }
     .q-field--float .q-field__label {
         top: 0px !important;
+    }
+    .custom_style {
+        background: #ECF2FF;
+    }
+    .custom_radius {
+        border-radius: 1rem;
     }
 </style>

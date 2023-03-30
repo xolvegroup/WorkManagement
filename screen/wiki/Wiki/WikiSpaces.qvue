@@ -1,11 +1,10 @@
 <template>
     <div>
-        <div>
-            <q-btn
-                style="width: 125px;"
+        <div class="q-pt-sm">
+            <q-btn rounded outline
+                style="width: 140px;"
                 dense
                 split
-                color="primary"
                 no-caps
                 icon="add"
                 label="New Space"
@@ -15,12 +14,13 @@
         </div>
         <div>
             <q-card flat class="q-mt-sm">
-              <q-card-section style="padding: 0px;">
+              <q-card-section style="padding: 0px;padding-top:3px;">
                 <q-table
                     bordered
                     flat
                     :wrap-cells="true"
                       :data="wiki_space_list"
+                      :card-class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'"
                       table-header-class="custom_table_header"
                       :columns="table_columns"
                       row-key="wikiSpaceId"
@@ -53,7 +53,7 @@
                     </template>-->
                     <template v-slot:body-cell-action="props">
                         <q-td :props="props">
-                          <q-btn @click="openEditModal(props.row)" class="text-primary text-capitalize" dense icon="edit" outline>
+                          <q-btn rounded rounded @click="openEditModal(props.row)" class="text-primary text-capitalize" dense icon="edit" outline>
                             <q-tooltip content-style="font-size: 12px">Edit</q-tooltip>
                           </q-btn>
                         </q-td>
@@ -66,22 +66,22 @@
           <q-card class="" style="width: 750px;max-width:750px;">
             <q-card-section>
               <div class="text-h5 q-pa-sm q-pl-md">New Space
-                <q-btn class="absolute-top-right" style="margin: 12px" flat round dense icon="close" v-close-popup></q-btn>
+                <q-btn rounded class="absolute-top-right" style="margin: 12px" flat round dense icon="close" v-close-popup></q-btn>
               </div>
             </q-card-section>
              <q-separator></q-separator>
             <q-card-section style="font-size: 16px" class="q-pt-none">
                 <div class="row cls_space">
                     <div class="col-6 q-px-md q-py-md">
-                        <q-input outlined dense
+                        <q-input rounded outlined dense
         v-model="new_space.wiki_space_id" label="Wiki Space ID*" />
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-input outlined dense
+                        <q-input rounded outlined dense
         v-model="new_space.description" label="Description*" />
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-select
+                        <q-select rounded
                               label="Restrict View"
                               dense
                               outlined
@@ -104,7 +104,7 @@
                             </q-select>
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-select
+                        <q-select rounded
                               label="Restrict Update"
                               dense
                               outlined
@@ -127,7 +127,7 @@
                             </q-select>
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-select
+                        <q-select rounded
                               label="Allow Any HTML"
                               dense
                               outlined
@@ -150,7 +150,7 @@
                             </q-select>
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-select
+                        <q-select rounded
                               label="Wiki Type"
                               dense
                               outlined
@@ -173,7 +173,7 @@
                             </q-select>
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-select
+                        <q-select rounded
                               label="Root Page Directory"
                               dense
                               outlined
@@ -196,7 +196,7 @@
                             </q-select>
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-input outlined dense
+                        <q-input rounded outlined dense
         v-model="new_space.root_page_override" label="Root Page Override">
                             <q-tooltip content-class="bg-indigo"
         content-style="font-size: 14px;" :offset="[10, 10]">
@@ -210,7 +210,7 @@
             </q-card-section>
             <q-separator></q-separator>
             <q-card-actions class="q-pl-lg q-py-md" align="left">
-              <q-btn :disabled="!(new_space.wiki_space_id && new_space.description)" @click="createSpace" outline dense label="Create Space" class="text-capitalize
+              <q-btn size="16px" rounded :disabled="!(new_space.wiki_space_id && new_space.description)" @click="createSpace" outline label="Create Space" class="text-capitalize
         q-mb-md" color="primary" />
             </q-card-actions>
           </q-card>
@@ -219,34 +219,34 @@
           <q-card class="" style="width: 750px;max-width:750px;">
             <q-card-section>
               <div class="text-h5 q-pa-sm q-pl-md">Edit Space
-                <q-btn class="absolute-top-right" style="margin: 12px" flat round dense icon="close" v-close-popup></q-btn>
+                <q-btn rounded class="absolute-top-right" style="margin: 12px" flat round dense icon="close" v-close-popup></q-btn>
               </div>
             </q-card-section>
              <q-separator></q-separator>
             <q-card-section style="font-size: 16px" class="q-pt-none">
                 <div class="row cls_space">
                     <div class="col-6 q-px-md q-py-md">
-                        <q-input :disable="true" outlined dense
+                        <q-input rounded :disable="true" outlined dense
         v-model="edit_space.wikiSpaceId" label="Wiki Space ID" />
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-input outlined dense
+                        <q-input rounded outlined dense
         v-model="edit_space.description" label="Description*" />
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-input :disable="true" outlined dense
+                        <q-input rounded :disable="true" outlined dense
         v-model="edit_space.rootPageLocation" label="Root Page Location" />
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-input disabled outlined dense
+                        <q-input rounded disabled outlined dense
         v-model="edit_space.publicPageUrl" label="Public Page URL" />
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-input disabled outlined dense
+                        <q-input rounded disabled outlined dense
         v-model="edit_space.publicAttachmentUrl" label="Public Attachment URL" />
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-select
+                        <q-select rounded
                               label="Restrict View"
                               dense
                               outlined
@@ -269,7 +269,7 @@
                             </q-select>
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-select
+                        <q-select rounded
                               label="Restrict Update"
                               dense
                               outlined
@@ -292,7 +292,7 @@
                             </q-select>
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-select
+                        <q-select rounded
                               label="Allow Any HTML"
                               dense
                               outlined
@@ -318,7 +318,7 @@
             </q-card-section>
             <q-separator></q-separator>
             <q-card-actions class="q-pl-lg q-py-md" align="left">
-              <q-btn @click="updateSpace" outline dense label="Update Space" class="text-capitalize
+              <q-btn size="16px" rounded @click="updateSpace" outline label="Update Space" class="text-capitalize
         q-mb-md" color="primary" />
             </q-card-actions>
           </q-card>
@@ -515,5 +515,11 @@ module.exports = {
     }
     .cls_space .q-field--float .q-field__label {
         top: 0px !important;
+    }
+    .custom_style {
+        background: #ECF2FF;
+    }
+    .custom_radius {
+        border-radius: 1rem;
     }
 </style>
