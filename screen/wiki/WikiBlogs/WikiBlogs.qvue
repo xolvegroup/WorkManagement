@@ -1,39 +1,40 @@
 <template>
     <div class="row">
         <div class="col-12">
-                <q-btn
+                <q-btn rounded outline
                 style="width: 205px;"
                 @click="addBlogDialog(false, true)"
             class="custom_btn_dropdown"
             dense
                   split
-                  color="primary"
+                  color=""
                   no-caps
                   icon="add"
                   label="Add Blog Post from Page"
                 >
                 </q-btn>
-                <q-btn
+                <q-btn rounded outline
                 style="width: 205px;margin-left: 6px;"
                 @click="addBlogDialog(true, true)"
             class="custom_btn_dropdown"
             dense
                   split
-                  color="primary"
+                  color=""
                   no-caps
                   icon="add"
                   label="Add Blog Post with Text"
                 >
                 </q-btn>
-                <q-btn style="width: 130px;margin-top:6px;" class="text-capitalize float-right" outline rounded dense label="Find Options" icon="search" @click="open_find_options_drawer=true"></q-btn>
-                <q-btn style="width: 130px;margin-top:6px;" v-if="Object.keys(filter_params).length > 0 || (filter_params['orderByField'] != '-workEffortId' && mdl_filter_order_by !== null)" @click="resetFind()" class="text-capitalize float-right text-red" outline rounded dense icon="close" label="Clear"></q-btn>
-            <q-card flat class="q-mt-sm">
+                <q-btn rounded style="width: 130px;margin-top:6px;" class="text-capitalize float-right" outline dense label="Find Options" icon="search" @click="open_find_options_drawer=true"></q-btn>
+                <q-btn rounded style="width: 130px;margin-top:6px;" v-if="Object.keys(filter_params).length > 0 || (filter_params['orderByField'] != '-workEffortId' && mdl_filter_order_by !== null)" @click="resetFind()" class="text-capitalize float-right text-red" outline dense icon="close" label="Clear"></q-btn>
+            <q-card :class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'" flat class="q-mt-sm">
               <q-card-section style="padding: 0px;">
                 <q-table
                 bordered
                 flat
                 :wrap-cells="true"
                       :data="blog_list"
+                      :card-class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'"
                       table-header-class="custom_table_header"
                       :columns="table_columns"
                       row-key="wikiBlogId"
@@ -72,26 +73,26 @@
           <q-card class="" style="width: 750px;max-width:750px;">
             <q-card-section>
               <div class="text-h5 q-pa-sm q-pl-md">Add blog post from page
-                <q-btn class="absolute-top-right" style="margin: 12px" flat round dense icon="close" v-close-popup></q-btn>
+                <q-btn rounded class="absolute-top-right" style="margin: 12px" flat round dense icon="close" v-close-popup></q-btn>
               </div>
             </q-card-section>
              <q-separator></q-separator>
             <q-card-section style="font-size: 16px" class="q-pt-none">
                 <div class="row cls_space">
                     <div class="col-12 q-px-md q-py-md">
-                        <q-input outlined dense
+                        <q-input rounded outlined dense
         v-model="new_blog_from_page.title" label="Title*" />
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <!--<q-input outlined dense
+                        <!--<q-input rounded outlined dense
         v-model="new_blog_from_page.publishDate" label="Publish Date*" />-->
-                <q-input label="Publish Date*" outlined dense v-model="new_blog_from_page.publishDate" class="tw-ml-3 tw-w-56">
+                <q-input rounded label="Publish Date*" outlined dense v-model="new_blog_from_page.publishDate" class="tw-ml-3 tw-w-56">
                       <template v-slot:prepend>
                         <q-icon name="event" class="cursor-pointer">
                           <q-popup-proxy cover transition-show="scale" transition-hide="scale">
                             <q-date v-model="new_blog_from_page.publishDate" mask="YYYY-MM-DD HH:mm">
                               <div class="row items-center justify-end">
-                                <q-btn v-close-popup label="Close" color="primary" flat/>
+                                <q-btn rounded v-close-popup label="Close" color="primary" flat/>
                               </div>
                             </q-date>
                           </q-popup-proxy>
@@ -103,7 +104,7 @@
                           <q-popup-proxy cover transition-show="scale" transition-hide="scale">
                             <q-time v-model="new_blog_from_page.publishDate" mask="YYYY-MM-DD HH:mm" format24h>
                               <div class="row items-center justify-end">
-                                <q-btn v-close-popup label="Close" color="primary" flat/>
+                                <q-btn rounded v-close-popup label="Close" color="primary" flat/>
                               </div>
                             </q-time>
                           </q-popup-proxy>
@@ -112,23 +113,23 @@
                     </q-input>
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-input outlined dense
+                        <q-input rounded outlined dense
         v-model="new_blog_from_page.author" label="Author" />
                     </div>
                     <div class="col-12 q-px-md q-py-md">
-                        <q-input type="textarea" outlined dense
+                        <q-input rounded type="textarea" outlined dense
         v-model="new_blog_from_page.summary" label="Summary" />
                     </div>
                     <div class="col-12 q-px-md q-py-md">
-        <q-file outlined dense v-model="new_blog_from_page.smallImage" label="Small Image" />
+        <q-file rounded outlined dense v-model="new_blog_from_page.smallImage" label="Small Image" />
                     </div>
                     <div class="col-12 q-px-md q-py-md">
-                        <q-select
+                        <q-select rounded
                               label="Wiki Space"
                               dense
                               outlined
                               v-model="new_blog_from_page.wikiSpaceId"
-                              :class="!$q.dark.isActive?'bg-white':''"
+                              :content-class="!$q.dark.isActive?'bg-white':''"
                               use-input
                               input-debounce="700"
                               option-value="value"
@@ -147,12 +148,12 @@
                             </q-select>
                     </div>
                     <div v-if="!blog_from_text" class="col-12 q-px-md q-py-md">
-                        <q-select
+                        <q-select rounded
                               label="Wiki Page"
                               dense
                               outlined
                               v-model="new_blog_from_page.wikiPageId"
-                              :class="!$q.dark.isActive?'bg-white':''"
+                              :content-class="!$q.dark.isActive?'bg-white':''"
                               use-input
                               input-debounce="700"
                               option-value="value"
@@ -171,13 +172,13 @@
                     </div>
                     <div v-if="blog_from_text" class="col-12 q-px-md q-py-md">
                         <span class="text-grey-8">Blog content</span>
-                        <div id="idAddBlog" style="border: 1px solid #c2c2c2;min-height: 150px !important;"></div>
+                        <div id="idAddBlog" style="border-radius: 12px !important;border: 1px solid #c2c2c2;min-height: 150px !important;"></div>
                     </div>
                 </div>
             </q-card-section>
             <q-separator></q-separator>
             <q-card-actions class="q-pl-lg q-py-md" align="left">
-              <q-btn @click="createBlog" :disabled="!(new_blog_from_page.title && new_blog_from_page.publishDate && new_blog_from_page.wikiSpaceId && (blog_from_text? true:new_blog_from_page.wikiPageId))" outline dense label="Create Post" class="text-capitalize
+              <q-btn size="16px" rounded @click="createBlog" :disabled="!(new_blog_from_page.title && new_blog_from_page.publishDate && new_blog_from_page.wikiSpaceId && (blog_from_text? true:new_blog_from_page.wikiPageId))" outline dense label="Create Post" class="text-capitalize
         q-mb-md" color="primary" />
             </q-card-actions>
           </q-card>
@@ -186,26 +187,26 @@
           <q-card class="" style="width: 750px;max-width:750px;">
             <q-card-section>
               <div class="text-h5 q-pa-sm q-pl-md">Edit blog post
-                <q-btn class="absolute-top-right" style="margin: 12px" flat round dense icon="close" v-close-popup></q-btn>
+                <q-btn rounded class="absolute-top-right" style="margin: 12px" flat round dense icon="close" v-close-popup></q-btn>
               </div>
             </q-card-section>
              <q-separator></q-separator>
             <q-card-section style="font-size: 16px" class="q-pt-none">
                 <div class="row cls_space">
                     <div class="col-12 q-px-md q-py-md">
-                        <q-input outlined dense
+                        <q-input rounded outlined dense
         v-model="selected_blog_edit.title" label="Title*" />
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <!--<q-input outlined dense
+                        <!--<q-input rounded outlined dense
         v-model="selected_blog_edit.publishDate" label="Publish Date*" />-->
-                <q-input label="Publish Date*" outlined dense v-model="selected_blog_edit.publishDate" class="tw-ml-3 tw-w-56">
+                <q-input rounded label="Publish Date*" outlined dense v-model="selected_blog_edit.publishDate" class="tw-ml-3 tw-w-56">
                       <template v-slot:prepend>
                         <q-icon name="event" class="cursor-pointer">
                           <q-popup-proxy cover transition-show="scale" transition-hide="scale">
                             <q-date v-model="selected_blog_edit.publishDate" mask="YYYY-MM-DD HH:mm">
                               <div class="row items-center justify-end">
-                                <q-btn v-close-popup label="Close" color="primary" flat/>
+                                <q-btn rounded v-close-popup label="Close" color="primary" flat/>
                               </div>
                             </q-date>
                           </q-popup-proxy>
@@ -217,7 +218,7 @@
                           <q-popup-proxy cover transition-show="scale" transition-hide="scale">
                             <q-time v-model="selected_blog_edit.publishDate" mask="YYYY-MM-DD HH:mm" format24h>
                               <div class="row items-center justify-end">
-                                <q-btn v-close-popup label="Close" color="primary" flat/>
+                                <q-btn rounded v-close-popup label="Close" color="primary" flat/>
                               </div>
                             </q-time>
                           </q-popup-proxy>
@@ -226,23 +227,23 @@
                     </q-input>
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-input outlined dense
+                        <q-input rounded outlined dense
         v-model="selected_blog_edit.author" label="Author" />
                     </div>
                     <div class="col-12 q-px-md q-py-md">
-                        <q-input type="textarea" outlined dense
+                        <q-input rounded type="textarea" outlined dense
         v-model="selected_blog_edit.summary" label="Summary" />
                     </div>
                     <div class="col-12 q-px-md q-py-md">
-        <q-file outlined dense v-model="selected_blog_edit.smallImage" label="Small Image" />
+        <q-file rounded outlined dense v-model="selected_blog_edit.smallImage" label="Small Image" />
                     </div>
                     <div class="col-12 q-px-md q-py-md">
-                        <q-select
+                        <q-select rounded
                               label="Wiki Space"
                               dense
                               outlined
                               v-model="selected_blog_edit.wikiSpaceId"
-                              :class="!$q.dark.isActive?'bg-white':''"
+                              :content-class="!$q.dark.isActive?'bg-white':''"
                               use-input
                               input-debounce="700"
                               option-value="value"
@@ -261,14 +262,14 @@
                             </q-select>
                     </div>
                     <div class="col-12 q-px-md q-py-md">
-                        <q-select
+                        <q-select rounded
                         disabled
                         style="pointer-events:none"
                               label="Wiki Page"
                               dense
                               outlined
                               v-model="selected_blog_edit.wikiPageId"
-                              :class="!$q.dark.isActive?'bg-white':''"
+                              :content-class="!$q.dark.isActive?'bg-white':''"
                               use-input
                               input-debounce="700"
                               option-value="value"
@@ -289,7 +290,7 @@
             </q-card-section>
             <q-separator></q-separator>
             <q-card-actions class="q-pl-lg q-py-md" align="left">
-              <q-btn @click="updateBlog" :disabled="!(selected_blog_edit.title && selected_blog_edit.publishDate && selected_blog_edit.wikiSpaceId)" outline dense label="Update" class="text-capitalize
+              <q-btn size="16px" rounded @click="updateBlog" :disabled="!(selected_blog_edit.title && selected_blog_edit.publishDate && selected_blog_edit.wikiSpaceId)" outline label="Update" class="text-capitalize
         q-mb-md" color="primary" />
             </q-card-actions>
           </q-card>
@@ -301,6 +302,7 @@
             overlay
             :width="600"
             :breakpoint="600"
+            class="right_options_popup"
             :content-class="!$q.dark.isActive?'bg-grey-3':'bg-black'"
           >
           <div class="q-pa-sm q-px-md">
@@ -309,17 +311,17 @@
                         Find Options
                     </div>
                     <div class="col-1">
-                        <q-btn flat round dense icon="close" @click="open_find_options_drawer=false"></q-btn>
+                        <q-btn rounded flat round dense icon="close" @click="open_find_options_drawer=false"></q-btn>
                     </div>
                 </div>
                 <div class="row q-mt-md q-col-gutter-md cls_blog_detail">
                     <div class="col-6">
-                        <q-select
+                        <q-select rounded
                               label="Category"
                               dense
                               outlined
                               v-model="mdl_filter_category"
-                              :class="!$q.dark.isActive?'bg-white':''"
+                              :content-class="!$q.dark.isActive?'bg-white':''"
                               use-input
                               input-debounce="700"
                               option-value="wikiPageCategoryId"
@@ -337,19 +339,18 @@
                             </q-select>
                     </div>
                     <div class="col-6">
-                        <q-input
+                        <q-input rounded
                             label="Title"
                             dense
                             outlined
                             v-model="mdl_filter_title"
-                            :class="!$q.dark.isActive?'bg-white':''"
                           />
                     </div>
                     <div class="col-4">
-                        <q-select
+                        <q-select rounded
                             label="Author"
                             dense
-                            :class="!$q.dark.isActive?'bg-white':''"
+                            :content-class="!$q.dark.isActive?'bg-white':''"
                             outlined
                             v-model="mdl_filter_author"
                             use-input
@@ -369,13 +370,13 @@
                           </q-select>
                     </div>
                     <div class="col-4">
-                    <q-input :class="!$q.dark.isActive?'bg-white':''" label="Publish Date From" style="margin:0;padding:0;" outlined dense v-model="mdl_filter_publishstartdate">
+                    <q-input rounded label="Publish Date From" style="margin:0;padding:0;" outlined dense v-model="mdl_filter_publishstartdate">
                         <template v-slot:append>
                           <q-icon size="18px" name="event" class="cursor-pointer">
                             <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
                               <q-date mask="YYYY-MM-DD" v-model="mdl_filter_publishstartdate">
                                 <div class="row items-center justify-end">
-                                  <q-btn v-close-popup label="Close" color="primary" flat />
+                                  <q-btn rounded v-close-popup label="Close" color="primary" flat />
                                 </div>
                               </q-date>
                             </q-popup-proxy>
@@ -384,13 +385,13 @@
                       </q-input>
                     </div>
                     <div class="col-4">
-                    <q-input :class="!$q.dark.isActive?'bg-white':''" label="Publish Date Thru" style="margin:0;padding:0;" outlined dense v-model="mdl_filter_publishenddate">
+                    <q-input rounded label="Publish Date Thru" style="margin:0;padding:0;" outlined dense v-model="mdl_filter_publishenddate">
                         <template v-slot:append>
                           <q-icon size="18px" name="event" class="cursor-pointer">
                             <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
                               <q-date mask="YYYY-MM-DD" v-model="mdl_filter_publishenddate">
                                 <div class="row items-center justify-end">
-                                  <q-btn v-close-popup label="Close" color="primary" flat />
+                                  <q-btn rounded v-close-popup label="Close" color="primary" flat />
                                 </div>
                               </q-date>
                             </q-popup-proxy>
@@ -399,12 +400,12 @@
                       </q-input>
                     </div>
                     <div class="col-6">
-                    <q-select
+                    <q-select rounded
                             label="Wiki Space"
                             dense
                             outlined
                             v-model="mdl_filter_wikispace"
-                            :class="!$q.dark.isActive?'bg-white':''"
+                            :content-class="!$q.dark.isActive?'bg-white':''"
                             use-input
                             input-debounce="0"
                             option-value="value"
@@ -422,10 +423,10 @@
                           </q-select>
                     </div>
                     <div class="col-6">
-                        <q-select
+                        <q-select rounded
                             label="Order By"
                             dense
-                            :class="!$q.dark.isActive?'bg-white':''"
+                            :content-class="!$q.dark.isActive?'bg-white':''"
                             outlined
                             v-model="mdl_filter_order_by"
                             use-input
@@ -445,8 +446,8 @@
                           </q-select>
                     </div>
                     <div class="col-12">
-                        <q-btn @click="findOptions()" style="width: 140px" class="text-blue q-px-sm q-ml-sm" outline dense icon="search" label="Find"></q-btn>
-                        <q-btn @click="resetFind()" style="width: 140px" class="q-px-sm q-ml-sm" outline dense icon="search" label="Clear"></q-btn>
+                        <q-btn rounded @click="findOptions()" style="width: 140px" class="text-blue q-px-sm q-ml-sm" outline dense icon="search" label="Find"></q-btn>
+                        <q-btn rounded @click="resetFind()" style="width: 140px" class="q-px-sm q-ml-sm" outline dense icon="search" label="Clear"></q-btn>
                     </div>
                 </div>
                 <div class="q-mt-md">
@@ -830,5 +831,22 @@ module.exports = {
     }
     .cls_blog_detail .q-field--float .q-field__label {
         top: 0px !important;
+    }
+    .custom_style {
+        background: #ECF2FF;
+    }
+    .custom_radius {
+        border-radius: 1rem;
+    }
+    .right_options_popup .q-field__label {
+        background: transparent !important;
+    }
+    .right_options_popup .q-field__input {
+        background: transparent !important;
+    }
+    .right_options_popup .q-field--float .q-field__label {
+        background: grey !important;
+        color: white !important;
+        border-radius: 8px !important;
     }
 </style>
