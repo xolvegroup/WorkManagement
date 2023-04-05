@@ -520,6 +520,6 @@ module.exports = {
         background: #ECF2FF;
     }
     .custom_radius {
-        border-radius: 1rem;
+        border-radius: 8px;
     }
 </style>

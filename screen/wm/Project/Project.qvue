@@ -26,7 +26,7 @@
                               dense
                               outlined
                               v-model="mdl_filter_user"
-                              :class="!$q.dark.isActive?'bg-white':''"
+                              :content-class="!$q.dark.isActive?'bg-white':''"
                               use-input
                               input-debounce="700"
                               option-value="partyId"
@@ -50,7 +50,7 @@
                             outlined
                             v-model="mdl_filter_role"
                             use-input
-                            :class="!$q.dark.isActive?'bg-white':''"
+                            :content-class="!$q.dark.isActive?'bg-white':''"
                             input-debounce="0"
                             option-value="value"
                             option-label="label"
@@ -72,7 +72,7 @@
                             dense
                             outlined
                             v-model="mdl_filter_status"
-                            :class="!$q.dark.isActive?'bg-white':''"
+                            :content-class="!$q.dark.isActive?'bg-white':''"
                             use-input
                             multiple
                             input-debounce="0"
@@ -94,7 +94,7 @@
                         <q-select rounded 
                             label="Order By"
                             dense
-                            :class="!$q.dark.isActive?'bg-white':''"
+                            :content-class="!$q.dark.isActive?'bg-white':''"
                             outlined
                             v-model="mdl_filter_order_by"
                             use-input
@@ -298,12 +298,13 @@
           </q-drawer>
         <q-item class="q-pa-none q-pt-xs">
               <q-item-section>
-                <q-btn rounded style="width: 125px;"
+                <q-btn rounded style="width: 140px;"
             class="custom_btn_dropdown q-my-xs q-ml-sm"
             dense
                   split
+                  outline rounded
                   @click="new_project={title: '', assignee: null, project: null, due_date: null};is_add_project=true"
-                  color="primary"
+                  color=""
                   no-caps
                   icon="add"
                   label="Add Project"
@@ -335,14 +336,14 @@
                             <template v-if="is_add_project" v-slot:top-row>
                                 <q-tr>
                                   <q-td style="padding: 0">
-                                      <q-input rounded class="col-8" v-model="new_project.title" autofocus outlined style="margin:0;padding:0;" dense>
+                                      <q-input square class="col-8" v-model="new_project.title" autofocus outlined style="margin:0;padding:0;" dense>
                                         <template v-slot:before>
                                           <q-icon @click="is_add_project=false" color="red" class="cursor-pointer q-ml-xs" name="close" />
                                         </template>
                                     </q-input>
                                   </q-td>
                                   <q-td style="padding: 0">
-                                  <q-select rounded 
+                                  <q-select square
                                         dense
                                           outlined
                                           v-model="new_project.assignee"
@@ -364,7 +365,7 @@
                                         </q-select></q-td>
                                   <q-td>In Planning</q-td>
                                   <q-td style="padding: 0 7px 0 0">
-                                      <q-input rounded style="margin:0;padding:0;" outlined dense v-model="new_project.due_date">
+                                      <q-input square style="margin:0;padding:0;" outlined dense v-model="new_project.due_date">
                                         <template v-slot:append>
                                           <q-icon name="event" class="cursor-pointer">
                                             <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
@@ -1119,7 +1120,7 @@ module.exports = {
         background: #ECF2FF;
     }
     .custom_radius {
-        border-radius: 1rem;
+        border-radius: 8px;
     }
     .right_options_popup .q-field__label {
         background: transparent !important;

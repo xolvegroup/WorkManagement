@@ -1,7 +1,7 @@
 <template>
     <div class="row">
-        <div class="col-md-3 col-lg-3 col-xs-12 xol-sm-12">
-            <q-card flat bordered :class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'" class="q-px-md q-py-sm q-ma-md">
+        <div class="col-md-3 col-lg-3 col-xs-12 col-sm-12">
+            <q-card flat bordered :class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'" class="q-pa-sm">
                 <q-card-section>
                     <div class="text-h6">Page Tree</div>
                     <div @click="page_path=null,tree_nodes_selected=null,getWikiPageInfo()" class="text-h6 q-mt-md text-blue cursor-pointer" v-if="wiki_page_info.wikiSpace">{{wiki_page_info.wikiSpace.description}}
@@ -21,8 +21,8 @@
                 </q-card-section>
             </q-card>
         </div>
-        <div class="col-md-6 col-lg-6 col-xs-12 xol-sm-12">
-            <div class="q-mt-md q-mx-none" v-if="wiki_page_info.wikiSpace">
+        <div class="col-md-6 col-lg-6 col-xs-12 col-sm-12 q-px-sm">
+            <div class="q-mt-xs q-mx-none" v-if="wiki_page_info.wikiSpace">
             <span class="text-blue cursor-pointer text-h6" @click="page_path=null,tree_nodes_selected=null,getWikiPageInfo()">{{wiki_page_info.wikiSpace.description}}</span>
               <q-chip class="text-uppercase" dense color="grey" text-color="white">
                 {{ wiki_page_info.wikiType }}
@@ -35,7 +35,7 @@
               </q-chip>
               <span class="text-green" v-if="version && published_version && version === published_version">This version published</span>
             </div>
-            <q-card flat bordered :class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'" class="q-px-md q-py-sm q-my-md q-mx-none">
+            <q-card flat bordered :class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'" class="q-mt-sm">
                 <q-card-section v-if="wiki_page_info.wikiSpace && !is_page_present">
                     <div style="display:grid;">
                         <div>
@@ -61,7 +61,7 @@
                     <div v-if="wiki_page_info.wikiType == 'md'" v-html="getHtmlForMD(page_detail.pageText)"></div>
                 </q-card-section>
             </q-card>
-            <q-card flat bordered :class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'" class="q-px-none q-py-sm q-my-md q-mx-none">
+            <q-card flat bordered :class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'" class="q-px-none q-mt-sm q-pb-sm q-mx-none">
                 <q-card-section>
                     <div class="text-h6 q-pl-sm">Comments
                     <q-btn rounded @click="show_add_comment=true" outline dense label="Add Comment" class="text-capitalize float-right" color="primary"></q-btn>
@@ -106,8 +106,8 @@
                 </div>
             </q-card>
         </div>
-        <div class="col-md-3 col-lg-3 col-xs-12 xol-sm-12">
-            <q-card flat bordered :class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'" class="q-px-xs q-py-sm q-ma-md">
+        <div class="col-md-3 col-lg-3 col-xs-12 col-sm-12">
+            <q-card flat bordered :class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'" class="q-pa-sm">
                 <q-card-section>
                     <div class="text-h6">Page History</div>
                 </q-card-section>
@@ -1011,6 +1011,6 @@ module.exports = {
         background: #ECF2FF;
     }
     .custom_radius {
-        border-radius: 1rem;
+        border-radius: 8px;
     }
 </style>
