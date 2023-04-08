@@ -35,10 +35,13 @@
               </q-chip>
               <span class="text-green" v-if="version && published_version && version === published_version">This version published</span>
             </div>
-            <q-card flat bordered :class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'" class="q-mt-sm">
+            <q-card flat bordered :class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'" class="q-mt-md">
                 <q-card-section v-if="wiki_page_info.wikiSpace && !is_page_present">
                     <div style="display:grid;">
                         <div>
+                           <q-btn rounded color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Copy Link" icon="edit" @click="copyLink">
+                            <q-tooltip content-style="font-size: 12px">Copy wiki page link</q-tooltip>
+                           </q-btn>
                            <q-btn rounded color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Add" icon="add" @click="show_add_model_partial=true"></q-btn>
                            <q-btn rounded color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Edit" icon="edit" @click="openEditModal({pageText: 'Automatic root page for space ' + wiki_page_info.wikiSpace.wikiSpaceId})"></q-btn>
                            <q-btn rounded v-if="version && version !== published_version" color="blue" class="text-capitalize cursor-pointer float-right" outline dense :label="'Publish Version ' + version" icon="edit" @click="setPublishedVersion"></q-btn>
@@ -51,7 +54,10 @@
                 <q-card-section v-if="page_detail.pageLocation && is_page_present">
                     <div style="display:grid;">
                         <div>
-                        <q-btn rounded v-if="tree_nodes_selected && !is_children_present" color="red" class="text-capitalize cursor-pointer float-right" outline dense icon="delete" @click="delete_page = true"></q-btn>
+                            <q-btn rounded color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Copy Link" icon="edit" @click="copyLink">
+                                <q-tooltip content-style="font-size: 12px">Copy wiki page link</q-tooltip>
+                            </q-btn>
+                            <q-btn rounded v-if="tree_nodes_selected && !is_children_present" color="red" class="text-capitalize cursor-pointer float-right" outline dense icon="delete" @click="delete_page = true"></q-btn>
                             <q-btn rounded color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Add" icon="add" @click="show_add_model_partial=true"></q-btn>
                            <q-btn rounded color="blue" class="text-capitalize cursor-pointer float-right" outline dense label="Edit" icon="edit" @click="openEditModal(page_detail)"></q-btn>
                            <q-btn rounded v-if="version && version !== published_version" color="blue" class="text-capitalize cursor-pointer float-right" outline dense :label="'Publish Version ' + version" icon="edit" @click="setPublishedVersion"></q-btn>
@@ -368,6 +374,24 @@ module.exports = {
         }
     },
     methods: {
+        copyLink() {
+            let self = this;
+            const params = new Proxy(new URLSearchParams(window.location.search), {
+              get: (searchParams, prop) => searchParams.get(prop),
+            });
+            var dummy = document.createElement('input'),
+            text = (window.location.href).split("?")[0] + "?wikiSpaceId=" + params.wikiSpaceId + "&wikiPageId=" + self.wiki_page_info.wikiPageId + "&pagePath=" + self.wiki_page_info.pagePath;
+            //http://localhost:8080/qapps/wm/WikiDetail?wikiSpaceId=ZZW_RETAIL&wikiPageId=100159&pagePath=about/New%20page/mdmdmd
+            document.body.appendChild(dummy);
+            dummy.value = text;
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+            this.$q.notify({
+                message: 'Copied task link.',
+                position: 'bottom-left',
+              });
+        },
         onLazyLoad ({ node, key, done, fail }) {
 
           // simulate loading and setting an empty node
