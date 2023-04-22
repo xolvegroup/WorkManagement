@@ -168,7 +168,7 @@
             </q-card-actions>
           </q-card>
         </q-dialog>
-        <q-dialog id="edit_editor_id" v-model="show_edit_model" @show="initializeEditor('#editEditor')">
+        <q-dialog persistent id="edit_editor_id" v-model="show_edit_model" @show="initializeEditor('#editEditor')">
           <q-card class="q-pa-none" style="width: 80vw; max-width: 80vw;">
             <q-card-section>
               <div class="row q-px-md q-py-sm">
@@ -179,7 +179,7 @@
                     <q-input rounded style="width: 200px;" class="inline-block" outlined dense v-model="sequence_in_edit" label="Sequence" ></q-input>
                 </div>
                 <div class="col-1">
-                    <q-btn rounded flat round dense icon="close" class="float-right" v-close-popup></q-btn>
+                    <q-btn rounded flat round dense icon="close" class="float-right" @click="checkUnsavedProgress('edit')"></q-btn>
                 </div>
             </div>
             </q-card-section>
@@ -192,7 +192,7 @@
             <q-separator></q-separator>
             <q-card-actions class="q-pa-md" align="left">
               <q-btn rounded @click="editPage()" outline dense label="Update" class="text-capitalize q-mb-md" color="primary"></q-btn>
-              <q-btn rounded v-close-popup outline dense label="Cancel" class="text-capitalize q-mb-md" color="black"></q-btn>
+              <q-btn rounded @click="checkUnsavedProgress('edit')" outline dense label="Cancel" class="text-capitalize q-mb-md" color="black"></q-btn>
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -209,7 +209,7 @@
             </q-card-actions>
           </q-card>
         </q-dialog>
-        <q-dialog id="add_editor_id" v-model="show_add_model" @show="initializeEditor('#addEditor')">
+        <q-dialog persistent id="add_editor_id" v-model="show_add_model" @show="initializeEditor('#addEditor')">
           <q-card class="q-pa-none" style="width: 80vw; max-width: 80vw;">
             <q-card-section>
               <div class="row q-px-md q-py-sm">
@@ -221,7 +221,7 @@
                     <q-input rounded style="width: 100px;" class="inline-block" outlined dense v-model="new_page_seq" label="Sequence" ></q-input>
                 </div>
                 <div class="col-1">
-                    <q-btn rounded flat round dense icon="close" class="float-right" v-close-popup></q-btn>
+                    <q-btn rounded flat round dense icon="close" class="float-right" @click="checkUnsavedProgress('add')"></q-btn>
                 </div>
             </div>
             </q-card-section>
@@ -234,7 +234,7 @@
             <q-separator></q-separator>
             <q-card-actions class="q-pa-md" align="left">
               <q-btn rounded @click="addPage()" outline dense label="Add" class="text-capitalize q-mb-md" color="primary"></q-btn>
-              <q-btn rounded v-close-popup outline dense label="Cancel" class="text-capitalize q-mb-md" color="black"></q-btn>
+              <q-btn rounded @click="checkUnsavedProgress('add')" outline dense label="Cancel" class="text-capitalize q-mb-md" color="black"></q-btn>
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -370,10 +370,72 @@ module.exports = {
             wiki_type_options: [{'label':'md','value':'md'},{'label':'html','value':'html'}],
             obj_edit_comment:{},
             sequence_in_edit: "",
-            page_name_in_edit: ""
+            page_name_in_edit: "",
+            old_page_edit_data: {}
         }
     },
     methods: {
+        getUnsavedIndicator(action) {
+            let self = this;
+            let page_name_changed = false;
+            let sequence_changed = false;
+            let editor_data_changed = false;
+
+            if(action=='add') {
+                if(self.new_page_name != '') {
+                    page_name_changed = true;
+                }
+
+                if(self.new_page_seq != '') {
+                    sequence_changed = true
+                }
+
+                if(window.add_editor.getData() != '')
+                {
+                    editor_data_changed = true;
+                }
+            }
+            else if('edit'){
+                if(self.tree_nodes_selected && self.old_page_edit_data.page_name_in_edit != self.page_name_in_edit) {
+                    page_name_changed = true;
+                }
+
+                if(self.old_page_edit_data.sequence_in_edit != self.sequence_in_edit) {
+                    sequence_changed = true
+                }
+
+                if(self.old_page_edit_data.editor_data_in_edit != window.edit_editor.getData())
+                {
+                    editor_data_changed = true;
+                }
+            }
+
+            return page_name_changed || sequence_changed || editor_data_changed;
+        },
+        checkUnsavedProgress(action) {
+            let self = this;
+
+            if (self.getUnsavedIndicator(action)) {
+                self.$q.dialog({
+                    title: 'Confirm',
+                    message: 'You have unsaved changed. Do you really want to leave?',
+                    cancel: {label: "Discard Changes", noCaps: true, outline: true, color: "Black", rounded: true},
+                    ok: {label: "Return to Editing", noCaps: true, outline: true, rounded: true},
+                    cancelText: 'Sai',
+                    persistent: true
+                  }).onCancel(() => {
+                    self.new_page_name = "";
+                    self.new_page_seq = "";
+
+                    self.show_add_model=false;
+                    self.show_edit_model=false;
+                  });
+            }
+            else {
+                self.show_add_model=false;
+                self.show_edit_model=false;
+            }
+        },
         copyLink() {
             let self = this;
             const params = new Proxy(new URLSearchParams(window.location.search), {
@@ -530,6 +592,9 @@ module.exports = {
                 self.page_name_in_edit = JSON.parse(JSON.stringify(self.wiki_page_info.wikiPage.wikiSpaceId || ""));
                 self.sequence_in_edit = JSON.parse(JSON.stringify(self.wiki_page_info.wikiPage.sequenceNum || ""));
             }
+
+            self.old_page_edit_data.page_name_in_edit = JSON.parse(JSON.stringify(self.page_name_in_edit));
+            self.old_page_edit_data.sequence_in_edit = JSON.parse(JSON.stringify(self.sequence_in_edit));
         },
         openAddPageMain() {
             let self = this;
@@ -574,6 +639,8 @@ module.exports = {
                         editor.setData("");
                      }
                     $("#edit_editor_id").find('.q-dialog__inner').removeAttr('tabindex');
+
+                    self.old_page_edit_data.editor_data_in_edit = window.edit_editor.getData();
                  }
                  else if (elem === "#addPageCommentEditor"){
                     window.add_comment_editor = editor;
