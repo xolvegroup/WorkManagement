@@ -387,7 +387,7 @@
                                             </div>
                                           </div>
                                           <div class="row text-grey-7 q-mt-lg">
-                                            <div class="col-12">
+                                            <div class="col-12 task_main_desc">
                                                 <div :class="$q.dark.isActive?'text-white':'text-black'" style="border-radius: 12px !important;border: 1px solid #c2c2c2;min-height: 150px !important;" id="editor"></div>
                                             </div>
                                           </div>
@@ -1164,7 +1164,7 @@ module.exports = {
         },
         initializeEditor(elem) {
             let self = this;
-            InlineEditor
+            ClassicEditor
             .create( document.querySelector( elem ),
             {
                 mention: {
@@ -1875,12 +1875,30 @@ module.exports = {
         min-height: 90px !important;
         height: 90px !important;
     }
+    .comment_section .ck-source-editing-area textarea {
+        min-height: 90px !important;
+        height: 90px !important;
+        overflow-y: scroll;
+    }
+    .comment_section .ck-source-editing-area {
+        min-height: 90px !important;
+        height: 90px !important;
+        overflow-y: scroll;
+    }
     .ck-editor {
         width: 100% !important;
         margin-bottom: 9px !important;
     }
-    .ck-editor__editable {
+    .task_main_desc .ck-editor__editable_inline {
         min-height: 150px !important;
+    }
+    .task_main_desc .ck-editor__editable_inline .ck-source-editing-area textarea{
+        min-height: 150px !important;
+        overflow-y: scroll;
+    }
+    .task_main_desc .ck-editor__editable_inline .ck-source-editing-area{
+        min-height: 150px !important;
+        overflow-y: scroll;
     }
     .custom_style {
         background: #ECF2FF;
@@ -1898,5 +1916,8 @@ module.exports = {
         background: grey !important;
         color: white !important;
         border-radius: 8px !important;
+    }
+    .ck-content {
+        color: black !important;
     }
 </style>

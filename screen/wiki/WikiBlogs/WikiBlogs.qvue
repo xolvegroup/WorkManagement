@@ -635,7 +635,7 @@ module.exports = {
           },
         initializeEditor(elem) {
             let self = this;
-            InlineEditor
+            ClassicEditor
             .create( document.querySelector( elem ),
             {})
             .then( editor => {
@@ -848,5 +848,8 @@ module.exports = {
         background: grey !important;
         color: white !important;
         border-radius: 8px !important;
+    }
+    .ck-content {
+        color: black !important;
     }
 </style>

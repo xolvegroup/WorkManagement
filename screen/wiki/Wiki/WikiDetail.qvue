@@ -623,17 +623,28 @@ module.exports = {
                 document.querySelector('.add_page_cls .ck-editor__editable').ckeditorInstance.destroy();
             }
             setTimeout( () => {
-                InlineEditor
-                .create( document.querySelector( elem ), {})
+                let plugin_to_remove = [];
+                if (elem === "#addEditor") {
+                    if (self.add_wiki_type.value === "html") {
+                        plugin_to_remove = ['Markdown']
+                    }
+                }
+                else if (elem === "#editEditor") {
+                    if (self.wiki_page_info.wikiType == 'html'){
+                        plugin_to_remove = ['Markdown']
+                     }
+                }
+
+                ClassicEditor
+                .create( document.querySelector( elem ), {removePlugins: plugin_to_remove})
                 .then( editor => {
                  if (elem === "#editEditor"){
                      window.edit_editor = editor;
                      if (self.wiki_page_info.wikiType == 'html' && self.obj_edit.pageText){
-                        let turndownService = window.TurndownService();
-                        editor.setData(turndownService.turndown(self.obj_edit.pageText));
+                        editor.setData(self.obj_edit.pageText);
                      }
                      else if (self.wiki_page_info.wikiType == 'md' && self.obj_edit.pageText){
-                        editor.setData(self.getHtmlForMD(self.obj_edit.pageText));
+                        editor.setData(self.obj_edit.pageText);
                      }
                      else {
                         editor.setData("");
@@ -671,12 +682,13 @@ module.exports = {
                                   sequenceNum: self.new_page_seq,
                                   wikiType: self.add_wiki_type.value,
                                   moquiSessionToken:self.$root.moquiSessionToken }, {});
-          if (self.add_wiki_type.value == 'html') {
-            allParams["pageText"] = self.getHtmlForMD(window.add_editor.getData());
-          }
-          else {
-            allParams["pageText"] = window.add_editor.getData();
-          }
+          //if (self.add_wiki_type.value == 'html') {
+            //allParams["pageText"] = self.getHtmlForMD(window.add_editor.getData());
+          //}
+          //else {
+            //allParams["pageText"] = window.add_editor.getData();
+          //}
+          allParams["pageText"] = window.add_editor.getData();
           $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/updateWikiPage", headers:{Accept:'application/json'}, data:allParams,
               error:moqui.handleAjaxError, success:function(resp) {
                   self.show_add_model = false;
@@ -723,12 +735,13 @@ module.exports = {
                                   wikiType: self.wiki_page_info.wikiType,
                                   sequenceNum: self.sequence_in_edit,
                                   moquiSessionToken:self.$root.moquiSessionToken }, {});
-          if (self.wiki_page_info.wikiType == 'html') {
-            allParams["pageText"] = self.getHtmlForMD(window.edit_editor.getData());
-          }
-          else {
-            allParams["pageText"] = window.edit_editor.getData();
-          }
+          //if (self.wiki_page_info.wikiType == 'html') {
+            //allParams["pageText"] = self.getHtmlForMD(window.edit_editor.getData());
+          //}
+          //else {
+            //allParams["pageText"] = window.edit_editor.getData();
+          //}
+          allParams["pageText"] = window.edit_editor.getData();
           $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/updateWikiPage", headers:{Accept:'application/json'}, data:allParams,
               error:moqui.handleAjaxError, success:function(resp) {
                   let parent_node = JSON.parse(JSON.stringify(self.wiki_page_info.parentPath));
@@ -1067,20 +1080,58 @@ module.exports = {
 </script>
 <style>
     .add_page_cls .ck-editor__editable_inline {
-        min-height: 57vh !important;
-        height: 57vh !important;
+        min-height: 52vh !important;
+        height: 52vh !important;
     }
     .edit_page .ck-editor__editable_inline {
-        min-height: 57vh !important;
-        height: 57vh !important;
+        min-height: 52vh !important;
+        height: 52vh !important;
+    }
+    .add_page_cls .ck-source-editing-area textarea {
+        min-height: 52vh !important;
+        height: 52vh !important;
+        overflow-y: scroll;
+    }
+    .edit_page .ck-source-editing-area textarea {
+        min-height: 52vh !important;
+        height: 52vh !important;
+        overflow-y: scroll;
+    }
+    .add_page_cls .ck-source-editing-area {
+        min-height: 52vh !important;
+        height: 52vh !important;
+    }
+    .edit_page .ck-source-editing-area {
+        min-height: 52vh !important;
+        height: 52vh !important;
     }
     .add_comment_sec .ck-editor__editable_inline {
-        min-height: 200px !important;
-        height: 200px !important;
+        min-height: 195px !important;
+        height: 195px !important;
     }
     .edit_comment_section .ck-editor__editable_inline {
-        min-height: 180px !important;
-        height: 180px !important;
+        min-height: 175px !important;
+        height: 175px !important;
+    }
+    .add_comment_sec .ck-source-editing-area textarea {
+        min-height: 195px !important;
+        height: 195px !important;
+        overflow-y: scroll;
+    }
+    .edit_comment_section .ck-source-editing-area textarea {
+        min-height: 175px !important;
+        height: 175px !important;
+        overflow-y: scroll;
+    }
+    .add_comment_sec .ck-source-editing-area {
+        min-height: 195px !important;
+        height: 195px !important;
+        overflow-y: scroll;
+    }
+    .edit_comment_section .ck-source-editing-area {
+        min-height: 175px !important;
+        height: 175px !important;
+        overflow-y: scroll;
     }
     .ck-editor {
         width: 100% !important;

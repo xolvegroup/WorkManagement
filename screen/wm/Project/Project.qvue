@@ -232,7 +232,7 @@
                                             </div>
                                           </div>
                                           <div class="row text-grey-8 q-mt-lg">
-                                            <div class="col-12">
+                                            <div class="col-12 project_main_desc">
                                                 <div :class="$q.dark.isActive?'text-white':'text-black'" style="border-radius: 12px !important;border: 1px solid #c2c2c2;min-height: 150px !important;" id="editor"></div>
                                             </div>
                                           </div>
@@ -767,7 +767,7 @@ module.exports = {
         },
         initializeEditor() {
             let self = this;
-            InlineEditor
+            ClassicEditor
             .create( document.querySelector( '#editor' ),
             {
                 mention: {
@@ -1113,8 +1113,16 @@ module.exports = {
         width: 100% !important;
         margin-bottom: 9px !important;
     }
-    .ck-editor__editable {
+    .project_main_desc .ck-editor__editable_inline {
         min-height: 150px !important;
+    }
+    .project_main_desc .ck-editor__editable_inline .ck-source-editing-area textarea{
+        min-height: 150px !important;
+        overflow-y: scroll;
+    }
+    .project_main_desc .ck-editor__editable_inline .ck-source-editing-area{
+        min-height: 150px !important;
+        overflow-y: scroll;
     }
     .custom_style {
         background: #ECF2FF;
@@ -1132,5 +1140,8 @@ module.exports = {
         background: grey !important;
         color: white !important;
         border-radius: 8px !important;
+    }
+    .ck-content {
+        color: black !important;
     }
 </style>
