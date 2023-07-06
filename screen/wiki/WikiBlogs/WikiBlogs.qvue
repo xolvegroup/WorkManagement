@@ -170,7 +170,7 @@
                               </template>
                             </q-select>
                     </div>
-                    <div v-if="blog_from_text" class="col-12 q-px-md q-py-md">
+                    <div v-if="blog_from_text" class="col-12 q-px-md q-py-md add_blog_section">
                         <span class="text-grey-8">Blog content</span>
                         <div id="idAddBlog" style="border-radius: 12px !important;border: 1px solid #c2c2c2;min-height: 150px !important;"></div>
                     </div>
@@ -820,7 +820,6 @@ module.exports = {
     }
     .add_blog_section .ck-editor__editable_inline {
         min-height: 90px !important;
-        height: 90px !important;
         border: 1px solid #c2c2c2;
     }
     .ck-balloon-panel_visible {
