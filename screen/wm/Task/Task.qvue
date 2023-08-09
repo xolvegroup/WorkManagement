@@ -905,17 +905,31 @@ module.exports = {
             const fetchCount = rowsPerPage === 0 ? this.pagination.rowsNumber : rowsPerPage;
             if (self.filter_params) {
                 var allParams = JSON.parse(JSON.stringify(self.filter_params));
-                allParams["pageOffset"] = startRow;
-                allParams["pageLimit"] = fetchCount;
+                //allParams["pageOffset"] = startRow;
+                //allParams["pageLimit"] = fetchCount;
                 allParams["moquiSessionToken"] = self.$root.moquiSessionToken;
             }
             else {
-                var allParams = $.extend({pageOffset: startRow, pageLimit: fetchCount ,moquiSessionToken:self.$root.moquiSessionToken }, {});
+                //var allParams = $.extend({pageOffset: startRow, pageLimit: fetchCount ,moquiSessionToken:self.$root.moquiSessionToken }, {});
+                var allParams = $.extend({moquiSessionToken:self.$root.moquiSessionToken }, {});
             }
+            allParams["pageOffset"] = page-1;
+            allParams["pageLimit"] = rowsPerPage;
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/tasks", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.pagination.rowsNumber = resp.count;
                     self.task_list = resp.taskList.map(function(item){
+                        if (item["parties"] && (item["parties"]).length) {
+                            let partyItem = item["parties"].filter(function(item){
+                                return item["role"] === "Assignee";
+                            });
+                            if ((partyItem || []).length > 0) {
+                                partyItem = partyItem[0];
+                                item["assignToPartyId"] = partyItem.partyId;
+                                item["assignedUserFirstName"] = partyItem.firstName;
+                                item["assignedUserLastName"] = partyItem.lastName;
+                            }
+                        }
                         item["assignedUser"] = null;
                         if (item["assignToPartyId"]) {
                             item["assignedUser"] = {userFullName: item["assignedUserFirstName"]+ " " + item["assignedUserLastName"], partyId: item["assignToPartyId"]};
@@ -1306,9 +1320,11 @@ module.exports = {
                         return item.workEffortId === params["rootWorkEffortId"];
                     });
                     self.getCollaborators(self.selected_task);
-                    self.onPageChange({
-                      pagination: self.pagination,
-                    });
+                    setTimeout( () => {
+                        self.onPageChange({
+                          pagination: self.pagination,
+                        });
+                    }, 1000 );
                     self.new_collab = {};
                     var mentioned_users = [];
                     var mentionedElements = editor.getData().match(/(?<=\[@)(.*?)(?=\])/g) || [];

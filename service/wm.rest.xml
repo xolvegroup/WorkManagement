@@ -22,7 +22,7 @@ along with this software (see the LICENSE.md file). If not, see
         name="wm" displayName="Work Management REST API" version="1.0.0">
 
     <resource name="tasks">
-        <method type="get"><service name="wm.TaskServices.get#Tasks"/></method>
+        <method type="get"><service name="wm.TaskServices.search#Tasks"/></method>
         <resource name="task">
             <method type="get"><service name="wm.TaskServices.get#Task"/></method>
         </resource>
