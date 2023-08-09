@@ -1280,9 +1280,11 @@ module.exports = {
                     let new_task_item = {workEffortId: resp.workEffortId};
                     self.selectTask(new_task_item, true);
                     self.pagination.page = 1;
-                    self.onPageChange({
-                      pagination: self.pagination,
-                    });
+                    setTimeout( () => {
+                        self.onPageChange({
+                          pagination: self.pagination,
+                        });
+                    }, 2000 );
                 }
             });
         },
@@ -1324,7 +1326,7 @@ module.exports = {
                         self.onPageChange({
                           pagination: self.pagination,
                         });
-                    }, 1000 );
+                    }, 2000 );
                     self.new_collab = {};
                     var mentioned_users = [];
                     var mentionedElements = editor.getData().match(/(?<=\[@)(.*?)(?=\])/g) || [];
@@ -1350,9 +1352,11 @@ module.exports = {
             params["assignToPartyId"] = (self.add_edit_assignee ? self.add_edit_assignee.partyId:null);
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/tasks/updateTask", headers:{Accept:'application/json'}, data:params,
                 error:moqui.handleAjaxError, success:function(resp) {
-                    self.onPageChange({
-                      pagination: self.pagination,
-                    });
+                    setTimeout( () => {
+                        self.onPageChange({
+                          pagination: self.pagination,
+                        });
+                    }, 2000 );
                     $(".q-menu").hide();
                 }
             });
