@@ -921,7 +921,7 @@ module.exports = {
                     self.task_list = resp.taskList.map(function(item){
                         if (item["parties"] && (item["parties"]).length) {
                             let partyItem = item["parties"].filter(function(item){
-                                return item["role"] === "Assignee";
+                                return item["role"] === "Assignee" && !item.thruDate;
                             });
                             if ((partyItem || []).length > 0) {
                                 partyItem = partyItem[0];
