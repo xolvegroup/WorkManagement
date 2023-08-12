@@ -112,14 +112,12 @@ along with this software (see the LICENSE.md file). If not, see
             <parameter name="indexName" default-value="mantle"/>
             <parameter name="documentType" default-value="MantleTask"/>
             <!-- Use partyId and roleTypeId to find tasks by person, for example tasks assigned to a party or that a party is a collaborator on -->
+            <parameter name="freeSearchText"/>
             <parameter name="partyId"/>
             <parameter name="roleTypeId"/>
-            <parameter name="term" default-value="test"/>
-            <parameter name="anyField" default-value="*"/>
             <parameter name="statusId" default-value="WeInPlanning,WeApproved,WeInProgress"/>
             <parameter name="rootWorkEffortId"/>
             <parameter name="workEffortTypeEnumId" default-value="WetTask"/>
-
             <parameter name="pageOffset" default-value="" type="Integer"/>
             <parameter name="pageLimit" default-value="" type="Integer"/>
             <parameter name="orderByField" default-value="-workEffortId"/>
@@ -140,19 +138,13 @@ along with this software (see the LICENSE.md file). If not, see
                 <order-by field-name="workEffortId"/>
             </entity-find>
             <set field="myProjectIds" from="myProjectList.workEffortId"/>
-            <set field="queryString" from="anyField ? elasticQueryAutoWildcard(anyField, true) : ''"/>
+            <set field="queryString" from="''"/>
             <if condition="queryString"><set field="queryString" from="'(' + queryString + ')'"/></if>
             <if condition="workEffortTypeEnumId">
                 <set field="queryString" from="(queryString ? queryString + ' AND ' : '' ) + 'workEffortTypeEnumId:' + workEffortTypeEnumId"/>
             </if>
-            <if condition="partyId">
-                <set field="queryString" from="(queryString ? queryString + ' AND ' : '' ) + 'parties.partyId:' + partyId"/>
-            </if>
             <if condition="rootWorkEffortId">
                 <set field="queryString" from="(queryString ? queryString + ' AND ' : '' ) + 'project:' + rootWorkEffortId"/>
-            </if>
-            <if condition="roleTypeId">
-                <set field="queryString" from="(queryString ? queryString + ' AND ' : '' ) + 'parties.role:' + roleTypeId"/>
             </if>
             <set field="nestedQueryMap" from="[:]"/>
 
@@ -184,14 +176,49 @@ along with this software (see the LICENSE.md file). If not, see
             <if condition="queryStringFinalORCondition">
                 <set field="queryString" from="(queryString ? queryString + ' AND ' : '' ) + '(' + queryStringFinalORCondition + ')'"/>
             </if>
-            <set field="nestedQueryMap.parties" from="[bool:[filter:[
-                    [term:['parties.partyId':loggedInPartyId]],
-                    [range:['parties.fromDate':[lte:nowTimeLong]]]
-                ], should:[
-                    [range:['parties.thruDate':[gte:nowTimeLong]]],
-                    [bool:[must_not:[exists:[field:'parties.thruDate']]]]
-                ], minimum_should_match:1]]"/>
-            <set field="orderByFields" from="orderByField ? [orderByField.replace('workEffortName', 'workEffortName').replace('rootWorkEffortId', 'project').replace('assignToPartyId', 'parties.partyId')] : null"/>
+            <if condition="partyId &amp;&amp; roleTypeId">
+                <then>
+                    <set field="nestedQueryMap.parties" from="[bool:[filter:[
+                        [term:['parties.partyId':partyId]],
+                        [match:['parties.role':roleTypeId]],
+                        [range:['parties.fromDate':[lte:nowTimeLong]]]
+                    ], should:[
+                        [range:['parties.thruDate':[gte:nowTimeLong]]],
+                        [bool:[must_not:[exists:[field:'parties.thruDate']]]]
+                    ], minimum_should_match:1]]"/>
+                </then>
+                <else-if condition="partyId">
+                    <set field="nestedQueryMap.parties" from="[bool:[filter:[
+                        [term:['parties.partyId':partyId]],
+                        [range:['parties.fromDate':[lte:nowTimeLong]]]
+                    ], should:[
+                        [range:['parties.thruDate':[gte:nowTimeLong]]],
+                        [bool:[must_not:[exists:[field:'parties.thruDate']]]]
+                    ], minimum_should_match:1]]"/>
+                </else-if>
+                <else-if condition="roleTypeId">
+                    <set field="nestedQueryMap.parties" from="[bool:[filter:[
+                        [match:['parties.role':roleTypeId]],
+                        [range:['parties.fromDate':[lte:nowTimeLong]]]
+                    ], should:[
+                        [range:['parties.thruDate':[gte:nowTimeLong]]],
+                        [bool:[must_not:[exists:[field:'parties.thruDate']]]]
+                    ], minimum_should_match:1]]"/>
+                </else-if>
+                <else>
+                    <set field="nestedQueryMap.parties" from="[bool:[filter:[
+                        [term:['parties.partyId':loggedInPartyId]],
+                        [range:['parties.fromDate':[lte:nowTimeLong]]]
+                    ], should:[
+                        [range:['parties.thruDate':[gte:nowTimeLong]]],
+                        [bool:[must_not:[exists:[field:'parties.thruDate']]]]
+                    ], minimum_should_match:1]]"/>
+                </else>
+            </if>
+            <if condition="freeSearchText">
+                <set field="queryString" from="(queryString ? queryString + ' AND ' : '') + '(' + elasticQueryAutoWildcard('description:' + freeSearchText, true) + ' OR ' + elasticQueryAutoWildcard('name:' + freeSearchText, true) + ')'" />
+            </if>
+            <set field="orderByFields" from="orderByField ? [orderByField.replace('workEffortName', 'name').replace('rootWorkEffortId', 'project').replace('assignToPartyId', 'parties.partyId')] : null"/>
             <service-call name="org.moqui.search.SearchServices.search#DataDocuments" out-map="taskresult"
                         in-map="[indexName:indexName, queryString:queryString, documentType:documentType, flattenDocument:false,
                              orderByFields:orderByFields,nestedQueryMap:nestedQueryMap, pageIndex:pageOffset, pageSize:pageLimit, pageNoLimit:pageNoLimit]"/>
