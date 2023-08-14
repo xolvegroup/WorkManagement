@@ -393,8 +393,17 @@
                                                   </q-input>
                                             </div>
                                           </div>
-                                          <div class="row text-grey-7 q-mt-lg">
+                                          <div class="row text-grey-7 q-mt-sm">
                                             <div class="col-12 task_main_desc">
+                                                <div>
+                                                Search person using
+                                                <q-chip dense color="grey" class="text-weight-medium" text-color="white">
+                                                  @John
+                                                </q-chip>and task using
+                                                <q-chip dense color="grey" class="text-weight-medium" text-color="white">
+                                                  #Task
+                                                </q-chip>
+                                                </div>
                                                 <div :class="$q.dark.isActive?'text-white':'text-black'" style="border-radius: 12px !important;border: 1px solid #c2c2c2;min-height: 150px !important;" id="editor"></div>
                                             </div>
                                           </div>
