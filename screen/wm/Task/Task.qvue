@@ -1202,6 +1202,12 @@ module.exports = {
                             itemRenderer: self.customItemRenderer,
                             minimumCharacters: 2
                         },
+                        {
+                            marker: '#',
+                            feed: self.getTasksForEditor,
+                            itemRenderer: self.customTaskItemRenderer,
+                            minimumCharacters: 2
+                        },
                     ]
                 }
             })
@@ -1377,6 +1383,13 @@ module.exports = {
             var self = this;
             var allParams = $.extend({ term: search_keyword,moquiSessionToken:self.$root.moquiSessionToken }, {});
             return $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/users", headers:{Accept:'application/json'}, data:allParams,
+                error:moqui.handleAjaxError
+            });
+        },
+        getTaskList (search_keyword) {
+            var self = this;
+            var allParams = $.extend({ freeSearchText: "*" + search_keyword + "*", pageNoLimit: true ,moquiSessionToken:self.$root.moquiSessionToken }, {});
+            return $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/tasks", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError
             });
         },
@@ -1662,6 +1675,9 @@ module.exports = {
             self.person_mapping[item.name] = item.partyId;
             return item.name;
         },
+        customTaskItemRenderer( item ) {
+            return item.name;
+        },
         getUsersForEditor( queryText ) {
             let self = this;
             return new Promise( resolve => {
@@ -1687,6 +1703,28 @@ module.exports = {
                     item.id.toLowerCase().includes( searchString )
                 );
             }
+        },
+        getTasksForEditor( queryText ) {
+            let self = this;
+            return new Promise( resolve => {
+                setTimeout( () => {
+                    if (self.selected_task.description === editor.getData()) {
+                        resolve([]);
+                        return;
+                    }
+                    self.getTaskList(queryText.toLowerCase()).then(function(resp){
+                        let available_tasks = resp.taskList;
+                        available_tasks.map(function(item){
+                            item.id = "#" + item.name;
+                            item.name = item.name;
+                            item.link = (window.location.href).split("?")[0] + "?id=" + item.workEffortId;
+                            return item;
+                            });
+                            const itemsToDisplay = available_tasks;
+                        resolve( itemsToDisplay );
+                    });
+                }, 100 );
+            } );
         },
         copyTaskLink(task_id) {
             var dummy = document.createElement('input'),
