@@ -393,9 +393,9 @@
                                                   </q-input>
                                             </div>
                                           </div>
-                                          <div class="row text-grey-7 q-mt-sm">
+                                          <div class="row text-grey-7 q-mt-md">
                                             <div class="col-12 task_main_desc">
-                                                <div>
+                                                <!--<div>
                                                 Search person using
                                                 <q-chip dense color="grey" class="text-weight-medium" text-color="white">
                                                   @John
@@ -403,7 +403,7 @@
                                                 <q-chip dense color="grey" class="text-weight-medium" text-color="white">
                                                   #Task
                                                 </q-chip>
-                                                </div>
+                                                </div>-->
                                                 <div :class="$q.dark.isActive?'text-white':'text-black'" style="border-radius: 12px !important;border: 1px solid #c2c2c2;min-height: 150px !important;" id="editor"></div>
                                             </div>
                                           </div>
@@ -816,6 +816,8 @@ module.exports = {
                 descending: true,
               },
             filter_params: {},
+            current_autocomplete_tasks_req: null,
+            current_autocomplete_persons_req: null,
             sel_task_comments: [],
             edit_due_date: null,
             selected_task: {},
@@ -827,6 +829,7 @@ module.exports = {
             assignee: null,
             priority: null,
             assignee_options: [],
+            editor_autocomplete_list: [],
             status: null,
             status_options_master: [],
             task_no_access_alert: false,
@@ -1207,16 +1210,10 @@ module.exports = {
                     feeds: [
                         {
                             marker: '@',
-                            feed: self.getUsersForEditor,
+                            feed: self.getItemsForEditor,
                             itemRenderer: self.customItemRenderer,
                             minimumCharacters: 2
-                        },
-                        {
-                            marker: '#',
-                            feed: self.getTasksForEditor,
-                            itemRenderer: self.customTaskItemRenderer,
-                            minimumCharacters: 2
-                        },
+                        }
                     ]
                 }
             })
@@ -1397,10 +1394,14 @@ module.exports = {
         },
         getTaskList (search_keyword) {
             var self = this;
+            if (self.current_autocomplete_tasks_req) {
+                self.current_autocomplete_tasks_req.abort();
+            }
             var allParams = $.extend({ freeSearchText: "*" + search_keyword + "*", pageNoLimit: true ,moquiSessionToken:self.$root.moquiSessionToken }, {});
-            return $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/tasks", headers:{Accept:'application/json'}, data:allParams,
+            self.current_autocomplete_tasks_req = $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/tasks", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError
             });
+            return self.current_autocomplete_tasks_req;
         },
         getStatuses () {
             var self = this;
@@ -1681,26 +1682,50 @@ module.exports = {
         },
         customItemRenderer( item ) {
             let self = this;
-            self.person_mapping[item.name] = item.partyId;
+            if (item.partyId) {
+                self.person_mapping[item.name] = item.partyId;
+            }
             return item.name;
         },
         customTaskItemRenderer( item ) {
             return item.name;
         },
-        getUsersForEditor( queryText ) {
+        getItemsForEditor( queryText ) {
             let self = this;
             return new Promise( resolve => {
+                self.editor_autocomplete_list = [];
+                if (self.selected_task.description === editor.getData()) {
+                    resolve([]);
+                    return;
+                }
                 setTimeout( () => {
+                    self.editor_autocomplete_list = [];
                     self.getAssigneeList(queryText.toLowerCase()).then(function(resp){
+                        self.editor_autocomplete_list = [];
                         let available_users = resp.userList;
                         available_users.map(function(item){
                             item.id = "@" + item.userFullName;
                             item.name = item.userFullName;
+                            item.original_id = item.partyId;
+                            item.link = window.location.origin + "/qapps/system/Security/UserAccount/UserAccountDetail?userId=" + item.partyId;
                             return item;
+                        });
+                        self.editor_autocomplete_list = available_users.filter( isItemMatching );
+                        self.getTaskList(queryText.toLowerCase()).then(function(resp){
+                            let available_tasks = resp.taskList;
+                            available_tasks.map(function(item){
+                                item.id = "@" + item.name;
+                                item.name = item.name;
+                                item.original_id = item.workEffortId;
+                                item.link = (window.location.href).split("?")[0] + "?id=" + item.workEffortId;
+                                return item;
                             });
-                            const itemsToDisplay = available_users
-                            .filter( isItemMatching )
-                        resolve( itemsToDisplay );
+                            self.editor_autocomplete_list = self.editor_autocomplete_list.concat(available_tasks);
+                            const jsonArray = self.editor_autocomplete_list;
+                            const distinctSet = new Set(self.editor_autocomplete_list.map(item => item.id));
+                            self.editor_autocomplete_list = Array.from(distinctSet, id => jsonArray.find(item => item.id === id));
+                            resolve( self.editor_autocomplete_list );
+                        });
                     });
                 }, 100 );
             } );
@@ -1729,8 +1754,8 @@ module.exports = {
                             item.link = (window.location.href).split("?")[0] + "?id=" + item.workEffortId;
                             return item;
                             });
-                            const itemsToDisplay = available_tasks;
-                        resolve( itemsToDisplay );
+                            const editor_autocomplete_list = available_tasks;
+                        resolve( editor_autocomplete_list );
                     });
                 }, 100 );
             } );
