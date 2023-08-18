@@ -3,7 +3,7 @@
 
 rm -rf moquiprod
 echo "download from repository"
-##git clone https://github.com/xolvegroup/moquiprod.git moquiprod && cd moquiprod
+git clone https://github.com/moqui/moqui-framework.git moquiprod && cd moquiprod
 ./gradlew getComponent -Pcomponent=HiveMind
 ./gradlew downloadOpenSearch
 cd runtime/component
