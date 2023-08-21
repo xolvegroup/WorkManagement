@@ -4,6 +4,7 @@
 rm -rf moqui
 echo "download from repository"
 git clone https://github.com/moqui/moqui-framework.git moqui && cd moqui
+git clone https://github.com/moqui/moqui-runtime.git runtime
 ./gradlew getComponent -Pcomponent=HiveMind
 ./gradlew downloadOpenSearch
 cd runtime/component
