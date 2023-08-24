@@ -20,4 +20,4 @@ cd ../..
 echo "Path for current"
 pwd
 ls -lart
-unzip -n moqui-plus-runtime.war -d ~/WorkManagement
+unzip -n moqui-plus-runtime.war -d ~/moqui
