@@ -27,4 +27,12 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="200" fieldPath="parties:fromDate"/>
         <fields fieldSeqId="201" fieldPath="parties:thruDate"/>
     </dataDocuments>
+    <dataDocuments dataDocumentId="MantleProject" indexName="mantle" documentName="Project"
+            primaryEntityName="mantle.work.effort.WorkEffort" documentTitle="${name}">
+        <fields fieldSeqId="100" fieldPath="estimatedCompletionDate"/>
+        <fields fieldSeqId="101" fieldPath="statusId"/>
+        <fields fieldSeqId="200" fieldPath="parties:fromDate"/>
+        <fields fieldSeqId="201" fieldPath="parties:thruDate"/>
+        <fields fieldSeqId="300" fieldPath="description"/>
+    </dataDocuments>
 </entity-facade-xml>

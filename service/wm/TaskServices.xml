@@ -198,6 +198,7 @@ along with this software (see the LICENSE.md file). If not, see
                 </else-if>
                 <else-if condition="roleTypeId">
                     <set field="nestedQueryMap.parties" from="[bool:[filter:[
+                        [term:['parties.partyId':loggedInPartyId]],
                         [match:['parties.role':roleTypeId]],
                         [range:['parties.fromDate':[lte:nowTimeLong]]]
                     ], should:[

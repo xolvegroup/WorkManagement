@@ -114,6 +114,9 @@
                           </q-select>
                     </div>
                     <div class="col-12">
+                        <q-input label="Free Search" rounded class="col-8" v-model="mdl_filter_free_search" autofocus outlined style="margin:0;padding:0;" dense />
+                    </div>
+                    <div class="col-12">
                         <q-btn rounded @click="findOptions()" style="width: 140px" class="text-blue q-px-sm q-ml-sm" outline dense icon="search" label="Find"></q-btn>
                         <q-btn rounded @click="resetFind()" style="width: 140px" class="q-px-sm q-ml-sm" outline dense icon="search" label="Clear"></q-btn>
                     </div>
@@ -489,7 +492,8 @@ module.exports = {
                 rowsNumber: 0,
                 sortBy: 'workEffortId',
                 descending: true,
-              },
+            },
+            mdl_filter_free_search:"",
             filter_params: {},
             edit_due_date: null,
             selected_project: {},
@@ -566,17 +570,31 @@ module.exports = {
             const fetchCount = rowsPerPage === 0 ? this.pagination.rowsNumber : rowsPerPage;
             if (self.filter_params) {
                 var allParams = JSON.parse(JSON.stringify(self.filter_params));
-                allParams["pageOffset"] = startRow;
-                allParams["pageLimit"] = fetchCount;
+                //allParams["pageOffset"] = startRow;
+                //allParams["pageLimit"] = fetchCount;
                 allParams["moquiSessionToken"] = self.$root.moquiSessionToken;
             }
             else {
-                var allParams = $.extend({pageOffset: startRow, pageLimit: fetchCount ,moquiSessionToken:self.$root.moquiSessionToken }, {});
+                //var allParams = $.extend({pageOffset: startRow, pageLimit: fetchCount ,moquiSessionToken:self.$root.moquiSessionToken }, {});
+                var allParams = $.extend({moquiSessionToken:self.$root.moquiSessionToken }, {});
             }
+            allParams["pageOffset"] = page-1;
+            allParams["pageLimit"] = rowsPerPage;
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/projects", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.pagination.rowsNumber = resp.count;
                     self.project_list = resp.projectList.map(function(item){
+                        if (item["parties"] && (item["parties"]).length) {
+                            let partyItem = item["parties"].filter(function(item){
+                                return item["role"] === "Manager" && !item.thruDate;
+                            });
+                            if ((partyItem || []).length > 0) {
+                                partyItem = partyItem[0];
+                                item["managerPartyId"] = partyItem.partyId;
+                                item["managerFirstName"] = partyItem.firstName;
+                                item["managerLastName"] = partyItem.lastName;
+                            }
+                        }
                         item["assignedUser"] = null;
                         if (item["managerPartyId"]) {
                             item["assignedUser"] = {userFullName: item["managerFirstName"]+ " " + item["managerLastName"], partyId: item["managerPartyId"]};
@@ -685,6 +703,9 @@ module.exports = {
             if (self.mdl_filter_role) {
                 self.filter_params["roleTypeId"] = self.mdl_filter_role.value;
             }
+            if (self.mdl_filter_free_search) {
+                self.filter_params["freeSearchText"] = "*" + self.mdl_filter_free_search + "*";
+            }
             if (self.mdl_filter_status && self.mdl_filter_status.length > 0) {
                 let status_filters = "";
                 self.mdl_filter_status.forEach(function(item){
@@ -713,6 +734,7 @@ module.exports = {
             self.mdl_filter_role = null;
             self.mdl_filter_status = null;
             self.mdl_filter_order_by = null;
+            self.mdl_filter_free_search = "";
             self.filter_params = {};
             self.pagination.sortBy = "workEffortId";
             self.pagination.descending = true;
@@ -879,9 +901,11 @@ module.exports = {
                     self.project_details_current.status = self.status_options_master.find(function(item){
                         return item.statusId === params["statusId"];
                     });
-                    self.onPageChange({
-                      pagination: self.pagination,
-                    });
+                    setTimeout( () => {
+                        self.onPageChange({
+                          pagination: self.pagination,
+                        });
+                    }, 2000 );
                     self.getAssignees(self.selected_project);
                     self.new_assignee = {};
                     var mentioned_users = [];
@@ -909,9 +933,11 @@ module.exports = {
             params["managerPartyId"] = (self.add_edit_assignee ? self.add_edit_assignee.partyId:null);
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/projects/updateProject", headers:{Accept:'application/json'}, data:params,
                 error:moqui.handleAjaxError, success:function(resp) {
-                    self.onPageChange({
-                      pagination: self.pagination,
-                    });
+                    setTimeout( () => {
+                        self.onPageChange({
+                          pagination: self.pagination,
+                        });
+                    }, 2000 );
                     $(".q-menu").hide();
                 }
             });
