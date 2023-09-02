@@ -219,7 +219,7 @@ along with this software (see the LICENSE.md file). If not, see
             <if condition="freeSearchText">
                 <set field="queryString" from="(queryString ? queryString + ' AND ' : '') + '(' + elasticQueryAutoWildcard('description:' + freeSearchText, true) + ' OR ' + elasticQueryAutoWildcard('name:' + freeSearchText, true) + ')'" />
             </if>
-            <set field="orderByFields" from="orderByField ? [orderByField.replace('workEffortName', 'name').replace('rootWorkEffortId', 'project').replace('assignToPartyId', 'parties.partyId')] : null"/>
+            <set field="orderByFields" from="orderByField ? [orderByField.replace('workEffortName', 'name_keyword.keyword').replace('rootWorkEffortId', 'project').replace('assignToPartyId', 'parties.partyId')] : null"/>
             <service-call name="org.moqui.search.SearchServices.search#DataDocuments" out-map="taskresult"
                         in-map="[indexName:indexName, queryString:queryString, documentType:documentType, flattenDocument:false,
                              orderByFields:orderByFields,nestedQueryMap:nestedQueryMap, pageIndex:pageOffset, pageSize:pageLimit, pageNoLimit:pageNoLimit]"/>
