@@ -1,5 +1,8 @@
 name: trigger test in another repository 
-on: workflow_dispatch
+on:
+  push:
+    branches:
+       - "main"
 jobs:
    trigger-test:
       runs-on:  ubuntu-latest
