@@ -114,7 +114,7 @@
                           </q-select>
                     </div>
                     <div class="col-12">
-                        <q-input label="Free Search" rounded class="col-8" v-model="mdl_filter_free_search" autofocus outlined style="margin:0;padding:0;" dense />
+                        <q-input label="Text Search" rounded class="col-8" v-model="mdl_filter_free_search" autofocus outlined style="margin:0;padding:0;" dense />
                     </div>
                     <div class="col-12">
                         <q-btn rounded @click="findOptions()" style="width: 140px" class="text-blue q-px-sm q-ml-sm" outline dense icon="search" label="Find"></q-btn>

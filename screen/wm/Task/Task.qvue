@@ -54,7 +54,7 @@
                                 </div>
 
                                 <div class="col-6 q-pb-sm" v-if="mdl_filter_free_search">
-                                    <span class="text-subtitle2">Free Search : </span><span class="text-subtitle2 text-green-8">{{ mdl_filter_free_search }}</span>
+                                    <span class="text-subtitle2">Text Search : </span><span class="text-subtitle2 text-green-8">{{ mdl_filter_free_search }}</span>
                                 </div>
                            </div>
                            <div class="row q-mt-sm">
@@ -219,7 +219,7 @@
                           </q-select>
                     </div>
                     <div class="col-6">
-                        <q-input label="Free Search" rounded class="col-8" v-model="mdl_filter_free_search" autofocus outlined style="margin:0;padding:0;" dense />
+                        <q-input label="Text Search" rounded class="col-8" v-model="mdl_filter_free_search" autofocus outlined style="margin:0;padding:0;" dense />
                     </div>
                     <div class="col-12">
                         <q-btn rounded @click="findOptions()" style="width: 140px" class="text-blue q-px-sm q-ml-sm" outline dense icon="search" label="Find"></q-btn>
