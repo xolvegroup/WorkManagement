@@ -15,4 +15,4 @@ jobs:
           with:
             token:  ${{ secrets.REPO_B_TOKEN }}
             repository:  xolvegroup/moquiprod
-            event-type:  my-event-wm
+            event-type:  my-event-wm-demo
