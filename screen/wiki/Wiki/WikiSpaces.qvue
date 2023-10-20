@@ -1,11 +1,10 @@
 <template>
     <div>
-        <div>
-            <q-btn
-                style="width: 125px;"
+        <div class="q-pt-sm">
+            <q-btn rounded outline
+                style="width: 140px;"
                 dense
                 split
-                color="primary"
                 no-caps
                 icon="add"
                 label="New Space"
@@ -15,12 +14,13 @@
         </div>
         <div>
             <q-card flat class="q-mt-sm">
-              <q-card-section style="padding: 0px;">
+              <q-card-section style="padding: 0px;padding-top:3px;">
                 <q-table
                     bordered
                     flat
                     :wrap-cells="true"
                       :data="wiki_space_list"
+                      :card-class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'"
                       table-header-class="custom_table_header"
                       :columns="table_columns"
                       row-key="wikiSpaceId"
@@ -32,6 +32,11 @@
                     <template v-slot:body-cell-spaceid="props">
                         <q-td :props="props">
                           <a class="text-weight-medium" :href="'WikiDetail?wikiSpaceId=' + props.row.wikiSpaceId">{{props.row.wikiSpaceId}}</a>
+                        </q-td>
+                    </template>
+                    <template v-slot:body-cell-blogs="props">
+                        <q-td :props="props">
+                          <a class="text-weight-medium" :href="'WikiBlogs?wikiSpaceId=' + props.row.wikiSpaceId">Blog Posts</a>
                         </q-td>
                     </template>
                     <template v-slot:body-cell-publicpageurl="props">
@@ -48,7 +53,7 @@
                     </template>-->
                     <template v-slot:body-cell-action="props">
                         <q-td :props="props">
-                          <q-btn class="text-primary text-capitalize" dense icon="edit" outline>
+                          <q-btn rounded rounded @click="openEditModal(props.row)" class="text-primary text-capitalize" dense icon="edit" outline>
                             <q-tooltip content-style="font-size: 12px">Edit</q-tooltip>
                           </q-btn>
                         </q-td>
@@ -61,22 +66,22 @@
           <q-card class="" style="width: 750px;max-width:750px;">
             <q-card-section>
               <div class="text-h5 q-pa-sm q-pl-md">New Space
-                <q-btn class="absolute-top-right" style="margin: 12px" flat round dense icon="close" v-close-popup></q-btn>
+                <q-btn rounded class="absolute-top-right" style="margin: 12px" flat round dense icon="close" v-close-popup></q-btn>
               </div>
             </q-card-section>
              <q-separator></q-separator>
             <q-card-section style="font-size: 16px" class="q-pt-none">
                 <div class="row cls_space">
                     <div class="col-6 q-px-md q-py-md">
-                        <q-input outlined dense
+                        <q-input rounded outlined dense
         v-model="new_space.wiki_space_id" label="Wiki Space ID*" />
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-input outlined dense
+                        <q-input rounded outlined dense
         v-model="new_space.description" label="Description*" />
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-select
+                        <q-select rounded
                               label="Restrict View"
                               dense
                               outlined
@@ -99,7 +104,7 @@
                             </q-select>
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-select
+                        <q-select rounded
                               label="Restrict Update"
                               dense
                               outlined
@@ -122,7 +127,7 @@
                             </q-select>
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-select
+                        <q-select rounded
                               label="Allow Any HTML"
                               dense
                               outlined
@@ -145,7 +150,7 @@
                             </q-select>
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-select
+                        <q-select rounded
                               label="Wiki Type"
                               dense
                               outlined
@@ -168,7 +173,7 @@
                             </q-select>
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-select
+                        <q-select rounded
                               label="Root Page Directory"
                               dense
                               outlined
@@ -191,7 +196,7 @@
                             </q-select>
                     </div>
                     <div class="col-6 q-px-md q-py-md">
-                        <q-input outlined dense
+                        <q-input rounded outlined dense
         v-model="new_space.root_page_override" label="Root Page Override">
                             <q-tooltip content-class="bg-indigo"
         content-style="font-size: 14px;" :offset="[10, 10]">
@@ -205,8 +210,116 @@
             </q-card-section>
             <q-separator></q-separator>
             <q-card-actions class="q-pl-lg q-py-md" align="left">
-              <q-btn :disabled="!(new_space.wiki_space_id && new_space.description)" @click="createSpace" outline dense label="Create Space" class="text-capitalize
-        q-mb-md" color="primary" v-close-popup />
+              <q-btn size="16px" rounded :disabled="!(new_space.wiki_space_id && new_space.description)" @click="createSpace" outline label="Create Space" class="text-capitalize
+        q-mb-md" color="primary" />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
+        <q-dialog v-model="mdl_edit_space">
+          <q-card class="" style="width: 750px;max-width:750px;">
+            <q-card-section>
+              <div class="text-h5 q-pa-sm q-pl-md">Edit Space
+                <q-btn rounded class="absolute-top-right" style="margin: 12px" flat round dense icon="close" v-close-popup></q-btn>
+              </div>
+            </q-card-section>
+             <q-separator></q-separator>
+            <q-card-section style="font-size: 16px" class="q-pt-none">
+                <div class="row cls_space">
+                    <div class="col-6 q-px-md q-py-md">
+                        <q-input rounded :disable="true" outlined dense
+        v-model="edit_space.wikiSpaceId" label="Wiki Space ID" />
+                    </div>
+                    <div class="col-6 q-px-md q-py-md">
+                        <q-input rounded outlined dense
+        v-model="edit_space.description" label="Description*" />
+                    </div>
+                    <div class="col-6 q-px-md q-py-md">
+                        <q-input rounded :disable="true" outlined dense
+        v-model="edit_space.rootPageLocation" label="Root Page Location" />
+                    </div>
+                    <div class="col-6 q-px-md q-py-md">
+                        <q-input rounded disabled outlined dense
+        v-model="edit_space.publicPageUrl" label="Public Page URL" />
+                    </div>
+                    <div class="col-6 q-px-md q-py-md">
+                        <q-input rounded disabled outlined dense
+        v-model="edit_space.publicAttachmentUrl" label="Public Attachment URL" />
+                    </div>
+                    <div class="col-6 q-px-md q-py-md">
+                        <q-select rounded
+                              label="Restrict View"
+                              dense
+                              outlined
+                              v-model="edit_space.restrictView"
+                              :class="!$q.dark.isActive?'bg-white':''"
+                              use-input
+                              input-debounce="700"
+                              option-value="value"
+                              option-label="label"
+                              :options="restrict_view_options"
+                              @filter="filterFnRestrictView"
+                            >
+                              <template v-slot:no-option>
+                                <q-item>
+                                  <q-item-section class="text-grey">
+                                    No results
+                                  </q-item-section>
+                                </q-item>
+                              </template>
+                            </q-select>
+                    </div>
+                    <div class="col-6 q-px-md q-py-md">
+                        <q-select rounded
+                              label="Restrict Update"
+                              dense
+                              outlined
+                              v-model="edit_space.restrictUpdate"
+                              :class="!$q.dark.isActive?'bg-white':''"
+                              use-input
+                              input-debounce="700"
+                              option-value="value"
+                              option-label="label"
+                              :options="restrict_update_options"
+                              @filter="filterFnRestrictUpdate"
+                            >
+                              <template v-slot:no-option>
+                                <q-item>
+                                  <q-item-section class="text-grey">
+                                    No results
+                                  </q-item-section>
+                                </q-item>
+                              </template>
+                            </q-select>
+                    </div>
+                    <div class="col-6 q-px-md q-py-md">
+                        <q-select rounded
+                              label="Allow Any HTML"
+                              dense
+                              outlined
+                              v-model="edit_space.allowAnyHtml"
+                              :class="!$q.dark.isActive?'bg-white':''"
+                              use-input
+                              input-debounce="700"
+                              option-value="value"
+                              option-label="label"
+                              :options="allow_any_html_options"
+                              @filter="filterFnAllowAnyHtml"
+                            >
+                              <template v-slot:no-option>
+                                <q-item>
+                                  <q-item-section class="text-grey">
+                                    No results
+                                  </q-item-section>
+                                </q-item>
+                              </template>
+                            </q-select>
+                    </div>
+                </div>
+            </q-card-section>
+            <q-separator></q-separator>
+            <q-card-actions class="q-pl-lg q-py-md" align="left">
+              <q-btn size="16px" rounded @click="updateSpace" outline label="Update Space" class="text-capitalize
+        q-mb-md" color="primary" />
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -219,6 +332,7 @@ module.exports = {
             wiki_space_list: [],
             table_columns: [
                { name: 'spaceid', align: 'left', label: 'Space ID',style: 'width: 120px', field: 'wikiSpaceId', sortable: true },
+               { name: 'blogs', align: 'left', label: 'Blogs',style: 'width: 120px', field: '', sortable: true },
                { name: 'description', align: 'left', label: 'Description',style: 'width: 200px', field: 'description', sortable: true },
                { name: 'restrictview', align: 'left', label: 'Restrict View',style: 'width: 100px', field: 'restrictView', sortable: true },
                { name: 'anyhtml', align: 'left', label: 'Any HTML',style: 'width: 100px', field: 'allowAnyHtml', sortable: true },
@@ -229,16 +343,18 @@ module.exports = {
                 rowsPerPage: 0
               },
             new_space:{},
-            mdl_new_space:false,
+            edit_space:{},
+            mdl_new_space: false,
+            mdl_edit_space: false,
             restrict_view_options_all:
-            [{'label':'Y','value':'y'},{'label':'N','value':'n'}],
-            restrict_view_options: [{'label':'Y','value':'y'},{'label':'N','value':'n'}],
+            [{'label':'Y','value':'Y'},{'label':'N','value':'N'}],
+            restrict_view_options: [{'label':'Y','value':'Y'},{'label':'N','value':'N'}],
             restrict_update_options_all:
-            [{'label':'Y','value':'y'},{'label':'N','value':'n'}],
-            restrict_update_options: [{'label':'Y','value':'y'},{'label':'N','value':'n'}],
+            [{'label':'Y','value':'Y'},{'label':'N','value':'N'}],
+            restrict_update_options: [{'label':'Y','value':'Y'},{'label':'N','value':'N'}],
             allow_any_html_options_all:
-            [{'label':'Y','value':'y'},{'label':'N','value':'n'}],
-            allow_any_html_options: [{'label':'Y','value':'y'},{'label':'N','value':'n'}],
+            [{'label':'Y','value':'Y'},{'label':'N','value':'N'}],
+            allow_any_html_options: [{'label':'Y','value':'Y'},{'label':'N','value':'N'}],
             wiki_type_options_all: [{'label':'md','value':'md'},{'label':'html','value':'html'}],
             wiki_type_options: [{'label':'md','value':'md'},{'label':'html','value':'html'}],
             root_page_directory_options_all:
@@ -248,9 +364,29 @@ module.exports = {
         }
     },
     methods: {
+        openEditModal(item) {
+            let self = this;
+            self.edit_space=JSON.parse(JSON.stringify(item));
+            if (self.edit_space.restrictUpdate) {
+                self.edit_space.restrictUpdate = self.restrict_update_options_all.find(function(item){
+                    return item.value === self.edit_space.restrictUpdate;
+                });
+            }
+            if (self.edit_space.restrictView) {
+                self.edit_space.restrictView = self.restrict_view_options_all.find(function(item){
+                    return item.value === self.edit_space.restrictView;
+                });
+            }
+            if (self.edit_space.allowAnyHtml) {
+                self.edit_space.allowAnyHtml = self.allow_any_html_options_all.find(function(item){
+                    return item.value === self.edit_space.allowAnyHtml;
+                });
+            }
+            self.mdl_edit_space=true;
+        },
         fetchWikiSpaces() {
             var self = this;
-            var allParams = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            var allParams = $.extend({ moquiSessionToken:self.$root.moquiSessionToken }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/wikiSpaces", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.wiki_space_list = resp.wikiSpaceAndUserList;
@@ -332,11 +468,35 @@ module.exports = {
                                       wikiType: self.new_space.wiki_type?self.new_space.wiki_type.value:null,
                                       rootPageDirectory: self.new_space.root_page_direction?self.new_space.root_page_direction.value:null,
                                       rootPageLocation: self.new_space.root_page_override,
-                                      moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+                                      moquiSessionToken:self.$root.moquiSessionToken }, {});
               $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/createWikiSpace", headers:{Accept:'application/json'}, data:allParams,
                   error:moqui.handleAjaxError, success:function(resp) {
                       self.new_space = {};
                       self.fetchWikiSpaces();
+                      self.mdl_new_space = false;
+                      self.$q.notify({
+                        message: 'New space created successfully.',
+                        position: 'bottom-left',
+                      });
+                  }
+              });
+            },
+          updateSpace() {
+              let self = this;
+              var allParams = self.edit_space;
+              allParams["moquiSessionToken"] = self.$root.moquiSessionToken;
+              allParams["restrictUpdate"] = self.edit_space.restrictUpdate?self.edit_space.restrictUpdate.value:null;
+              allParams["restrictView"] = self.edit_space.restrictView?self.edit_space.restrictView.value:null;
+              allParams["allowAnyHtml"] = self.edit_space.allowAnyHtml?self.edit_space.allowAnyHtml.value:null;
+              $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/update_space", headers:{Accept:'application/json'}, data:allParams,
+                  error:moqui.handleAjaxError, success:function(resp) {
+                      self.fetchWikiSpaces();
+                      self.mdl_edit_space = false;
+                      self.$q.notify({
+                        message: 'Wiki space updated successfully.',
+                        position: 'bottom-left',
+                      });
+                      self.edit_space = {};
                   }
               });
             }
@@ -355,5 +515,11 @@ module.exports = {
     }
     .cls_space .q-field--float .q-field__label {
         top: 0px !important;
+    }
+    .custom_style {
+        background: #ECF2FF;
+    }
+    .custom_radius {
+        border-radius: 8px;
     }
 </style>

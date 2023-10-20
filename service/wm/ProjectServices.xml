@@ -91,6 +91,112 @@ along with this software (see the LICENSE.md file). If not, see
             </if>
         </actions>
     </service>
+    <service verb="search" noun="Projects">
+        <in-parameters>
+            <parameter name="indexName" default-value="mantle"/>
+            <parameter name="documentType" default-value="MantleProject"/>
+            <parameter name="freeSearchText"/>
+            <parameter name="partyId"/>
+            <parameter name="roleTypeId"/>
+            <parameter name="statusId"/>
+            <parameter name="workEffortTypeEnumId" default-value="WetProject"/>
+            <parameter name="pageOffset" default-value="" type="Integer"/>
+            <parameter name="pageLimit" default-value="" type="Integer"/>
+            <parameter name="orderByField" default-value="-workEffortId"/>
+            <parameter name="pageNoLimit" type="Boolean" default="false"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="projectList" type="List"/>
+            <parameter name="count" type="Integer"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="mantle.work.effort.WorkEffortAndParty" list="myProjectList">
+                <date-filter/>
+                <econdition field-name="workEffortTypeEnumId" value="WetProject"/>
+                <econdition field-name="statusId" operator="in" from="statusId" ignore-if-empty="true"/>
+                <econditions combine="or">
+                    <econditions><date-filter/><econdition field-name="partyId" from="ec.user.userAccount.partyId"/></econditions>
+                    <econdition field-name="visibilityEnumId" operator="in" value="WevAllUsers"/>
+                </econditions>
+                <select-field field-name="workEffortId,workEffortName,statusId,estimatedCompletionDate"/>
+                <order-by field-name="${orderByField}"/>
+            </entity-find>
+            <set field="myProjectIds" from="myProjectList.workEffortId"/>
+            <set field="queryString" from="''"/>
+            <set field="nestedQueryMap" from="[:]"/>
+            <set field="queryStringFinalORCondition" from="''"/>
+            <set field="loggedInPartyId" from="ec.user.userAccount.partyId"/>
+            <set field="nowTimeLong" from="System.currentTimeMillis()"/>
+            <if condition="queryString"><set field="queryString" from="'(' + queryString + ')'"/></if>
+            <if condition="myProjectIds">
+                <iterate list="myProjectIds" entry="projectId">
+                    <set field="queryStringProjectId" from="(queryStringProjectId ? queryStringProjectId + ' OR ' : '' ) + 'workEffortId:' + projectId"/>
+                </iterate>
+            </if>
+            <if condition="queryStringProjectId">
+                <set field="queryString" from="(queryString ? queryString + ' AND ' : '' ) + '(' + queryStringProjectId + ')'"/>
+            </if>
+            <if condition="workEffortTypeEnumId">
+                <set field="queryString" from="(queryString ? queryString + ' AND ' : '' ) + 'workEffortTypeEnumId:' + workEffortTypeEnumId"/>
+            </if>
+            <if condition="statusId">
+                <set field="queryStringStatus" from="''"/>
+                <set field="statusList" from="statusId ? statusId.split(',') as List : []"/>
+                <iterate list="statusList" entry="statusItem">
+                    <set field="queryStringStatus" from="(queryStringStatus ? queryStringStatus + ' OR ' : '' ) + 'statusId:' + statusItem"/>
+                </iterate>
+                <if condition="queryStringStatus">
+                    <set field="queryString" from="(queryString ? queryString + ' AND ' : '' ) + '(' + queryStringStatus + ')'"/>
+                </if>
+            </if>
+            <if condition="partyId &amp;&amp; roleTypeId">
+                <then>
+                    <set field="nestedQueryMap.parties" from="[bool:[filter:[
+                                [term:['parties.partyId':partyId]],
+                                [match:['parties.role':roleTypeId]],
+                            ], should:[
+                                [range:['parties.thruDate':[gte:nowTimeLong]]],
+                                [bool:[must_not:[exists:[field:'parties.thruDate']]]]
+                            ], minimum_should_match:1]]"/>
+                </then>
+                <else-if condition="partyId">
+                    <set field="nestedQueryMap.parties" from="[bool:[filter:[
+                                [term:['parties.partyId':partyId]],
+                            ], should:[
+                                [range:['parties.thruDate':[gte:nowTimeLong]]],
+                                [bool:[must_not:[exists:[field:'parties.thruDate']]]]
+                            ], minimum_should_match:1]]"/>
+                </else-if>
+                <else-if condition="roleTypeId">
+                    <set field="nestedQueryMap.parties" from="[bool:[filter:[
+                                [match:['parties.role':roleTypeId]],
+                            ], should:[
+                                [range:['parties.thruDate':[gte:nowTimeLong]]],
+                                [bool:[must_not:[exists:[field:'parties.thruDate']]]]
+                            ], minimum_should_match:1]]"/>
+                </else-if>
+            </if>
+            <if condition="freeSearchText">
+                <set field="queryString" from="(queryString ? queryString + ' AND ' : '') + '(' + elasticQueryAutoWildcard('description:' + freeSearchText, true) + ' OR ' + elasticQueryAutoWildcard('name:' + freeSearchText, true) + ')'" />
+            </if>
+            <set field="orderByFields" from="orderByField ? [orderByField.replace('workEffortName', 'name_keyword.keyword').replace('managerPartyId', 'parties.partyId')] : null"/>
+            <service-call name="org.moqui.search.SearchServices.search#DataDocuments" out-map="projectresult"
+                        in-map="[indexName:indexName, queryString:queryString, documentType:documentType, flattenDocument:false,
+                             orderByFields:orderByFields,nestedQueryMap:nestedQueryMap, pageIndex:pageOffset, pageSize:pageLimit, pageNoLimit:pageNoLimit]"/>
+            <set field="projectList" from="[]"/>
+            <set field="count" from="projectresult.documentListCount"/>
+            <if condition="projectresult.documentList">
+                <iterate list="projectresult.documentList" entry="weap">
+                    <set field="project" from="new HashMap()"/>
+                    <script>
+                        project.putAll(weap)
+                        project.put("workEffortName" ,weap.name)
+                        projectList.add(project)
+                    </script>
+                </iterate>
+            </if>
+        </actions>
+    </service>
     <service verb="create" noun="Project">
         <in-parameters>
             <auto-parameters entity-name="mantle.work.effort.WorkEffort" include="nonpk"/>

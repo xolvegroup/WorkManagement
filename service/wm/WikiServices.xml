@@ -126,4 +126,157 @@ along with this software (see the LICENSE.md file). If not, see
                           in-map="communicationEventId:communicationEventId"/>
         </actions>
     </service>
+    <service verb="get" noun="getAllWikiSpacePages">
+        <in-parameters>
+            <parameter name="wikiSpaceId" required="true"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="pagesList"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="moqui.resource.wiki.WikiPage" list="pagesList">
+                <econdition field-name="wikiSpaceId"/></entity-find>
+        </actions>
+    </service>
+    <service verb="get" noun="WikiPageChildren">
+        <implements service="org.moqui.impl.WikiServices.get#WikiPageReference"/>
+        <out-parameters>
+            <parameter name="childPageInfoList" type="List"><parameter name="childPageInfo" type="Map"/></parameter>
+        </out-parameters>
+        <actions>
+            <service-call name="org.moqui.impl.WikiServices.get#WikiPageReference" in-map="context" out-map="context"/>
+            <if condition="pageReference == null"><return/></if>
+
+            <set field="childPageRefList" from="pageReference.getChildren()"/>
+            <set field="childPageInfoList" from="[]"/>
+            <iterate list="childPageRefList" entry="childPageRef">
+                <set field="children" from="childPageRef.getChildren()"/>
+                <set field="childFilename" from="childPageRef.getFileName()"/>
+                <set field="childDotIdx" from="childFilename.lastIndexOf('.')"/>
+                <set field="childPageName" from="childDotIdx &gt; 0 ? childFilename.substring(0, childDotIdx) : childFilename"/>
+                <set field="childPagePath" from="(pagePath ? pagePath + '/' : '') + childPageName"/>
+                <!-- <log level="warn" message="wikiSpaceId ${wikiSpaceId} childPagePath '${childPagePath}' childFilename '${childFilename}' pagePath '${pagePath}'"/> -->
+
+                <set field="sequenceNum" from="50"/>
+                <service-call name="org.moqui.impl.WikiServices.get#WikiPageId" out-map="pageIdOut" out-map-add-to-existing="false"
+                        in-map="[wikiSpaceId:wikiSpaceId, pagePath:childPagePath]"/>
+                <if condition="pageIdOut.wikiPage != null">
+                    <set field="sequenceNum" from="pageIdOut.wikiPage.sequenceNum ?: 50"/></if>
+                <if condition="children">
+                    <then>
+                    <script>childPageInfoList.add([filename:childFilename,lazy:true, pagePath:childPagePath, pageName:childPageName, sequenceNum:sequenceNum])</script>
+                    </then>
+                    <else>
+                        <script>childPageInfoList.add([filename:childFilename, pagePath:childPagePath, pageName:childPageName, sequenceNum:sequenceNum])</script>
+                    </else>
+                </if>
+
+            </iterate>
+
+            <order-map-list list="childPageInfoList"><order-by field-name="sequenceNum"/><order-by field-name="childPageName"/></order-map-list>
+        </actions>
+    </service>
+    <service verb="get" noun="getAllBlogsForWikiSpace">
+        <in-parameters>
+            <parameter name="wikiSpaceId" required="true"/>
+            <parameter name="title" />
+            <parameter name="author" />
+            <parameter name="wikiPageCategoryId" />
+            <parameter name="publishStartDate" />
+            <parameter name="publishEndDate" />
+            <parameter name="orderByField" default-value="-publishDate"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="blogsList"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="moqui.resource.wiki.WikiBlogFindView" list="blogsListTmp">
+                <econdition field-name="wikiSpaceId" ignore-if-empty="true"/>
+                <econdition field-name="title" ignore-if-empty="true"/>
+                <econdition field-name="author" ignore-if-empty="true"/>
+                <econdition field-name="wikiPageCategoryId" ignore-if-empty="true"/>
+                <econdition field-name="publishDate" operator="greater-equals" from="publishStartDate" ignore-if-empty="true"/>
+                <econdition field-name="publishDate" operator="less-equals" from="publishEndDate" ignore-if-empty="true"/>
+                <order-by field-name="${orderByField}"/>
+                <select-field field-name="wikiSpaceId,wikiBlogId,wikiPageId,pagePath,summary,title,author,publishDate,smallImageLocation"/>
+            </entity-find>
+            <set field="blogsList" from="[]"/>
+            <if condition="blogsListTmp">
+                <iterate list="blogsListTmp" entry="blg">
+                    <set field="blog" from="new HashMap()"/>
+                    <script>
+                        blog.putAll(blg)
+                        blogsList.add(blog)
+                    </script>
+                    <!-- Get current assignee -->
+                    <entity-find entity-name="moqui.resource.wiki.WikiBlogCategoryDetail" list="categoryList">
+                        <econdition field-name="wikiBlogId" from="blg.wikiBlogId" />
+                    </entity-find>
+                    <if condition="categoryList">
+                        <set field="categoryList" from="categoryList"/>
+                        <script>
+                            blog.put("category_list",categoryList)
+                        </script>
+                    </if>
+                </iterate>
+            </if>
+        </actions>
+    </service>
+    <service verb="get" noun="getAllWikiSpaces">
+        <out-parameters>
+            <parameter name="spaceList"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="moqui.resource.wiki.WikiSpace" list="spaceList">
+                <order-by field-name="wikiSpaceId"/>
+            </entity-find>
+        </actions>
+    </service>
+    <service verb="get" noun="getImage">
+        <in-parameters>
+            <parameter name="wikiBlogId" required="true"/>
+        </in-parameters>
+        <actions>
+            <entity-find-one entity-name="moqui.resource.wiki.WikiBlog" value-field="wikiBlog">
+                <econdition field-name="wikiBlogId"/>
+            </entity-find-one>
+            <script>ec.web.sendResourceResponse(wikiBlog?.smallImageLocation)</script>
+        </actions>
+    </service>
+    <service verb="get" noun="getAllCategories">
+        <out-parameters>
+            <parameter name="categoryList"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="moqui.resource.wiki.WikiPageCategory" list="categoryList">
+                        <order-by field-name="categoryName"/></entity-find>
+        </actions>
+    </service>
+    <service verb="get" noun="getAllAuthors">
+        <out-parameters>
+            <parameter name="authorList"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="moqui.resource.wiki.WikiBlog" list="authorList" distinct="true">
+                            <select-field field-name="author"/></entity-find>
+        </actions>
+    </service>
+    <service verb="update" noun="wikiSpace">
+        <in-parameters>
+            <parameter name="wikiSpaceId" required="true"/>
+            <parameter name="description"/>
+            <parameter name="rootPageLocation"/>
+            <parameter name="publicPageUrl"/>
+            <parameter name="publicAttachmentUrl"/>
+            <parameter name="restrictView"/>
+            <parameter name="restrictUpdate"/>
+            <parameter name="allowAnyHtml"/>
+        </in-parameters>
+        <actions>
+            <service-call name="update#moqui.resource.wiki.WikiSpace" out-map="context"
+                          in-map="[wikiSpaceId:wikiSpaceId, description:description,
+                        rootPageLocation:rootPageLocation, publicPageUrl:publicPageUrl, publicAttachmentUrl:publicAttachmentUrl,
+                        restrictView:restrictView, restrictUpdate:restrictUpdate, allowAnyHtml:allowAnyHtml]"/>
+        </actions>
+    </service>
 </services>

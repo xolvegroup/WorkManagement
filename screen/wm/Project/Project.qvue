@@ -7,6 +7,7 @@
             overlay
             :width="550"
             :breakpoint="550"
+            class="right_options_popup"
             :content-class="!$q.dark.isActive?'bg-grey-3':'bg-black'"
           >
           <div class="q-pa-sm q-px-md">
@@ -15,17 +16,17 @@
                         Find Options
                     </div>
                     <div class="col-1">
-                        <q-btn flat round dense icon="close" @click="open_find_options_drawer=false"></q-btn>
+                        <q-btn rounded flat round dense icon="close" @click="open_find_options_drawer=false"></q-btn>
                     </div>
                 </div>
                 <div class="row q-mt-md q-col-gutter-md cls_project_detail">
                     <div class="col-6">
-                        <q-select
+                        <q-select rounded 
                               label="Person"
                               dense
                               outlined
                               v-model="mdl_filter_user"
-                              :class="!$q.dark.isActive?'bg-white':''"
+                              :content-class="!$q.dark.isActive?'bg-white':''"
                               use-input
                               input-debounce="700"
                               option-value="partyId"
@@ -43,13 +44,13 @@
                             </q-select>
                     </div>
                     <div class="col-6">
-                        <q-select
+                        <q-select rounded 
                             label="Role"
                             dense
                             outlined
                             v-model="mdl_filter_role"
                             use-input
-                            :class="!$q.dark.isActive?'bg-white':''"
+                            :content-class="!$q.dark.isActive?'bg-white':''"
                             input-debounce="0"
                             option-value="value"
                             option-label="label"
@@ -66,12 +67,12 @@
                           </q-select>
                     </div>
                     <div class="col-6">
-                    <q-select
+                    <q-select rounded 
                             label="Status"
                             dense
                             outlined
                             v-model="mdl_filter_status"
-                            :class="!$q.dark.isActive?'bg-white':''"
+                            :content-class="!$q.dark.isActive?'bg-white':''"
                             use-input
                             multiple
                             input-debounce="0"
@@ -90,10 +91,10 @@
                           </q-select>
                     </div>
                     <div class="col-6">
-                        <q-select
+                        <q-select rounded 
                             label="Order By"
                             dense
-                            :class="!$q.dark.isActive?'bg-white':''"
+                            :content-class="!$q.dark.isActive?'bg-white':''"
                             outlined
                             v-model="mdl_filter_order_by"
                             use-input
@@ -113,8 +114,11 @@
                           </q-select>
                     </div>
                     <div class="col-12">
-                        <q-btn @click="findOptions()" style="width: 140px" class="text-blue q-px-sm q-ml-sm" outline dense icon="search" label="Find"></q-btn>
-                        <q-btn @click="resetFind()" style="width: 140px" class="q-px-sm q-ml-sm" outline dense icon="search" label="Clear"></q-btn>
+                        <q-input label="Text Search" rounded class="col-8" v-model="mdl_filter_free_search" autofocus outlined style="margin:0;padding:0;" dense />
+                    </div>
+                    <div class="col-12">
+                        <q-btn rounded @click="findOptions()" style="width: 140px" class="text-blue q-px-sm q-ml-sm" outline dense icon="search" label="Find"></q-btn>
+                        <q-btn rounded @click="resetFind()" style="width: 140px" class="q-px-sm q-ml-sm" outline dense icon="search" label="Clear"></q-btn>
                     </div>
                 </div>
                 <div class="q-mt-md">
@@ -128,6 +132,7 @@
             bordered
             :width="700"
             :breakpoint="700"
+            class="right_options_popup"
             :content-class="!$q.dark.isActive?'bg-grey-3':''"
           >
             <q-scroll-area class="fit">
@@ -135,7 +140,7 @@
                 <q-layout v-if="selected_project" view="Lhh lpR fff" container :class="!$q.dark.isActive?'bg-white':''" style="height: 85vh;">
                                     <q-header :class="!$q.dark.isActive?'bg-white text-black':'bg-black text-white'">
                                       <q-toolbar>
-                                        <q-btn v-if="no_applicable_for_complete.indexOf(selected_project.statusId) === -1" @click="updateProject('WeComplete')" class="q-px-sm q-ml-sm" outline dense icon="check" label="Mark complete"></q-btn>
+                                        <q-btn rounded v-if="no_applicable_for_complete.indexOf(selected_project.statusId) === -1" @click="updateProject('WeComplete')" class="q-px-sm q-ml-sm" outline dense icon="check" label="Mark complete"></q-btn>
                                         <q-chip v-if="no_applicable_for_complete.indexOf(selected_project.statusId) > -1"
                                               :style="'background-color: ' + status_color_map[selected_project.statusId]"
                                               text-color="white"
@@ -144,8 +149,8 @@
                                             > <span class="q-mr-xs" style="font-size:22px;">●</span> {{getStatusName(selected_project.statusId)}}
                                             </q-chip>
                                         <q-toolbar-title></q-toolbar-title>
-                                        <q-btn @click="updateProject()" class="text-blue q-px-sm q-ml-sm" outline dense icon="check" label="Update"></q-btn>
-                                        <q-btn flat round dense icon="close" @click="checkUnsavedProgress()"></q-btn>
+                                        <q-btn rounded @click="updateProject()" class="text-blue q-px-sm q-ml-sm" outline dense icon="check" label="Update"></q-btn>
+                                        <q-btn rounded flat round dense icon="close" @click="checkUnsavedProgress()"></q-btn>
                                       </q-toolbar>
                                     </q-header>
 
@@ -155,11 +160,11 @@
                                           <q-item class="q-py-xs">
                                             <q-item-section class="q-py-none">
                                               <div style="margin: 0" class="text-weight-bold text-h6">
-                                              <span v-if="!is_edit_title">{{selected_project.workEffortName}} <q-btn flat round dense icon="edit" @click="is_edit_title=true"></q-btn></span>
+                                              <span v-if="!is_edit_title">{{selected_project.workEffortName}} <q-btn rounded flat round dense icon="edit" @click="is_edit_title=true"></q-btn></span>
                                               <span v-if="is_edit_title">
-                                              <q-input dense outlined v-model="selected_project.workEffortName">
+                                              <q-input rounded dense outlined v-model="selected_project.workEffortName">
                                                 <template v-slot:after>
-                                                    <q-btn @click="updateProject()" :disabled="!selected_project.workEffortName" square color="primary" size="md" icon="save" />
+                                                    <q-btn rounded @click="updateProject()" :disabled="!selected_project.workEffortName" color="primary" size="md" icon="save" />
                                                   </template>
                                               </q-input>
                                               </span>
@@ -170,7 +175,7 @@
                                         <div class="q-pa-md" style="padding-bottom: 3px;">
                                           <div class="cls_project_detail fix_selectbox_cls row q-col-gutter-md text-grey-8">
                                             <div class="col-4">
-                                              <q-select
+                                              <q-select rounded 
                                                       label="Manager"
                                                       dense
                                                       outlined
@@ -192,7 +197,7 @@
                                                     </q-select>
                                             </div>
                                             <div class="col-4">
-                                              <q-select
+                                              <q-select rounded 
                                                         label="Status"
                                                         dense
                                                         outlined
@@ -214,13 +219,13 @@
                                                       </q-select>
                                             </div>
                                             <div class="col-4">
-                                                <q-input label="Due Date" style="margin:0;padding:0;" outlined dense v-model="edit_due_date">
+                                                <q-input rounded label="Due Date" style="margin:0;padding:0;" outlined dense v-model="edit_due_date">
                                                     <template v-slot:append>
                                                       <q-icon name="event" class="cursor-pointer">
                                                         <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
                                                           <q-date mask="YYYY-MM-DD" v-model="edit_due_date">
                                                             <div class="row items-center justify-end">
-                                                              <q-btn v-close-popup label="Close" color="primary" flat />
+                                                              <q-btn rounded v-close-popup label="Close" color="primary" flat />
                                                             </div>
                                                           </q-date>
                                                         </q-popup-proxy>
@@ -230,8 +235,8 @@
                                             </div>
                                           </div>
                                           <div class="row text-grey-8 q-mt-lg">
-                                            <div class="col-12">
-                                                <div :class="$q.dark.isActive?'text-white':'text-black'" style="border: 1px solid #c2c2c2;min-height: 150px !important;" id="editor"></div>
+                                            <div class="col-12 project_main_desc">
+                                                <div :class="$q.dark.isActive?'text-white':'text-black'" style="border-radius: 12px !important;border: 1px solid #c2c2c2;min-height: 150px !important;" id="editor"></div>
                                             </div>
                                           </div>
                                         </div>
@@ -255,15 +260,14 @@
                                                 <!--<q-avatar v-for="item in assignee_list" size="24px" color="primary" text-color="white">
                                                   {{ getInitials(item.userFullName) }}
                                                 </q-avatar>-->
-                                                <q-btn dense outline rounded color="primary" icon="add" :class="$q.dark.isActive?'text-white':''" class="text-weight-bold">
+                                                <q-btn rounded dense outline color="primary" icon="add" :class="$q.dark.isActive?'text-white':''" class="text-weight-bold">
                                                     <q-popup-proxy ref="assigneeAdd" transition-show="flip-up" transition-hide="flip-down">
                                                         <div class="q-pa-md">
-                                                        <q-select
+                                                        <q-select rounded 
                                                             dense
                                                               outlined
                                                               v-model="new_assignee"
                                                               use-input
-                                                              square
                                                               input-debounce="700"
                                                               option-value="partyId"
                                                               option-label="userFullName"
@@ -297,13 +301,13 @@
           </q-drawer>
         <q-item class="q-pa-none q-pt-xs">
               <q-item-section>
-                <q-btn
-                style="width: 125px;"
+                <q-btn rounded style="width: 140px;"
             class="custom_btn_dropdown q-my-xs q-ml-sm"
             dense
                   split
+                  outline rounded
                   @click="new_project={title: '', assignee: null, project: null, due_date: null};is_add_project=true"
-                  color="primary"
+                  color=""
                   no-caps
                   icon="add"
                   label="Add Project"
@@ -311,8 +315,8 @@
                 </q-btn>
               </q-item-section>
               <q-item-section style="display: block;" class="cls_project_detail">
-              <q-btn style="width: 130px" class="text-capitalize float-right" outline rounded dense label="Find Options" icon="search" @click="open_find_options_drawer=true"></q-btn>
-              <q-btn style="width: 130px" v-if="Object.keys(filter_params).length > 1 || (filter_params['orderByField'] != '-workEffortId' && mdl_filter_order_by !== null)" @click="resetFind()" class="text-capitalize float-right text-red" outline rounded dense icon="close" label="Clear"></q-btn>
+              <q-btn rounded style="width: 130px" class="text-capitalize float-right" outline dense label="Find Options" icon="search" @click="open_find_options_drawer=true"></q-btn>
+              <q-btn rounded style="width: 130px" v-if="Object.keys(filter_params).length > 1 || (filter_params['orderByField'] != '-workEffortId' && mdl_filter_order_by !== null)" @click="resetFind()" class="text-capitalize float-right text-red" outline dense icon="close" label="Clear"></q-btn>
               </q-item-section>
             </q-item>
                     <q-card flat class="q-mt-sm">
@@ -323,6 +327,7 @@
                         @request="onPageChange"
                         :wrap-cells="true"
                               :data="project_list"
+                              :card-class="!$q.dark.isActive?'custom_style custom_radius':'custom_radius'"
                               :filter="filter"
                               table-header-class="custom_table_header"
                               :columns="table_columns"
@@ -334,19 +339,18 @@
                             <template v-if="is_add_project" v-slot:top-row>
                                 <q-tr>
                                   <q-td style="padding: 0">
-                                      <q-input class="col-8" v-model="new_project.title" autofocus square outlined style="margin:0;padding:0;" dense>
+                                      <q-input square class="col-8" v-model="new_project.title" autofocus outlined style="margin:0;padding:0;" dense>
                                         <template v-slot:before>
                                           <q-icon @click="is_add_project=false" color="red" class="cursor-pointer q-ml-xs" name="close" />
                                         </template>
                                     </q-input>
                                   </q-td>
                                   <q-td style="padding: 0">
-                                  <q-select
+                                  <q-select square
                                         dense
                                           outlined
                                           v-model="new_project.assignee"
                                           use-input
-                                          square
                                           input-debounce="700"
                                           option-value="partyId"
                                           option-label="userFullName"
@@ -364,13 +368,13 @@
                                         </q-select></q-td>
                                   <q-td>In Planning</q-td>
                                   <q-td style="padding: 0 7px 0 0">
-                                      <q-input style="margin:0;padding:0;" square outlined dense v-model="new_project.due_date">
+                                      <q-input square style="margin:0;padding:0;" outlined dense v-model="new_project.due_date">
                                         <template v-slot:append>
                                           <q-icon name="event" class="cursor-pointer">
                                             <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
                                               <q-date mask="YYYY-MM-DD" v-model="new_project.due_date">
                                                 <div class="row items-center justify-end">
-                                                  <q-btn v-close-popup label="Close" color="primary" flat />
+                                                  <q-btn rounded v-close-popup label="Close" color="primary" flat />
                                                 </div>
                                               </q-date>
                                             </q-popup-proxy>
@@ -378,7 +382,7 @@
                                         </template>
                                         <template v-slot:after>
                                           <!--<q-icon @click="addProject" class="text-green" style="cursor: pointer;" class="q-mr-sm" name="check_circle" />-->
-                                          <q-btn @click="addProject" :disabled="!new_project.title" square color="primary" size="md" icon="add_task" />
+                                          <q-btn rounded @click="addProject" :disabled="!new_project.title" color="primary" size="md" icon="add_task" />
                                         </template>
                                       </q-input>
                                   </q-td>
@@ -398,15 +402,14 @@
                                     <template v-slot:body-cell-manager="props">
                                       <q-td :props="props">
                                         <span>{{props.row.assignedUser.userFullName}}
-                                            <q-btn class="float-right" outline dense size="sm" round color="primary" icon="person">
+                                            <q-btn rounded class="float-right" outline dense size="sm" round color="primary" icon="person">
                                                 <q-popup-proxy @before-show="add_edit_assignee = props.row.assignedUser" transition-show="flip-up" transition-hide="flip-down">
                                                     <div class="q-pa-md">
-                                                    <q-select
+                                                    <q-select rounded 
                                                         dense
                                                           outlined
                                                           v-model="add_edit_assignee"
                                                           use-input
-                                                          square
                                                           input-debounce="700"
                                                           option-value="partyId"
                                                           option-label="userFullName"
@@ -429,15 +432,14 @@
                                             </q-btn>
                                         </span>
                                         <span v-if="!props.row.managerPartyId">
-                                            <q-btn class="float-right" outline dense size="sm" round color="primary" icon="person">
+                                            <q-btn rounded class="float-right" outline dense size="sm" round color="primary" icon="person">
                                                 <q-popup-proxy @before-show="add_edit_assignee=null" transition-show="flip-up" transition-hide="flip-down">
                                                     <div class="q-pa-md">
-                                                    <q-select
+                                                    <q-select rounded 
                                                         dense
                                                           outlined
                                                           v-model="add_edit_assignee"
                                                           use-input
-                                                          square
                                                           input-debounce="700"
                                                           option-value="partyId"
                                                           option-label="userFullName"
@@ -490,7 +492,8 @@ module.exports = {
                 rowsNumber: 0,
                 sortBy: 'workEffortId',
                 descending: true,
-              },
+            },
+            mdl_filter_free_search:"",
             filter_params: {},
             edit_due_date: null,
             selected_project: {},
@@ -567,17 +570,31 @@ module.exports = {
             const fetchCount = rowsPerPage === 0 ? this.pagination.rowsNumber : rowsPerPage;
             if (self.filter_params) {
                 var allParams = JSON.parse(JSON.stringify(self.filter_params));
-                allParams["pageOffset"] = startRow;
-                allParams["pageLimit"] = fetchCount;
-                allParams["moquiSessionToken"] = $("#confMoquiSessionToken").val();
+                //allParams["pageOffset"] = startRow;
+                //allParams["pageLimit"] = fetchCount;
+                allParams["moquiSessionToken"] = self.$root.moquiSessionToken;
             }
             else {
-                var allParams = $.extend({pageOffset: startRow, pageLimit: fetchCount ,moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+                //var allParams = $.extend({pageOffset: startRow, pageLimit: fetchCount ,moquiSessionToken:self.$root.moquiSessionToken }, {});
+                var allParams = $.extend({moquiSessionToken:self.$root.moquiSessionToken }, {});
             }
+            allParams["pageOffset"] = page-1;
+            allParams["pageLimit"] = rowsPerPage;
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/projects", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.pagination.rowsNumber = resp.count;
                     self.project_list = resp.projectList.map(function(item){
+                        if (item["parties"] && (item["parties"]).length) {
+                            let partyItem = item["parties"].filter(function(item){
+                                return item["role"] === "Manager" && !item.thruDate;
+                            });
+                            if ((partyItem || []).length > 0) {
+                                partyItem = partyItem[0];
+                                item["managerPartyId"] = partyItem.partyId;
+                                item["managerFirstName"] = partyItem.firstName;
+                                item["managerLastName"] = partyItem.lastName;
+                            }
+                        }
                         item["assignedUser"] = null;
                         if (item["managerPartyId"]) {
                             item["assignedUser"] = {userFullName: item["managerFirstName"]+ " " + item["managerLastName"], partyId: item["managerPartyId"]};
@@ -686,6 +703,9 @@ module.exports = {
             if (self.mdl_filter_role) {
                 self.filter_params["roleTypeId"] = self.mdl_filter_role.value;
             }
+            if (self.mdl_filter_free_search) {
+                self.filter_params["freeSearchText"] = "*" + self.mdl_filter_free_search + "*";
+            }
             if (self.mdl_filter_status && self.mdl_filter_status.length > 0) {
                 let status_filters = "";
                 self.mdl_filter_status.forEach(function(item){
@@ -714,6 +734,7 @@ module.exports = {
             self.mdl_filter_role = null;
             self.mdl_filter_status = null;
             self.mdl_filter_order_by = null;
+            self.mdl_filter_free_search = "";
             self.filter_params = {};
             self.pagination.sortBy = "workEffortId";
             self.pagination.descending = true;
@@ -732,7 +753,7 @@ module.exports = {
             self.is_edit_title = false;
             self.selected_project = {};
             self.open_project_detail=true;
-            var allParams = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            var allParams = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:self.$root.moquiSessionToken }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/projects/project", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.selected_project = resp.project;
@@ -768,7 +789,7 @@ module.exports = {
         },
         initializeEditor() {
             let self = this;
-            InlineEditor
+            ClassicEditor
             .create( document.querySelector( '#editor' ),
             {
                 mention: {
@@ -846,7 +867,7 @@ module.exports = {
             var allParams = $.extend({ workEffortName: self.new_project.title,
              assignToPartyId: (self.new_project.assignee ? self.new_project.assignee.partyId:null), description: "",
              estimatedCompletionDate: self.new_project.due_date,
-              moquiSessionToken:$("#confMoquiSessionToken").val()}, {});
+              moquiSessionToken:self.$root.moquiSessionToken}, {});
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/projects/addProject", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.is_add_project=false;
@@ -863,7 +884,7 @@ module.exports = {
         updateProject(status) {
             let self = this;
             let params = self.selected_project;
-            params["moquiSessionToken"] = $("#confMoquiSessionToken").val();
+            params["moquiSessionToken"] = self.$root.moquiSessionToken;
             params["managerPartyId"] = (self.assignee ? self.assignee.partyId:null);
             params["statusId"] = self.status.statusId;
             if (status) {
@@ -880,9 +901,11 @@ module.exports = {
                     self.project_details_current.status = self.status_options_master.find(function(item){
                         return item.statusId === params["statusId"];
                     });
-                    self.onPageChange({
-                      pagination: self.pagination,
-                    });
+                    setTimeout( () => {
+                        self.onPageChange({
+                          pagination: self.pagination,
+                        });
+                    }, 2000 );
                     self.getAssignees(self.selected_project);
                     self.new_assignee = {};
                     var mentioned_users = [];
@@ -905,21 +928,23 @@ module.exports = {
         addEditAssignee(workEffortId) {
             let self = this;
             let params = {};
-            params["moquiSessionToken"] = $("#confMoquiSessionToken").val();
+            params["moquiSessionToken"] = self.$root.moquiSessionToken;
             params["workEffortId"] = workEffortId;
             params["managerPartyId"] = (self.add_edit_assignee ? self.add_edit_assignee.partyId:null);
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/projects/updateProject", headers:{Accept:'application/json'}, data:params,
                 error:moqui.handleAjaxError, success:function(resp) {
-                    self.onPageChange({
-                      pagination: self.pagination,
-                    });
+                    setTimeout( () => {
+                        self.onPageChange({
+                          pagination: self.pagination,
+                        });
+                    }, 2000 );
                     $(".q-menu").hide();
                 }
             });
         },
         getStatuses () {
             var self = this;
-            var allParams = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            var allParams = $.extend({ moquiSessionToken:self.$root.moquiSessionToken }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/statuses", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.status_options_master = resp.statusList;
@@ -929,7 +954,7 @@ module.exports = {
         },
         getAssignees(row) {
             var self = this;
-            var allParams = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            var allParams = $.extend({ workEffortId:row.workEffortId, moquiSessionToken:self.$root.moquiSessionToken }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/projects/assignees", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.assignee_list = resp.assigneeList.map(function(item){
@@ -941,7 +966,7 @@ module.exports = {
         },
         addAssignee() {
             var self = this;
-            var allParams = $.extend({ workEffortId:self.selected_project.workEffortId, partyId: self.new_assignee.partyId, roleTypeId: "Assignee", moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            var allParams = $.extend({ workEffortId:self.selected_project.workEffortId, partyId: self.new_assignee.partyId, roleTypeId: "Assignee", moquiSessionToken:self.$root.moquiSessionToken }, {});
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/collaborators/addCollaborator", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.getAssignees(self.selected_project);
@@ -953,7 +978,7 @@ module.exports = {
         },
         removeAssignees(item) {
             var self = this;
-            var allParams = $.extend({ workEffortId:item.workEffortId, partyId: item.partyId, roleTypeId: item.roleTypeId, moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            var allParams = $.extend({ workEffortId:item.workEffortId, partyId: item.partyId, roleTypeId: item.roleTypeId, moquiSessionToken:self.$root.moquiSessionToken }, {});
             $.ajax({ type:'POST', dataType:'json', url: "/rest/s1/wm/collaborators/removeCollaborator", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.getAssignees(self.selected_project);
@@ -989,7 +1014,7 @@ module.exports = {
         },
         fetchLoggedInUser() {
             let self = this;
-            var allParams = $.extend({ moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            var allParams = $.extend({ moquiSessionToken:self.$root.moquiSessionToken }, {});
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/loggedInUser", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.logged_in_user = resp.loggedInUser;
@@ -1008,7 +1033,7 @@ module.exports = {
         },
         getAssigneeList (search_keyword) {
             var self = this;
-            var allParams = $.extend({ term: search_keyword,moquiSessionToken:$("#confMoquiSessionToken").val() }, {});
+            var allParams = $.extend({ term: search_keyword,moquiSessionToken:self.$root.moquiSessionToken }, {});
             return $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/users", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError
             });
@@ -1040,8 +1065,8 @@ module.exports = {
                 self.$q.dialog({
                     title: 'Confirm',
                     message: 'You have unsaved changed. Do you really want to leave?',
-                    cancel: {label: "Discard Changes", noCaps: true, outline: true, color: "Black"},
-                    ok: {label: "Return to Editing", noCaps: true, outline: true},
+                    cancel: {label: "Discard Changes", noCaps: true, outline: true, color: "Black", rounded: true},
+                    ok: {label: "Return to Editing", noCaps: true, outline: true, rounded: true},
                     persistent: true
                   }).onCancel(() => {
                     self.open_project_detail=false;
@@ -1114,7 +1139,35 @@ module.exports = {
         width: 100% !important;
         margin-bottom: 9px !important;
     }
-    .ck-editor__editable {
+    .project_main_desc .ck-editor__editable_inline {
         min-height: 150px !important;
+    }
+    .project_main_desc .ck-editor__editable_inline .ck-source-editing-area textarea{
+        min-height: 150px !important;
+        overflow-y: scroll;
+    }
+    .project_main_desc .ck-editor__editable_inline .ck-source-editing-area{
+        min-height: 150px !important;
+        overflow-y: scroll;
+    }
+    .custom_style {
+        background: #ECF2FF;
+    }
+    .custom_radius {
+        border-radius: 8px;
+    }
+    .right_options_popup .q-field__label {
+        background: transparent !important;
+    }
+    .right_options_popup .q-field__input {
+        background: transparent !important;
+    }
+    .right_options_popup .q-field--float .q-field__label {
+        background: grey !important;
+        color: white !important;
+        border-radius: 8px !important;
+    }
+    .ck-content {
+        color: black !important;
     }
 </style>
