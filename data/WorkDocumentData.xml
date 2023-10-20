@@ -37,4 +37,11 @@ along with this software (see the LICENSE.md file). If not, see
         <fields fieldSeqId="300" fieldPath="description"/>
         <fields fieldSeqId="301" fieldPath="workEffortName" fieldNameAlias="name_keyword" fieldType="keyword"/>
     </dataDocuments>
+    <moqui.basic.email.EmailTemplate emailTemplateId="WM_TASK_UPDATE" description="Work Management Task Update Notification" emailServerId="SYSTEM"
+        emailTypeEnumId="EMT_NOTIFICATION" bodyScreenLocation="component://WorkManagement/screen/EmailTemplates/WMTaskUpdateNotificationEmail.xml" webappName="webroot"
+        fromAddress="support@xolvegroup.com" fromName="" ccAddresses="" bccAddresses="" subject="${title}" sendPartial="Y"/>
+    <moqui.entity.document.DataDocumentLink dataDocumentId="MantleTask" linkSeqId="21" linkSet="hm" label="Task Summary" urlType="screen"
+            linkUrl="/qapps/wm/Task?id=${workEffortId}"/>
+    <moqui.security.user.NotificationTopic topic="MantleTask" emailTemplateId="WM_TASK_UPDATE"
+            linkTemplate="/qapps/wm/Task?id=${workEffortId}"/>
 </entity-facade-xml>
