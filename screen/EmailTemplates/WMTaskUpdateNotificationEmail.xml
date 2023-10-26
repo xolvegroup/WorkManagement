@@ -28,21 +28,17 @@ along with this software (see the LICENSE.md file). If not, see
     <widgets><render-mode>
         <text type="html"><![CDATA[
 <html><body>
-    <h2>${topicDescription!""} Notification (${type!"info"})</h2>
-    <h4>${title}</h4>
-    <#if linkUrl?has_content><p><#if linkUrl?starts_with("http")><a href="${linkUrl}">${linkUrl}</a><#else>${linkUrl}</#if></p></#if>
-    <p><#if notificationMessageId?has_content>Notification Message ID ${notificationMessageId} </#if>Sent ${ec.l10n.format(sentDate, "")} to topic '${topic}'</p>
-    <span style="color: #ed9e14!important;font-weight: 600;">Xolve</span>
+    <p style="font-size: 15px;">This task has been updated</p>
+    <#if linkUrl?has_content>
+        <a href="${linkUrl}" target="_blank" style="border: solid 1px #3774e2; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 6px 18px; text-decoration: none; text-transform: capitalize; background-color: #3774e2; border-color: #3774e2; color: #ffffff;">View Task</a>
+    </#if>
 </body></html>
         ]]></text>
         <text type="text"><![CDATA[
-${topicDescription!""} Notification (${type!"info"})
-
-${title}
+This task has been updated
 
 ${linkUrl!""}
 
-<#if notificationMessageId?has_content>Notification Message ID ${notificationMessageId} </#if>Sent ${ec.l10n.format(sentDate, '')} to topic '${topic}'
         ]]></text>
     </render-mode></widgets>
 </screen>
