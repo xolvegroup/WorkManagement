@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd">
+    <!-- for fields available see NotificationMessageImpl.getWrappedMessageMap(), this is generic so nothing from the 'message' Map within it -->
+    <actions>
+        <if condition="link">
+            <if condition="webHostName"><then>
+                <set field="linkUrl" from="'https://' + webHostName + (link.startsWith('/') ? '' : '/') + link"/>
+            </then><else>
+                <set field="rootUrl" from="org.moqui.impl.context.WebFacadeImpl.getWebappRootUrl(sri?.webappName ?: 'webroot', null, true, false, ec)"/>
+                <set field="linkUrl" from="rootUrl &amp;&amp; !rootUrl.contains('localhost') ? rootUrl + '/' + link : link"/>
+                <!-- <log level="warn" message="rootUrl ${rootUrl} link ${link} linkUrl ${linkUrl}"/> -->
+            </else></if>
+        </if>
+    </actions>
+    <widgets><render-mode>
+        <text type="html"><![CDATA[
+<html><body>
+    <p style="font-size: 15px;">This task has been updated</p>
+    <#if linkUrl?has_content>
+        <a href="${linkUrl}" target="_blank" style="border: solid 1px #3774e2; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 6px 18px; text-decoration: none; text-transform: capitalize; background-color: #3774e2; border-color: #3774e2; color: #ffffff;">View Task</a>
+    </#if>
+</body></html>
+        ]]></text>
+        <text type="text"><![CDATA[
+This task has been updated
+
+${linkUrl!""}
+
+        ]]></text>
+    </render-mode></widgets>
+</screen>
