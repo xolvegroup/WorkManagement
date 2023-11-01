@@ -935,6 +935,9 @@ module.exports = {
             }
             allParams["pageOffset"] = page-1;
             allParams["pageLimit"] = rowsPerPage;
+            if (allParams["pageLimit"] == 0) {
+                allParams["pageLimit"] = null;
+            }
             $.ajax({ type:'GET', dataType:'json', url: "/rest/s1/wm/tasks", headers:{Accept:'application/json'}, data:allParams,
                 error:moqui.handleAjaxError, success:function(resp) {
                     self.pagination.rowsNumber = resp.count;
