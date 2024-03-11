@@ -87,13 +87,13 @@ along with this software (see the LICENSE.md file). If not, see
     <resource name="createWikiSpace">
         <method type="post"><service name="org.moqui.impl.WikiServices.create#WikiSpace"/></method>
     </resource>
-    <resource name="getWikiSpaceTree">
+    <resource name="getWikiSpaceTree" require-authentication="anonymous-view">
         <method type="get"><service name="wm.WikiServices.get#WikiPageChildren"/></method>
     </resource>
     <resource name="getWikiPageInfoById">
         <method type="get"><service name="org.moqui.impl.WikiServices.get#WikiPageInfo"/></method>
     </resource>
-    <resource name="getPublishedWikiPageText">
+    <resource name="getPublishedWikiPageText" require-authentication="anonymous-view">
         <method type="get"><service name="org.moqui.impl.WikiServices.get#PublishedWikiPageText"/></method>
     </resource>
     <resource name="updateWikiPage">
