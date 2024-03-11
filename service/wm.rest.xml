@@ -20,7 +20,6 @@ along with this software (see the LICENSE.md file). If not, see
     Using "anonymous-all for now and it is working. Also does not require the -u parameter in the call.-->
 <resource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/rest-api-3.xsd"
         name="wm" displayName="Work Management REST API" version="1.0.0">
-
     <resource name="tasks">
         <method type="get"><service name="wm.TaskServices.search#Tasks"/></method>
         <resource name="task">
